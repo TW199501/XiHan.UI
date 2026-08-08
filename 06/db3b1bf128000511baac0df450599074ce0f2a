@@ -1,0 +1,26 @@
+ui/docs/superpowers/plans/2026-08-09-theme-derivation-and-editor.md
+  s_28603fabc64aac::t_c4ef0357221d7d 1-2257
+ui/docs/superpowers/specs/2026-08-09-theme-derivation-and-editor-design.md
+  s_28603fabc64aac::t_e99d902fedeb14 1-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "06db3b1bf128000511baac0df450599074ce0f2a",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_28603fabc64aac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "54567154-fda1-46dc-b3ad-5f7a75ae871d",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
