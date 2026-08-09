@@ -1,0 +1,30 @@
+ui/packages/system/src/derive/oklch.ts
+  s_4f619236eefca6::t_8b25f463fef523 1-165
+ui/packages/system/tsconfig.json
+  s_4f619236eefca6::t_2f92d84ef17ca8 5
+ui/packages/system/tests/contrast.spec.ts
+  s_4f619236eefca6::t_c51559d576821e 7,48
+ui/packages/system/tests/oklch.spec.ts
+  s_4f619236eefca6::t_6d204688fcb16c 1-148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "5105c6e55439b6a1ded163fecefe152c2a653deb",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_4f619236eefca6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5fe31a8bf08941d1",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
