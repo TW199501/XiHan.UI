@@ -1,0 +1,23 @@
+ui/eslint.config.js
+  s_ec3bb69e53a507::t_d88a6b8b3feebf 12-15
+ui/packages/visual/README.md
+  s_ec3bb69e53a507::t_9387c52eaceb95 105-110
+ui/packages/wc/package.json
+  s_ec3bb69e53a507::t_d62df4ed1626a6 50-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "33d0c2ddad867823346f3d08c4adad6540c77994",
+  "prompts": {},
+  "sessions": {
+    "s_ec3bb69e53a507": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac40ca5c5bd1695b7",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
