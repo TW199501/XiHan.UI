@@ -1,0 +1,28 @@
+ui/packages/system/tests/parity.spec.ts
+  s_648699f4baf773::t_b6624e5e4608fe 205,210,212-217
+  s_e81f0884eaa4aa::t_ac30b5f95548b6 195-204,206-209,211,257-261
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "f929ff339e7416eca7bfc91df4b76e32afb68032",
+  "prompts": {},
+  "sessions": {
+    "s_648699f4baf773": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af048d18d5372fd92",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    },
+    "s_e81f0884eaa4aa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a93effde686f3f33d",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
