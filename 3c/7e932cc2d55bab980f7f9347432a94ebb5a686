@@ -1,0 +1,28 @@
+ui/packages/system/tokens.css
+  s_b9c173cc9afe42::t_6c8e04b695fcfb 92-101,172-176,197-201,222-226
+ui/packages/system/build/emit-tokens.mjs
+  s_b9c173cc9afe42::t_6a05bb29d5a4db 47,78-120,131-132,137-138,159,166,173,178-181
+ui/packages/system/tests/contrast.spec.ts
+  s_b9c173cc9afe42::t_15b1f83cb86089 43-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "3c7e932cc2d55bab980f7f9347432a94ebb5a686",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_b9c173cc9afe42": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0843d90197f6a813",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
