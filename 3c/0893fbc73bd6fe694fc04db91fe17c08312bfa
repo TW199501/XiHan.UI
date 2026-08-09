@@ -1,0 +1,21 @@
+ui/README.md
+  s_ec3bb69e53a507::t_d0ada48d02d00d 62-101
+ui/README_cn.md
+  s_ec3bb69e53a507::t_64af6b9c98cce5 62-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "3c0893fbc73bd6fe694fc04db91fe17c08312bfa",
+  "prompts": {},
+  "sessions": {
+    "s_ec3bb69e53a507": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac40ca5c5bd1695b7",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
