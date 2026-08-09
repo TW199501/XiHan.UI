@@ -1,0 +1,32 @@
+ui/packages/system/build/emit-tokens.mjs
+  s_ec80f0970e9bb6::t_c19c00003c35a6 8-10
+ui/packages/system/src/derive/slots.ts
+  s_ec80f0970e9bb6::t_ee43d306b36f2c 1-86
+ui/packages/system/src/runtime/brand.ts
+  s_ec80f0970e9bb6::t_40964a6bdea6f2 6,57-72,75,78
+ui/packages/system/src/runtime/controller.ts
+  s_ec80f0970e9bb6::t_20f951c0ba878c 8,65-71,73,75-76,83-84,87,100
+ui/packages/system/tests/brand.spec.ts
+  s_ec80f0970e9bb6::t_113d628e3953f1 3,7,12-16,23-24,42-64,75-78,108-113,123-140,145,180,183-184,189,191-202
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "f883e3c8029457468c6fc5c8aaf5dce6cc0b80d0",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_ec80f0970e9bb6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5050ae1084983057",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
