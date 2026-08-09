@@ -1,0 +1,26 @@
+ui/packages/system/src/derive/index.ts
+  s_045ba7430e68cd::t_b8163bddbef98a 37-59,62-63,66-71,73-74,76-79,130,158,164-175,179,202,204-208
+ui/packages/system/tests/contrast.spec.ts
+  s_045ba7430e68cd::t_0c4a56f621223b 4-5,10-11,165-179,205,208-214,225-230,233-236,238,241-249,252,258,260,263,272-276,282,284-310,316
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "1ffd825bedb62b3bbeedad5008ef8734ed784b1f",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_045ba7430e68cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a04fcd5321fa36bfa",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
