@@ -1,0 +1,19 @@
+ui/packages/system/tests/slots.spec.ts
+  s_e81f0884eaa4aa::t_c879350c6328d8 1-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "4766b1679644e4a1900ef05c4ae01eb418a70bdc",
+  "prompts": {},
+  "sessions": {
+    "s_e81f0884eaa4aa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a93effde686f3f33d",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
