@@ -1,0 +1,28 @@
+ui/apps/playground-vue/src/ThemeEditor.vue
+  s_40a5fa832e9916::t_3c513d49880a53 2,14,21-23,27-30,55-56,58,61,64-68,99,102-111,125-128,130,137,141,143,145,149-161,163-164,166-175,177-188,190,193-196,201,204-205,214,217,221-224,265-271,273,275-279,281,297-303
+ui/packages/system/src/derive/index.ts
+  s_40a5fa832e9916::t_4054e1bc538c3b 15
+ui/packages/system/src/runtime/index.ts
+  s_40a5fa832e9916::t_357787543a0e1b 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "6d6bc2f89ae0deefd3e109d97fa75bb74bcbf088",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_40a5fa832e9916": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-abf6f259902794230",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
