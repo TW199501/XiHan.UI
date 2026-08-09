@@ -1,0 +1,24 @@
+ui/packages/system/build/emit-tokens.mjs
+  s_b9c173cc9afe42::t_0951a95d0c426e 132-135,137-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "863cd89db9152aaa4dbe671c0be1d566a2b7152d",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_b9c173cc9afe42": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0843d90197f6a813",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
