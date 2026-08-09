@@ -1,0 +1,30 @@
+ui/packages/system/src/runtime/brand.ts
+  s_ec80f0970e9bb6::t_2b2ae4649828e0 1-64
+ui/packages/system/src/runtime/controller.ts
+  s_ec80f0970e9bb6::t_7211c7e8debc59 1,5,22-23,68-82,84,101
+ui/packages/system/src/runtime/index.ts
+  s_ec80f0970e9bb6::t_7232253c3bd54b 1-3,5
+ui/packages/system/tests/brand.spec.ts
+  s_ec80f0970e9bb6::t_ce1ef8ca454f37 1-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "3d7870681fd1c1388657ecaad03d705c4d639182",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_ec80f0970e9bb6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5050ae1084983057",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
