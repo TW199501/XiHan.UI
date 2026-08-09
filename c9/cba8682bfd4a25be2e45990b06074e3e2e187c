@@ -1,0 +1,24 @@
+ui/packages/system/src/runtime/controller.ts
+  s_ec80f0970e9bb6::t_34aa987431889f 23-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "c9cba8682bfd4a25be2e45990b06074e3e2e187c",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_ec80f0970e9bb6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5050ae1084983057",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
