@@ -1,0 +1,19 @@
+ui/packages/system/tests/contrast.spec.ts
+  s_e81f0884eaa4aa::t_6fa8837c420a96 90-105,147-173,199-206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "01ce9a443b565cda0ea908ea9a7650c84107e3b0",
+  "prompts": {},
+  "sessions": {
+    "s_e81f0884eaa4aa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a93effde686f3f33d",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
