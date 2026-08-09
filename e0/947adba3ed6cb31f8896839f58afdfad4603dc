@@ -1,0 +1,28 @@
+ui/packages/system/src/derive/ramp.ts
+  s_b621936df96399::t_763e52c53aac89 1-65
+ui/packages/system/src/derive/scale.ts
+  s_b621936df96399::t_d235e750d3cb64 1-49
+ui/packages/system/tests/derive.spec.ts
+  s_b621936df96399::t_7199c03961546e 1-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "e0947adba3ed6cb31f8896839f58afdfad4603dc",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_b621936df96399": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-af6daa7061620fb73",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
