@@ -1,0 +1,42 @@
+ui/packages/system/build/emit-tokens.mjs
+  s_b9c173cc9afe42::t_2dd2ea8664a714 2-4,7,11,17-42,51-52,73-76,83-117,125-126,149-152,156,159-165,179-182
+ui/packages/system/package.json
+  s_b9c173cc9afe42::t_dab129cf627aa3 21,28
+ui/packages/system/src/generated/tokens.ts
+  s_b9c173cc9afe42::t_9d9d1fbb968340 105-151
+ui/packages/system/tests/contrast.spec.ts
+  s_b9c173cc9afe42::t_532b24c1c11611 7,9,25-56
+ui/packages/system/tests/derive.spec.ts
+  s_b9c173cc9afe42::t_e5ce0c380121c8 12-13,199-201,203
+ui/packages/system/tokens.css
+  s_b9c173cc9afe42::t_5b1648c9ee5ba2 47-93,202-218
+ui/packages/system/tokens.json
+  s_b9c173cc9afe42::t_ca3a2f7d1ea437 103-149
+ui/packages/system/tokens/primitive.json
+  s_b9c173cc9afe42::t_3c85fbd8c585d8 2,19
+ui/packages/system/tokens/semantic.dark.json
+  s_b9c173cc9afe42::t_41fdeb2f70d206 16
+ui/packages/system/tokens/semantic.light.json
+  s_b9c173cc9afe42::t_380ac6892f72e8 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "0b3ccecf655e0f1260dbed09d1da1c6259edf6fe",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_b9c173cc9afe42": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0843d90197f6a813",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
