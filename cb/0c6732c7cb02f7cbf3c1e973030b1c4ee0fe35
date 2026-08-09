@@ -1,0 +1,26 @@
+ui/packages/system/src/runtime/brand.ts
+  s_ec80f0970e9bb6::t_eb14534340868d 8-23,29,74-79
+ui/packages/system/tests/brand.spec.ts
+  s_ec80f0970e9bb6::t_ff60c3ba5dbce5 4-5,105-111,123-133,162-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "cb0c6732c7cb02f7cbf3c1e973030b1c4ee0fe35",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_ec80f0970e9bb6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5050ae1084983057",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
