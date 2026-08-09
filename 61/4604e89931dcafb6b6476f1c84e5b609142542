@@ -1,0 +1,19 @@
+ui/tooling/testing/src/suites/field.suite.ts
+  s_1d4f97eb9d9c5e::t_935da28b5c4e40 41,85,158,172,186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "614604e89931dcafb6b6476f1c84e5b609142542",
+  "prompts": {},
+  "sessions": {
+    "s_1d4f97eb9d9c5e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0077fae6-79d6-4111-a93c-f0bfc1324774",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
