@@ -1,0 +1,27 @@
+README.md
+  s_ec3bb69e53a507::t_8ac780049826e0 61,63-68,70-74,109,111-114,118,120-124,128,130-133,141,143-153,285,287-288,297,299-306,312,314-318,335,337-341
+  h_be8240d2cfaa4b 62,110,119,129,142,286,298,313,336
+ui/tooling/testing/src/suites/field.suite.ts
+  s_ec3bb69e53a507::t_07eec92d4fbd0d 41,85,158,172,186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "04ed45815cef55a4f035dac446f2e89a6e665669",
+  "prompts": {},
+  "humans": {
+    "h_be8240d2cfaa4b": {
+      "author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_ec3bb69e53a507": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac40ca5c5bd1695b7",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
