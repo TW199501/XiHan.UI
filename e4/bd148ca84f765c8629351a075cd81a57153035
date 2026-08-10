@@ -1,0 +1,35 @@
+ui/packages/system/tests/fixtures/brands-two/acme.json
+  s_31288ca6aae31e::t_7b98e8c5feb8ec 1-13
+ui/packages/system/tests/fixtures/brands-two/xihan.json
+  s_31288ca6aae31e::t_194239b56650ff 1-14
+ui/packages/system/tests/fixtures/brands-wrong-default/acme.json
+  s_31288ca6aae31e::t_1155c5bc5003d8 1-14
+ui/packages/system/tests/fixtures/brands-wrong-default/xihan.json
+  s_31288ca6aae31e::t_96edf734d010f9 1-13
+ui/packages/system/build/emit-tokens.mjs
+  s_31288ca6aae31e::t_68b5d3ca224b13 6,14-15,17-18,25-27,29-30,33,99-110,112,118-122,192-208,210,215,220-222
+ui/packages/system/tests/css-eval.ts
+  s_31288ca6aae31e::t_272575e26e7fc8 1-210
+ui/packages/system/tests/default-brand.spec.ts
+  s_31288ca6aae31e::t_bf7403c6fc432c 15-17
+ui/packages/system/tests/multi-brand.spec.ts
+  s_31288ca6aae31e::t_4cb51f2c168ed7 1-150
+ui/packages/system/tests/parity.spec.ts
+  s_31288ca6aae31e::t_3d660b0417e06a 7-8,10,18,37,41-43,45-46,187-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "e4bd148ca84f765c8629351a075cd81a57153035",
+  "prompts": {},
+  "sessions": {
+    "s_31288ca6aae31e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-abbb5a67996523148",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
