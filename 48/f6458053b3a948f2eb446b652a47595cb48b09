@@ -1,0 +1,23 @@
+ui/packages/system/build/emit-tokens.mjs
+  s_31288ca6aae31e::t_18a56afef68a9c 8,44-57
+ui/packages/system/src/runtime/types.ts
+  s_31288ca6aae31e::t_8850fc9bb0c8cf 1-2,45-53,56
+ui/packages/system/tests/default-brand.spec.ts
+  s_31288ca6aae31e::t_d6c79a54d75b7c 1-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "48f6458053b3a948f2eb446b652a47595cb48b09",
+  "prompts": {},
+  "sessions": {
+    "s_31288ca6aae31e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-abbb5a67996523148",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
