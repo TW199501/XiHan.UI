@@ -1,0 +1,19 @@
+ui/package.json
+  s_f27eeb3e033551::t_bd83510aee20dc 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "72aefd822e3b99d978a55e36771cb42f74f1cb6e",
+  "prompts": {},
+  "sessions": {
+    "s_f27eeb3e033551": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a7796ada-9215-44d1-9417-614e0eb38310",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
