@@ -1,0 +1,19 @@
+.superpowers/plans/2026-08-14-locales-package.md
+  s_f27eeb3e033551::t_4be5e346e54843 1-1305
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bc96e0eef3030a6a6d830f0b338567056c37e9ab",
+  "prompts": {},
+  "sessions": {
+    "s_f27eeb3e033551": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a7796ada-9215-44d1-9417-614e0eb38310",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
