@@ -1,0 +1,105 @@
+ui/tooling/scripts/check-catalog-preview.mjs
+  s_3c4b15cf685750::t_9a18afb6922bbc 111
+  s_3c4b15cf685750::t_2dab1c38ea115a 51-52
+ui/tooling/scripts/lib/component-token-manifest.mjs
+  s_3c4b15cf685750::t_73f854c54b1108 435-436,439
+ui/tooling/scripts/check-doc-media-placeholders.mjs
+  s_3c4b15cf685750::t_8233380b780581 75
+  s_3c4b15cf685750::t_ea8a1c8f88bf99 15
+ui/packages/adapters/react/src/components/time-range-picker/time-range-picker.tsx
+  s_3c4b15cf685750::t_201c551d0dcc7b 14
+ui/packages/adapters/react/src/components/toast/toast.tsx
+  s_3c4b15cf685750::t_6eb439f09cfcb7 67
+ui/packages/adapters/react/src/config/config.tsx
+  s_3c4b15cf685750::t_d4abd1a354c218 9,14,17
+ui/packages/adapters/react/src/services/toast-service.tsx
+  s_3c4b15cf685750::t_191eda96325e12 20
+ui/packages/adapters/react/tests/icon-nested-glyph.spec.tsx
+  s_3c4b15cf685750::t_298de4ec60a6bf 101
+ui/packages/adapters/vue/src/components/toggle-group/toggle-group.ts
+  s_3c4b15cf685750::t_a41a38e28cb38e 119-143
+ui/packages/adapters/vue/src/config/config.ts
+  s_3c4b15cf685750::t_3c88a0e3a6ea9d 9,14,17
+ui/packages/adapters/vue/src/services/toast-service.ts
+  s_3c4b15cf685750::t_1d1564a83f31b1 20
+ui/packages/adapters/vue/tests/browser/consumer-slot-overrides.spec.ts
+  s_3c4b15cf685750::t_e29fa5d6c8157c 283
+ui/packages/adapters/vue/tests/browser/matrix-code-visual.spec.ts
+  s_3c4b15cf685750::t_f26838ad98515d 33,48,61,77
+ui/packages/adapters/vue/tests/browser/popconfirm-resource-exit.spec.ts
+  s_3c4b15cf685750::t_dd094d3f16d2a0 61
+ui/packages/adapters/vue/tests/browser/time-range-picker-visual.spec.ts
+  s_3c4b15cf685750::t_d01bbcef580658 198,237,239,244,249
+ui/packages/adapters/web-components/src/config.ts
+  s_3c4b15cf685750::t_c5fd4b90a7542f 12,17,19
+ui/packages/adapters/web-components/src/elements/config.ts
+  s_3c4b15cf685750::t_27bb14887c00e7 20
+ui/packages/adapters/web-components/src/elements/notification.ts
+  s_3c4b15cf685750::t_9b961de315c940 17
+ui/packages/adapters/web-components/src/elements/tree-select.ts
+  s_3c4b15cf685750::t_3b23a8f6c3e4a3 11
+ui/packages/adapters/web-components/tests/wc-dialog.suite.ts
+  s_3c4b15cf685750::t_411b8f2d42e5fc 51,64-65
+ui/packages/adapters/web-components/tests/wc-drawer.suite.ts
+  s_3c4b15cf685750::t_e3a5b406c3eb04 61,74-75
+ui/packages/design/styles/build/collection-item-recipe.mjs
+  s_3c4b15cf685750::t_eeb7e92bd8d951 35-38
+ui/packages/design/styles/component-tokens.d.ts
+  s_3c4b15cf685750::t_0ba6a007849687 8-4017,4019-4152
+ui/packages/design/tokens/src/runtime/index.ts
+  s_3c4b15cf685750::t_6b2735c90f8ae0 35-41
+ui/packages/engine/headless/src/dialog/dialog.connect.ts
+  s_3c4b15cf685750::t_d760b6ee65f7d8 34
+ui/packages/engine/headless/src/drawer/drawer.connect.ts
+  s_3c4b15cf685750::t_bcf1e9ec132682 40
+ui/packages/engine/headless/src/floating-panel/floating-panel.connect.ts
+  s_3c4b15cf685750::t_5f6f3b87cea8f5 86
+ui/packages/engine/headless/src/notification/index.ts
+  s_3c4b15cf685750::t_94600f335c81cc 40
+ui/packages/engine/headless/src/popconfirm/popconfirm.connect.ts
+  s_3c4b15cf685750::t_ed4ba6fc9f1eac 288
+ui/packages/engine/headless/src/popover/popover.connect.ts
+  s_3c4b15cf685750::t_b67976f28e1ace 40
+ui/packages/engine/headless/src/toast/index.ts
+  s_3c4b15cf685750::t_f6d1e892ccb0c4 38
+ui/packages/engine/headless/src/tour/tour.connect.ts
+  s_3c4b15cf685750::t_3ef1d05b71ade7 66
+ui/packages/engine/headless/tests/calendar-picker.spec.ts
+  s_3c4b15cf685750::t_314a5c243e9661 602
+ui/packages/engine/headless/tests/calendar-range-picker.spec.ts
+  s_3c4b15cf685750::t_befc7f10566991 282,313
+ui/tooling/scripts/check-control-box.mjs
+  s_3c4b15cf685750::t_92c7d1c446b741 175-176,246,288,417-419
+ui/tooling/scripts/check-demo-scroll.mjs
+  s_3c4b15cf685750::t_a9195523e98362 43,82,157,159-160,164-165,167,188
+ui/tooling/scripts/check-tone-contrast.mjs
+  s_3c4b15cf685750::t_217425c03bfc9f 95-96
+ui/tooling/testing/src/suites/dialog.suite.ts
+  s_3c4b15cf685750::t_55d9525b6617b1 72-73
+ui/tooling/testing/src/suites/drawer.suite.ts
+  s_3c4b15cf685750::t_ffee62277363bc 99-101
+ui/tooling/testing/src/suites/popover.suite.ts
+  s_3c4b15cf685750::t_1eebb987e6b03b 51,65,82
+ui/tooling/testing/src/suites/tag-group.suite.ts
+  s_3c4b15cf685750::t_5e09b41a1bedce 268
+ui/tooling/testing/src/suites/time-range-picker.suite.ts
+  s_3c4b15cf685750::t_75c0028a3c461f 272,286
+ui/tooling/testing/src/suites/toast.suite.ts
+  s_3c4b15cf685750::t_0390ed3f1c2f71 278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2fbfab554f09d94d3503d5b19c7b79d015f9556a",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
