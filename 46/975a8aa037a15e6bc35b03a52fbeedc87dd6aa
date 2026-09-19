@@ -1,0 +1,21 @@
+ui/packages/design/styles/component-tokens.d.ts
+  s_3c4b15cf685750::t_b793b2029a13a5 8-4028,4030-4163
+ui/tooling/scripts/lib/component-token-manifest.mjs
+  s_3c4b15cf685750::t_1f20486369d145 440-441,444
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "46975a8aa037a15e6bc35b03a52fbeedc87dd6aa",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
