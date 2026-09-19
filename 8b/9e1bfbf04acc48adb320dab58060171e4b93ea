@@ -1,0 +1,23 @@
+ui/packages/engine/core/tests/portal-lease.spec.ts
+  s_3c4b15cf685750::t_4fa64b0a28c6fd 87-116
+ui/packages/engine/core/src/kernel/structure/portal-lease.ts
+  s_3c4b15cf685750::t_95b09c1bc192d9 199
+  s_3c4b15cf685750::t_b6069a3fa7e1cc 152-155
+  s_3c4b15cf685750::t_3facf760e940fb 91-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8b9e1bfbf04acc48adb320dab58060171e4b93ea",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
