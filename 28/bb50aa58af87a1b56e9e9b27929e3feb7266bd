@@ -1,0 +1,39 @@
+docs/.vitepress/demos/button/07-loading-triggered.tsx
+  s_3c4b15cf685750::t_1145cecbc211b0 12
+docs/.vitepress/demos/button/07-loading-triggered.vue
+  s_3c4b15cf685750::t_971fc23039cb08 11
+docs/.vitepress/demos/date-field/01-basic.tsx
+  s_3c4b15cf685750::t_d01cbb460f59a0 5
+docs/.vitepress/demos/date-field/01-basic.vue
+  s_3c4b15cf685750::t_477f5751cfb1d7 5
+docs/.vitepress/demos/select/11-actions.tsx
+  s_3c4b15cf685750::t_32734f4786be90 28-58
+docs/.vitepress/demos/select/18-clear.tsx
+  s_3c4b15cf685750::t_5ada5187e7105d 12-22
+docs/.vitepress/demos/text-field/01-basic.tsx
+  s_3c4b15cf685750::t_c078e96c31973f 5
+docs/.vitepress/demos/text-field/01-basic.vue
+  s_3c4b15cf685750::t_b228c1ef25b89d 5
+docs/adapters/react.md
+  s_3c4b15cf685750::t_bd1019cd6edbbf 26,29,43,55,79,90-91,93
+docs/guide/behavior.md
+  s_3c4b15cf685750::t_f9a6b1fe7c2a8f 86,91,137
+docs/guide/sound.md
+  s_3c4b15cf685750::t_dfaad73868f4b9 152,171-172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "28bb50aa58af87a1b56e9e9b27929e3feb7266bd",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
