@@ -1,0 +1,21 @@
+ui/package.json
+  s_3c4b15cf685750::t_6266f78033b3fb 5
+ui/CLAUDE.md
+  s_3c4b15cf685750::t_6266f78033b3fb 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6bcd3cc7195edf3c2f1a8b25218a3c5dc271de1f",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
