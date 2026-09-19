@@ -1,0 +1,46 @@
+ui/packages/engine/headless/tests/date-field-blocks.spec.ts
+  s_3c4b15cf685750::t_6c7c287525efbe 255-259
+  s_3c4b15cf685750::t_4b0c9526ffa9b8 86-88,90,94-96
+  s_3c4b15cf685750::t_fc7b06484d4724 65-66,70,72,77
+ui/tooling/testing/src/suites/kbd.suite.ts
+  s_3c4b15cf685750::t_f493159c77901d 54-62,64
+ui/packages/adapters/vue/tests/browser/table-row-collection.spec.ts
+  s_3c4b15cf685750::t_1659c7f4e5baf8 50
+  s_3c4b15cf685750::t_891fceedbea228 85-88
+ui/packages/adapters/vue/tests/browser/visual-baseline.spec.ts
+  s_3c4b15cf685750::t_99944bb961d726 474-478
+ui/packages/adapters/vue/tests/breadcrumb-collection.spec.ts
+  s_3c4b15cf685750::t_caa9382f93952a 23
+ui/packages/adapters/vue/tests/browser/card-hero-surface.spec.ts
+  s_3c4b15cf685750::t_26da92726bd3be 3,27
+ui/packages/adapters/vue/tests/browser/state-visibility-skin.spec.ts
+  s_3c4b15cf685750::t_c0809607c61ebf 111
+ui/packages/adapters/vue/tests/date-picker-panel-index.spec.ts
+  s_3c4b15cf685750::t_e5ae6b33ad96cf 69-70
+ui/packages/adapters/vue/tests/date-picker-showtime.spec.ts
+  s_3c4b15cf685750::t_96053238af23c7 61
+ui/packages/engine/headless/tests/side-nav-presence.spec.ts
+  s_3c4b15cf685750::t_ba5ed5ae52952a 143
+ui/packages/features/sound/tests/service.spec.ts
+  s_3c4b15cf685750::t_7d621a6db03e40 151,157,161
+ui/tooling/testing/src/suites/cascader.suite.ts
+  s_3c4b15cf685750::t_086a50f838676e 440
+ui/tooling/testing/src/suites/tree-select.suite.ts
+  s_3c4b15cf685750::t_05ee3ac5add6dd 357
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "65a1535559f7e0441d2b645923ff8ed5de11ea36",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
