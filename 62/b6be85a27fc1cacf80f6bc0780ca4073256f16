@@ -1,0 +1,19 @@
+ui/CLAUDE.md
+  s_3c4b15cf685750::t_2505ad2fd74100 1-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "62b6be85a27fc1cacf80f6bc0780ca4073256f16",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
