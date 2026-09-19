@@ -1,0 +1,23 @@
+ui/packages/adapters/vue/tests/browser/state-visibility-skin.spec.ts
+  s_3c4b15cf685750::t_4b571f3d5b073a 107,111
+ui/packages/adapters/vue/tests/date-picker-panel-index.spec.ts
+  s_3c4b15cf685750::t_3c81d8b50dc0f3 23,69-70
+ui/packages/adapters/vue/tests/date-picker-showtime.spec.ts
+  s_3c4b15cf685750::t_7df51e5917bdfe 46,61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5ad1c492996f89e19c30d1e78acad04424b334b9",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
