@@ -1,0 +1,337 @@
+来源：https://ui.docs.xihanfun.com/components/skeleton
+
+# Skeleton 骨架屏
+
+内容还没到时，先按最终版面占位。
+
+<div class="xh-resource-links">
+  <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/engine/headless/src/skeleton" target="_blank" rel="noreferrer">Headless</a>
+  <a href="https://github.com/XiHanFun/XiHan.UI/blob/dev/ui/packages/design/styles/css/skeleton.css" target="_blank" rel="noreferrer">Styles</a>
+  <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/adapters/vue/src/components/skeleton" target="_blank" rel="noreferrer">Vue</a>
+  <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/adapters/react/src/components/skeleton" target="_blank" rel="noreferrer">React</a>
+  <a href="https://github.com/XiHanFun/XiHan.UI/blob/dev/ui/packages/adapters/web-components/src/elements/skeleton.ts" target="_blank" rel="noreferrer">Web Components</a>
+</div>
+
+## 用法
+
+按真实卡片的封面与文字节奏占位
+
+```vue
+<script setup lang="ts">
+import { XhSkeletonItem, XhSkeletonRoot } from "@xihan-ui/vue";
+</script>
+
+<template>
+  <XhSkeletonRoot style="inline-size: 260px">
+    <XhSkeletonItem shape="rect" style="--xh-skeleton-rect-block-size: 120px" />
+    <XhSkeletonItem style="inline-size: 60%" />
+    <XhSkeletonItem style="inline-size: 80%" />
+    <XhSkeletonItem style="inline-size: 40%" />
+  </XhSkeletonRoot>
+</template>
+```
+
+```html
+<xh-skeleton>
+  <div data-xh-part="root" style="inline-size: 260px">
+    <div data-xh-part="item" shape="rect" style="--xh-skeleton-rect-block-size: 120px"></div>
+    <div data-xh-part="item" style="inline-size: 60%"></div>
+    <div data-xh-part="item" style="inline-size: 80%"></div>
+    <div data-xh-part="item" style="inline-size: 40%"></div>
+  </div>
+</xh-skeleton>
+```
+
+## 组件结构
+
+加粗的是必需部件。
+
+`data-scope="skeleton"`：**`root`** · **`item`**
+
+## 示例
+
+### 形状
+
+容器的 shape 是这一组的默认形状，单根骨架条自带 shape 就按自己的来
+
+```vue
+<script setup lang="ts">
+import { XhSkeletonItem, XhSkeletonRoot } from "@xihan-ui/vue";
+</script>
+
+<template>
+  <!-- 头像位与两行文字并排：容器默认 text，头像那一根单独声明 circle -->
+  <XhSkeletonRoot
+    style="inline-size: 260px; flex-direction: row; align-items: center"
+  >
+    <XhSkeletonItem shape="circle" />
+    <XhSkeletonItem />
+  </XhSkeletonRoot>
+
+  <!-- 整组都是块：容器给了 rect，里面不必逐根再写 -->
+  <XhSkeletonRoot shape="rect" style="inline-size: 200px">
+    <XhSkeletonItem />
+  </XhSkeletonRoot>
+</template>
+```
+
+```html
+<!-- 头像位与两行文字并排：容器默认 text，头像那一根单独声明 circle -->
+<xh-skeleton>
+  <div
+    data-xh-part="root"
+    style="inline-size: 260px; flex-direction: row; align-items: center"
+  >
+    <div data-xh-part="item" shape="circle"></div>
+    <div data-xh-part="item"></div>
+  </div>
+</xh-skeleton>
+
+<!-- 整组都是块：容器给了 rect，里面不必逐根再写 -->
+<xh-skeleton shape="rect">
+  <div data-xh-part="root" style="inline-size: 200px">
+    <div data-xh-part="item"></div>
+  </div>
+</xh-skeleton>
+```
+
+### 加载结束
+
+loading 期间容器报 aria-busy，翻成 false 后整块收起，位置让给真内容
+
+```vue
+<script setup lang="ts">
+import { XhSkeletonItem, XhSkeletonRoot } from "@xihan-ui/vue";
+import { ref } from "vue";
+
+const loading = ref(true);
+</script>
+
+<template>
+  <div style="inline-size: 100%; display: grid; gap: 12px; justify-items: start">
+    <button type="button" @click="loading = !loading">
+      {{ loading ? "数据回来了" : "重新加载" }}
+    </button>
+
+    <XhSkeletonRoot :loading="loading" style="inline-size: 260px">
+      <XhSkeletonItem />
+      <XhSkeletonItem />
+    </XhSkeletonRoot>
+
+    <p v-if="!loading" style="margin: 0">这两行是接口回来之后的真内容。</p>
+  </div>
+</template>
+```
+
+```html
+<div style="inline-size: 100%; display: grid; gap: 12px; justify-items: start">
+  <button id="skeleton-loading-toggle" type="button">数据回来了</button>
+
+  <xh-skeleton id="skeleton-loading">
+    <div data-xh-part="root" style="inline-size: 260px">
+      <div data-xh-part="item"></div>
+      <div data-xh-part="item"></div>
+    </div>
+  </xh-skeleton>
+
+  <p id="skeleton-loading-text" hidden style="margin: 0">
+    这两行是接口回来之后的真内容。
+  </p>
+</div>
+
+<script type="module">
+  // 按钮翻转加载态，真内容跟着显隐
+  const skeleton = document.getElementById("skeleton-loading");
+  const toggle = document.getElementById("skeleton-loading-toggle");
+  const text = document.getElementById("skeleton-loading-text");
+  toggle.addEventListener("click", () => {
+    const next = skeleton.loading === false;
+    skeleton.loading = next;
+    toggle.textContent = next ? "数据回来了" : "重新加载";
+    text.hidden = next;
+  });
+</script>
+```
+
+### 动效
+
+在微光、呼吸和静止三档之间选择
+
+```vue
+<script setup lang="ts">
+import type { SkeletonAnimation } from "@xihan-ui/headless";
+import { XhSkeletonItem, XhSkeletonRoot } from "@xihan-ui/vue";
+
+const animations: SkeletonAnimation[] = ["shimmer", "pulse", "none"];
+</script>
+
+<template>
+  <div style="display: flex; flex-wrap: wrap; gap: 20px">
+    <div v-for="animation in animations" :key="animation" style="display: grid; gap: 8px">
+      <span>{{ animation }}</span>
+      <XhSkeletonRoot :animation="animation" style="inline-size: 140px">
+        <XhSkeletonItem shape="rect" style="--xh-skeleton-rect-block-size: 64px" />
+        <XhSkeletonItem style="inline-size: 70%" />
+      </XhSkeletonRoot>
+    </div>
+  </div>
+</template>
+```
+
+```html
+<div style="display: flex; flex-wrap: wrap; gap: 20px">
+  <xh-skeleton animation="shimmer">
+    <div data-xh-part="root" style="inline-size: 140px">
+      <span>shimmer</span>
+      <div data-xh-part="item" shape="rect" style="--xh-skeleton-rect-block-size: 64px"></div>
+      <div data-xh-part="item" style="inline-size: 70%"></div>
+    </div>
+  </xh-skeleton>
+  <xh-skeleton animation="pulse">
+    <div data-xh-part="root" style="inline-size: 140px">
+      <span>pulse</span>
+      <div data-xh-part="item" shape="rect" style="--xh-skeleton-rect-block-size: 64px"></div>
+      <div data-xh-part="item" style="inline-size: 70%"></div>
+    </div>
+  </xh-skeleton>
+  <xh-skeleton animation="none">
+    <div data-xh-part="root" style="inline-size: 140px">
+      <span>none</span>
+      <div data-xh-part="item" shape="rect" style="--xh-skeleton-rect-block-size: 64px"></div>
+      <div data-xh-part="item" style="inline-size: 70%"></div>
+    </div>
+  </xh-skeleton>
+</div>
+```
+
+## 设计指引
+
+### 何时使用
+
+- 首屏或整块区域的加载，且版面结构可预测。
+- 加载时间通常在几百毫秒到几秒之间。
+
+### 何时不用
+
+- 加载极快：骨架闪一下比直接出现更烦人。
+- 版面完全不可预测：用[加载指示器](./spinner)。
+- 是一次动作的等待（提交中）：用按钮的载入态。
+
+### 特性
+
+- `loading` 翻假即换成真内容。
+- `shape` 决定骨块的形状（文本行、圆形、矩形）。
+- `animation` 在微光、呼吸和静止三档之间切换。
+
+### 组合
+
+- 按最终版面用[栅格](./grid)或[弹性布局](./flex)摆骨块。
+
+### 最佳实践
+
+- 骨架的形状与真内容对上：行数、宽度、圆角都要接近，否则内容一到就整块跳。
+- 别做得比真内容还花哨。
+
+### 反模式
+
+- 一块巨大的灰色矩形代替所有内容。
+- 加载失败后骨架一直闪着。
+
+## API 参考
+
+### 产物
+
+| 层 | 值 |
+| --- | --- |
+| 自定义元素 | `<xh-skeleton>` |
+| Vue 组件 | `XhSkeletonItem` `XhSkeletonRoot` |
+| 状态机 | 无，`connect` 直接由 props 算属性 |
+| 皮肤 | `@xihan-ui/styles/skeleton.css` |
+
+### Props
+
+| 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `animation` | `SkeletonAnimation` |  | 动效档，默认 'shimmer'；缺省档不输出 data-animation。 |
+| `loading` | `boolean` |  | 是否还在加载，默认 true。 |
+| `shape` | `SkeletonShape` |  | 容器内骨架条的默认形状，默认 'text'。 |
+
+### 状态
+
+公开状态写入 `data-state`。
+
+| 部件 | 取值 |
+| --- | --- |
+| `root` | 'loading' \| 'loaded' |
+
+### connect API
+
+`getXxxProps()` 返回对应部件的宿主属性。
+
+| 成员 | 类型 | 说明 |
+| --- | --- | --- |
+| `loading` | `boolean` | 当前是否处于加载态。 |
+| `getRootProps` | `() => T['element']` |  |
+| `getItemProps` | `(item?: SkeletonItemProps) => T['element']` |  |
+
+## 无障碍
+
+### 键盘
+
+规格出处：[W3C APG](https://www.w3.org/WAI/ARIA/apg/)
+
+无键盘交互（不接收焦点，或焦点行为完全由原生元素提供）。
+
+### ARIA
+
+以下属性由 `connect` 生成。
+
+| 部件 | 属性 | 值 |
+| --- | --- | --- |
+| `root` | `aria-busy` | 'true' \| undefined |
+| `item` | `aria-hidden` | 'true' \| undefined |
+
+## 样式参考
+
+### 皮肤
+
+`@xihan-ui/styles/skeleton.css` 使用 `[data-scope="skeleton"][data-part="root"]` 部件选择器，位于 `xihan.components` 与 `xihan.motion` 层。覆盖样式使用 `xihan.overrides`。
+
+`forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
+
+### 数据属性
+
+由 `connect` 生成；条件不成立时不输出无值属性。
+
+| 部件 | 属性 | 值 |
+| --- | --- | --- |
+| `root` | `data-animation` | props.animation |
+| `root` | `data-state` | 'loading' \| 'loaded' |
+| `item` | `data-shape` | item.shape |
+
+<!-- xh-component-tokens:start -->
+### CSS 变量
+
+本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+
+| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| --- | --- | --- | --- | --- | --- |
+| `--xh-skeleton-bg` | `item` | `background-color` | `default` | `--xh-bg-subtle` | skeleton 的 item 部件 background-color 覆盖槽。 |
+| `--xh-skeleton-circle-radius` | `item` | `border-radius` | `shape=circle` | `--xh-shape-pill` | skeleton 的 item 部件 border-radius 覆盖槽。 |
+| `--xh-skeleton-circle-size` | `item` | `inline-size` | `shape=circle` | `--xh-control-h-lg` | skeleton 的 item 部件 inline-size 覆盖槽。 |
+| `--xh-skeleton-duration` | `item` | `animation` | `default` | `--xh-shimmer-duration` | skeleton 的 item 部件 animation 覆盖槽。 |
+| `--xh-skeleton-gap` | `root` | `gap` | `default` | `--xh-space-3` | skeleton 的 root 部件 gap 覆盖槽。 |
+| `--xh-skeleton-pulse-duration` | `item`<br>`root` | `animation` | `animation=pulse` | `--xh-shimmer-duration` | skeleton 的 item、root 部件 animation 覆盖槽。 |
+| `--xh-skeleton-radius` | `item` | `border-radius` | `default` | `--xh-shape-control` | skeleton 的 item 部件 border-radius 覆盖槽。 |
+| `--xh-skeleton-rect-block-size` | `item` | `min-block-size` | `shape=rect` | `--xh-control-h-lg` | skeleton 的 item 部件 min-block-size 覆盖槽。 |
+| `--xh-skeleton-rect-radius` | `item` | `border-radius` | `shape=rect` | `--xh-shape-surface` | skeleton 的 item 部件 border-radius 覆盖槽。 |
+| `--xh-skeleton-sheen` | `item` | `background-image` | `default` | `--xh-bg-surface-raised` | skeleton 的 item 部件 background-image 覆盖槽。 |
+| `--xh-skeleton-text-block-size` | `item` | `block-size` | `shape=text` | `--xh-text-caption-size` | skeleton 的 item 部件 block-size 覆盖槽。 |
+| `--xh-skeleton-text-radius` | `item` | `border-radius` | `shape=text` | `--xh-shape-pill` | skeleton 的 item 部件 border-radius 覆盖槽。 |
+<!-- xh-component-tokens:end -->
+
+### 动效
+
+关键帧 `xh-skeleton-pulse` · `xh-skeleton-shimmer` 随皮肤自带，不引用别处文件里的名字。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+
+`prefers-reduced-motion: reduce` 下本组件另有降级规则。
