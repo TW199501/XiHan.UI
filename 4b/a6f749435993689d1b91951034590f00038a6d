@@ -1,0 +1,29 @@
+ui/tooling/scripts/check-demo-types.mjs
+  s_3c4b15cf685750::t_6c6d43f3d929a7 10-13
+ui/packages/adapters/react/tsconfig.demos.json
+  s_3c4b15cf685750::t_2e2016a802b5ac 4-6,10-26
+.github/workflows/ci.yml
+  s_3c4b15cf685750::t_517b2beba66420 43-46,49-50
+AGENTS.md
+  s_3c4b15cf685750::t_b8bcf0b9117928 81
+docs/guide/testing.md
+  s_3c4b15cf685750::t_6394afd26a9994 202,213
+ui/package.json
+  s_3c4b15cf685750::t_073a9a738fb5e0 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4ba6f749435993689d1b91951034590f00038a6d",
+  "prompts": {},
+  "sessions": {
+    "s_3c4b15cf685750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d4170aeb-af03-4e31-beac-a4304e83c419",
+        "model": "claude-opus-5"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
