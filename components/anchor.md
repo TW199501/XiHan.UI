@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/anchor
 
-# Anchor 锚点 `alpha`
+# Anchor 锚点
 
 根据滚动位置高亮当前章节的目录。
 
@@ -47,7 +47,7 @@ const scrollEl = ref<HTMLElement | null>(null);
       align-items: start;
     "
   >
-    <XhAnchorRoot :scroll-element="scrollEl" smooth>
+    <XhAnchorRoot :target="scrollEl" smooth>
       <XhAnchorList>
         <XhAnchorItem v-for="s in sections" :key="s.value">
           <XhAnchorLink :value="s.value">{{ s.label }}</XhAnchorLink>
@@ -58,6 +58,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 
     <div
       ref="scrollEl"
+      data-xh-scroll
       style="
         block-size: 240px;
         overflow: auto;
@@ -114,6 +115,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 
   <div
     id="anchor-basic-scroll"
+    data-xh-scroll
     style="
       block-size: 240px;
       overflow: auto;
@@ -144,7 +146,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 <script type="module">
   const template = document.getElementById("anchor-basic-nav");
   const anchor = template.content.firstElementChild;
-  anchor.scrollElement = document.getElementById("anchor-basic-scroll");
+  anchor.target = document.getElementById("anchor-basic-scroll");
   template.replaceWith(anchor);
 </script>
 ```
@@ -191,7 +193,7 @@ const scrollEl = ref<HTMLElement | null>(null);
       align-items: start;
     "
   >
-    <XhAnchorRoot :scroll-element="scrollEl" :offset="44" smooth>
+    <XhAnchorRoot :target="scrollEl" :offset="44" smooth>
       <XhAnchorList>
         <XhAnchorItem v-for="s in sections" :key="s.value">
           <XhAnchorLink :value="s.value">{{ s.label }}</XhAnchorLink>
@@ -202,6 +204,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 
     <div
       ref="scrollEl"
+      data-xh-scroll
       style="
         position: relative;
         block-size: 240px;
@@ -271,6 +274,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 
   <div
     id="anchor-offset-scroll"
+    data-xh-scroll
     style="
       position: relative;
       block-size: 240px;
@@ -313,7 +317,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 <script type="module">
   const template = document.getElementById("anchor-offset-nav");
   const anchor = template.content.firstElementChild;
-  anchor.scrollElement = document.getElementById("anchor-offset-scroll");
+  anchor.target = document.getElementById("anchor-offset-scroll");
   template.replaceWith(anchor);
 </script>
 ```
@@ -346,7 +350,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 <template>
   <div style="display: flex; flex-direction: column; gap: 12px; inline-size: min(640px, 100%)">
     <XhAnchorRoot
-      :scroll-element="scrollEl"
+      :target="scrollEl"
       orientation="horizontal"
       smooth
     >
@@ -360,6 +364,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 
     <div
       ref="scrollEl"
+      data-xh-scroll
       style="
         block-size: 220px;
         overflow: auto;
@@ -408,6 +413,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 
   <div
     id="anchor-h-scroll"
+    data-xh-scroll
     style="
       block-size: 220px;
       overflow: auto;
@@ -438,7 +444,7 @@ const scrollEl = ref<HTMLElement | null>(null);
 <script type="module">
   const template = document.getElementById("anchor-h-nav");
   const anchor = template.content.firstElementChild;
-  anchor.scrollElement = document.getElementById("anchor-h-scroll");
+  anchor.target = document.getElementById("anchor-h-scroll");
   template.replaceWith(anchor);
 </script>
 ```
@@ -505,7 +511,7 @@ function isGroupActive(group: {
       align-items: start;
     "
   >
-    <XhAnchorRoot v-model:value="active" :scroll-element="scrollEl" smooth>
+    <XhAnchorRoot v-model:value="active" :target="scrollEl" smooth>
       <XhAnchorList>
         <XhAnchorItem
           v-for="g in groups"
@@ -532,6 +538,7 @@ function isGroupActive(group: {
 
     <div
       ref="scrollEl"
+      data-xh-scroll
       style="
         block-size: 240px;
         overflow: auto;
@@ -598,6 +605,7 @@ function isGroupActive(group: {
 
   <div
     id="anchor-nested-scroll"
+    data-xh-scroll
     style="
       block-size: 240px;
       overflow: auto;
@@ -651,7 +659,7 @@ function isGroupActive(group: {
     }
   }
 
-  anchor.scrollElement = document.getElementById("anchor-nested-scroll");
+  anchor.target = document.getElementById("anchor-nested-scroll");
   apply(null);
   template.replaceWith(anchor);
 
@@ -672,8 +680,8 @@ function isGroupActive(group: {
 
 ### 特性
 
-- 支持页面或指定容器滚动。
-- 支持滚动偏移、平滑滚动和当前项指示条。
+- 支持页面或指定容器滚动：指定 `target` 后监听并滚动该容器，未指定时作用于页面；与[固钉](./affix)、[回到顶部](./back-top)同一个名字、同一种取值。
+- 支持滚动偏移、平滑滚动和当前项指示线：不放 `indicator` 部件时当前链接自带一条静态线（竖排贴起始缘、横排贴底边），放了部件则由部件滑动。
 - 支持水平、垂直和嵌套目录。
 
 ### 组合
@@ -708,14 +716,14 @@ function isGroupActive(group: {
 | --- | --- | --- | --- |
 | `value` | `string \| null` |  | 当前激活的锚点 id，给定即受控。 |
 | `defaultValue` | `string \| null` |  |  |
-| `collection` | `readonly string[]` |  | 目标区块的 id 清单，按文档序给；不给则按渲染出来的 link 现查。 |
+| `collection` | `readonly string[]` |  | 目标区块的 id 清单，按文档序提供；未提供时按渲染出的 link 查询。 |
 | `offset` | `number` |  | 判定线距滚动容器视口顶边的距离（px），默认 0。 |
-| `bounds` | `number` |  | 压线判定的容差（px），默认 1；区块顶边落在判定线下方这个距离内仍算越过。 |
-| `smooth` | `boolean` |  | 点链接时平滑滚动到目标，默认 false。 |
+| `bounds` | `number` |  | 压线判定的容差（px），默认 1；区块顶边落在判定线下方该距离内仍视为越过。 |
+| `smooth` | `boolean` |  | 点击链接时平滑滚动到目标，默认 false。 |
 | `dir` | `Direction` |  | 文字方向，作用于排版与指示条的起始缘。 |
 | `orientation` | `Orientation` |  | 列表轴向，默认 vertical，只影响样式。 |
 | `translations` | `Partial<AnchorTranslations>` |  |  |
-| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定用哪族颜色。 |
+| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定使用哪族颜色。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg。 |
 | `onValueChange` | `(details: AnchorValueChangeDetails) => void` |  | value 变化意图回调。 |
 
@@ -727,15 +735,25 @@ function isGroupActive(group: {
 | --- | --- | --- |
 | `value-change` | `AnchorValueChangeDetails` | 激活项变化；detail 为 `{ value: string \| null }` |
 
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhAnchorLink` | `value` | `string` | 是 |  |
+| `XhAnchorRoot` | `target` | `() => HTMLElement \| null` |  | 判定线所依附的滚动容器取值器，默认挂在窗口上；挂载效应执行时求值。 |
+| `XhAnchorRoot` | `children` | `ReactNode` |  |  |
+
 ### 状态
 
 以下名称仅用于内部状态机。
 
 **状态**：`idle` · `scrolling`
 
-**事件**：`SPY.RESOLVE` · `LINK.CLICK` · `VALUE.SET` · `after.scrollLock`
+**事件**：`SPY.RESOLVE` · `LINK.CLICK` · `VALUE.SET` · `SCROLL.SETTLE` · `PRESS.START` · `PRESS.END`
 
-**判据**：`isSmooth` · `isTargetReached`
+**判据**：`isSmooth` · `isTargetReached` · `canPress`
 
 ### connect API
 
@@ -743,7 +761,7 @@ function isGroupActive(group: {
 
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
-| `value` | `string \| null` | 当前激活的锚点 id；一个都没越过判定线时为 null。 |
+| `value` | `string \| null` | 当前激活的锚点 id；没有区块越过判定线时为 null。 |
 | `isActive` | `(value: string) => boolean` |  |
 | `setValue` | `(next: string \| null) => void` |  |
 | `getRootProps` | `() => T['element']` |  |
@@ -762,6 +780,7 @@ function isGroupActive(group: {
 | 按键 | 生效条件 | 行为 |
 | --- | --- | --- |
 | `Enter` | focus in link | 跳到目标区块：smooth 关时由原生 &lt;a href="#id"&gt; 跳转，开时组件拦下并平滑滚动（两种情况都当场把激活项切过去，不等观察器） |
+| `Enter` / `Space` | held in link | 按住期间该链接投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下。跳到目标区块照旧由这一次按键承担，激活项与按压互相独立 |
 | `Tab` / `Shift+Tab` | focus in root | 逐条走过目录里的链接；锚点导航不做 roving tabindex，每一条都是独立的 Tab 停靠点 |
 
 ### ARIA
@@ -793,28 +812,35 @@ function isGroupActive(group: {
 | `root` | `data-tone` | props.tone |
 | `list` | `data-orientation` | props.orientation |
 | `link` | `data-current` | ''（条件成立时才出现） |
+| `link` | `data-pressed` | ''（条件成立时才出现） |
+| `link` | `data-xh-collection-context` | 'nav' |
+| `link` | `data-xh-collection-item` | '' |
+| `link` | `data-xh-collection-size` | props.size |
+| `link-text` | `data-xh-collection-slot` | 'text' |
+| `indicator` | `data-instant` | ''（条件成立时才出现） |
 | `indicator` | `data-orientation` | props.orientation |
 | `indicator` | `data-value` | context.get('value') |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-anchor-fg` | `root` | `color` | `default` | `--xh-fg-muted` | anchor 的 root 部件 color 覆盖槽。 |
-| `--xh-anchor-font-size` | `root` | `font-size` | `default` | `--xh-_anchor-font-size` | anchor 的 root 部件 font-size 覆盖槽。 |
+| `--xh-anchor-fg` | `link`<br>`root` | `color` | `default`<br>`xh-collection-context=nav` | `--xh-fg-muted` | anchor 的 link、root 部件 color 覆盖槽。 |
+| `--xh-anchor-font-size` | `link`<br>`root` | `font-size` | `default` | `--xh-_anchor-font-size` | anchor 的 link、root 部件 font-size 覆盖槽。 |
 | `--xh-anchor-gap` | `list` | `gap` | `default` | `--xh-space-1` | anchor 的 list 部件 gap 覆盖槽。 |
 | `--xh-anchor-gap-horizontal` | `list` | `gap` | `orientation=horizontal` | `--xh-space-2` | anchor 的 list 部件 gap 覆盖槽。 |
-| `--xh-anchor-indicator-color` | `indicator` | `background` | `default` | `--xh-_anchor-accent` | anchor 的 indicator 部件 background 覆盖槽。 |
-| `--xh-anchor-indicator-radius` | `indicator` | `border-radius` | `default` | `--xh-shape-pill` | anchor 的 indicator 部件 border-radius 覆盖槽。 |
-| `--xh-anchor-indicator-thickness` | `indicator` | `block-size`<br>`inline-size`<br>`inset-block-end`<br>`inset-inline-start` | `default`<br>`orientation=horizontal` | `--xh-stroke-thick` | anchor 的 indicator 部件 block-size、inline-size、inset-block-end、inset-inline-start 覆盖槽。 |
-| `--xh-anchor-leading` | `root` | `line-height` | `default` | `--xh-leading-normal` | anchor 的 root 部件 line-height 覆盖槽。 |
-| `--xh-anchor-link-bg-hover` | `link` | `background` | `hover` | `--xh-bg-subtle-hover` | anchor 的 link 部件 background 覆盖槽。 |
-| `--xh-anchor-link-fg-current` | `link` | `color` | `current` | `--xh-_anchor-accent-text` | anchor 的 link 部件 color 覆盖槽。 |
-| `--xh-anchor-link-fg-hover` | `link` | `color` | `hover` | `--xh-fg-default` | anchor 的 link 部件 color 覆盖槽。 |
-| `--xh-anchor-link-font-weight-current` | `link` | `font-weight` | `current` | `--xh-font-weight-medium` | anchor 的 link 部件 font-weight 覆盖槽。 |
+| `--xh-anchor-indicator-color` | `indicator`<br>`link` | `background` | `current`<br>`default` | `--xh-_anchor-accent` | anchor 的 indicator、link 部件 background 覆盖槽。 |
+| `--xh-anchor-indicator-radius` | `indicator`<br>`link` | `border-radius` | `current`<br>`default` | `--xh-shape-pill` | anchor 的 indicator、link 部件 border-radius 覆盖槽。 |
+| `--xh-anchor-indicator-thickness` | `indicator`<br>`link`<br>`list` | `block-size`<br>`inline-size`<br>`inset-block-end`<br>`inset-inline-start` | `current`<br>`default`<br>`orientation=horizontal`<br>`orientation=vertical` | `--xh-stroke-thick` | anchor 的 indicator、link、list 部件 block-size、inline-size、inset-block-end、inset-inline-start 覆盖槽。 |
+| `--xh-anchor-leading` | `link`<br>`root` | `line-height` | `default` | `--xh-leading-normal` | anchor 的 link、root 部件 line-height 覆盖槽。 |
+| `--xh-anchor-link-bg-hover` | `link` | `background-color` | `disabled`<br>`error`<br>`hover`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`xh-collection-context=nav` | `--xh-bg-subtle` | anchor 的 link 部件 background-color 覆盖槽。 |
+| `--xh-anchor-link-bg-pressed` | `link` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`xh-collection-context=nav` | `--xh-bg-subtle-hover` | anchor 的 link 部件 background-color 覆盖槽。 |
+| `--xh-anchor-link-fg-current` | `link` | `color` | `current`<br>`disabled`<br>`error`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`xh-collection-context=nav` | `--xh-_anchor-accent-text` | anchor 的 link 部件 color 覆盖槽。 |
+| `--xh-anchor-link-fg-hover` | `link` | `color` | `disabled`<br>`error`<br>`hover`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`xh-collection-context=nav` | `--xh-fg-default` | anchor 的 link 部件 color 覆盖槽。 |
+| `--xh-anchor-link-font-weight-current` | `link` | `font-weight` | `current`<br>`disabled`<br>`error`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`xh-collection-context=nav` | `--xh-font-weight-medium` | anchor 的 link 部件 font-weight 覆盖槽。 |
 | `--xh-anchor-link-max-w` | `link` | `max-inline-size` | `default` | `--xh-nav-link-max-w` | anchor 的 link 部件 max-inline-size 覆盖槽。 |
 | `--xh-anchor-link-px` | `link` | `padding-inline` | `default` | `--xh-_anchor-link-px` | anchor 的 link 部件 padding-inline 覆盖槽。 |
 | `--xh-anchor-link-py` | `link` | `padding-block` | `default` | `--xh-space-1` | anchor 的 link 部件 padding-block 覆盖槽。 |
@@ -824,10 +850,14 @@ function isGroupActive(group: {
 
 ### 动效
 
-`background` · `block-size` · `color` · `inline-size` · `inset-block-start` · `inset-inline-start` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 指示与换位（见[动效规范](../design/motion#角色)）。
+
+`block-size` · `inline-size` · `translate` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+
+皮肤之外还有一段：值由内核逐帧算出（`frameLoop`），皮肤里看不到这段。
 
 系统开启减弱动效时由令牌层统一收敛，皮肤不另作判断。
 
 ### RTL
 
-皮肤用逻辑属性排布（`inline-start` 一族），`dir="rtl"` 下自动镜像。
+皮肤用逻辑属性排布（`inline-start` 一族），`dir="rtl"` 下自动镜像；另有按 `dir` 分支的规则。

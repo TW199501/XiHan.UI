@@ -2,11 +2,11 @@
 
 # 诊断通道
 
-组件在运行期发现「这里不对」时不直接 `console.warn`，而是往**诊断通道**投递一条结构化记录。宿主订阅后自行决定打印、收集还是上报。
+组件在运行期发现契约问题时不直接 `console.warn`，而是向诊断通道投递一条结构化记录。宿主订阅后自行决定打印、收集还是上报。
 
-## 为什么不直接打日志
+## 不直接打日志的原因
 
-因为契约违约需要被**处理**，不只是被看见。`wc.missing-part` 这类问题在开发时该显眼地报出来，在测试里该让用例失败，在生产环境该静默——同一条记录，三种归宿。写死 `console.warn` 只满足第一种。
+契约违约需要被处理，不只是被看见。`wc.missing-part` 这类问题在开发时应明显报出，在测试中应使用例失败，在生产环境应静默：同一条记录，三种归宿。写死 `console.warn` 只满足第一种。
 
 ## 记录的形状
 
@@ -23,7 +23,7 @@ interface DiagnosticRecord {
 }
 ```
 
-**`code` 稳定，`message` 不稳定。** 订阅方按码分流，不要匹配文案。
+`code` 稳定，`message` 不稳定。订阅方按码分流，不匹配文案。
 
 ## 现有的码
 
@@ -39,22 +39,50 @@ export const DIAGNOSTIC_CODES = {
   matrixCodeLogoDamage: "matrix-code.logo-damage", // 中心 logo 挖掉的码字超出纠错级别能恢复的量
   matrixCodeOptionIgnored: "matrix-code.option-ignored", // 二维码收到一个对当前码制没有意义的选项，按没给处理
   barCodeOptionIgnored: "bar-code.option-ignored", // 条形码收到一个对当前码制没有意义的选项，按没给处理
+  progressOptionIgnored: "progress.option-ignored", // 进度条收到一个对当前形态或语义没有意义、或取值不合法的选项，按没给处理
+  stepsOptionIgnored: "steps.option-ignored", // 步骤条收到一个对当前形态没有意义、或取值不合法的选项，按没给处理
+  carouselSlideCountMismatch: "carousel.slide-count-mismatch", // 轮播渲染出来的条目比 slideCount 多：张数只看 slideCount，多出来的那几张翻不到
   stylesMissingSkin: "styles.missing-skin", // 页面上出现了组件，但它那份皮肤没被引入
   versionMismatch: "core.version-mismatch", // 适配器与 core 的版本不一致，锁步发版被打破
   ignoredSlot: "core.ignored-slot", // 作者给了默认插槽，但该组件不渲染插槽内容
   overlayStackingTrap: "overlay.stacking-trap", // 浮层的祖先建了层叠上下文，浮层的层号被困在其中
   scrollbarMissingScrollable: "scrollbar.missing-scrollable", // 滚动条挂载时找不到它要管的滚动容器
   overlayMissingAnchor: "overlay.missing-anchor", // 浮层展开了却没有锚点，位置无从算起
+  chartMissingName: "chart.missing-name", // 图表没有可及名：caption 部件、aria-label、aria-labelledby 都没有
+  chartUnknownField: "chart.unknown-field", // 系列引用的字段在数据里不存在
+  chartDuplicateSeries: "chart.duplicate-series", // 两个系列的 id 相同
+  chartTooManySeries: "chart.too-many-series", // 分类系列超过 8 个：没有第 9 色
+  chartMixedColorRoles: "chart.mixed-color-roles", // 同一张图混用分类色与语气色
+  chartInvalidSlot: "chart.invalid-slot", // 固定色槽越界，或两个系列固定到同一槽
+  chartStackOffsetConflict: "chart.stack-offset-conflict", // 同一堆叠组的 stackOffset 不一致
+  chartLogDomain: "chart.log-domain", // 对数轴的定义域含 0 或跨越正负
+  chartScaleParam: "chart.scale-param", // 坐标轴的参数无效：幂指数、对称对数常数、时区或最小厚度
+  chartBarBaseline: "chart.bar-baseline", // 柱系列所在的值轴不含 0
+  chartNegativeShare: "chart.negative-share", // 占比类图表出现负值
+  chartInvalidRange: "chart.invalid-range", // 区间不合法：两端不是有限数，或下界大于上界
+  chartMeterOnly: "chart.meter-only", // Progress 在非 meter 语义下用了分段、目标、量程刻度或指示方式
+  chartAnnotationTarget: "chart.annotation-target", // 图表注释指向的系列不存在，或指向的类目不在轴上：这条注释不画
+  chartOhlcRange: "chart.ohlc-range", // K 线的开高低收对不上：最低价高于开盘或收盘，或最高价低于开盘或收盘
+  chartViolinRaw: "chart.violin-raw", // 小提琴图要原始值才画得出密度：箱线系列写了 style: 'violin'，y 却是算好的五数字段
+  chartIndicatorCount: "chart.indicator-count", // 雷达图的指标少于 3 个或多于 10 个：围不成面，或轴挤在一起读不出来
+  chartRadarOverlap: "chart.radar-overlap", // 雷达图的实体多于 3 个：多边形互相遮挡，按两两配对检查只有前 3 个色槽都合格；图照常画，按提醒报
+  chartHierarchyShape: "chart.hierarchy-shape", // 层级图的数据组不成一棵树：扁平的行缺 idField / parentField，或 id 重复、父节点不存在、多个根、成环
+  chartSankeyShape: "chart.sankey-shape", // 桑基图的流带不合法：成环、自环、端点不存在或节点重复；负值另报 chart.negative-share
+  chartGraphShape: "chart.graph-shape", // 关系图的数据不合法：节点重复、连线的端点不存在、自环，或树布局下数据不是一棵树
+  chartGraphSize: "chart.graph-size", // 关系图的节点太多：多于 500 个时交互变慢，按提醒报；多于 2000 个时不画，先聚合
+  chartColumnsOption: "chart.columns-option", // 列式数据用了它不支持的写法（堆叠、瀑布、箱线、类目轴、横向、逐点标签、刷选……），或与 svg 渲染器同写
+  chartColumnsUnsorted: "chart.columns-unsorted", // 列式数据里折线、K 线与柱共用的自变量列不是升序（追加了乱序的时间戳）
+  chartOptionConflict: "chart.option-conflict", // 两种写法不能同时用：柱的涨跌取色（trend）与瀑布；等距排列（xAxis.ordinal）与对象数组
 };
 ```
 
-这份清单与 `@xihan-ui/core` 里的码表逐条对账，不会漏码，可以直接照它写分流。
+这份清单与 `@xihan-ui/core` 中的码表逐条对账，不会遗漏，可以直接据此编写分流。
 
 `machine.error` 的 `detail.machineCode` 是状态机错误码。机器崩溃或正常停机清理失败时，`detail.reason` 保留实际上报的原始或聚合异常对象；同时发生 cleanup 与 exit 异常时，它与调用方捕获的 `AggregateError` 是同一个对象，可以继续读取 `errors` 与 `cause`。
 
 状态机实现引用属于执行前置条件。`UNKNOWN_ACTION`、`UNKNOWN_GUARD`、`UNKNOWN_EFFECT` 在创建机器时拒绝静态缺项；动态列表或实现内部引用缺项时使用 `MISSING_ACTION`、`MISSING_GUARD`、`MISSING_EFFECT`。后三种错误在开发与生产都会先投递 `machine.error`；没有其他停机异常时，其 `detail.reason` 与随后抛出的 `MachineError` 是同一个对象，存在其他停机异常时则由后续崩溃记录携带聚合结果。服务同时进入 `Stopped`。诊断阈值只控制记录是否送达，不会把错误改成继续执行、guard 的 `false` 或部分 effect。
 
-三条 `wc.*` 是 Web Components 适配器的部件契约校验，也是日常最容易撞上的三条——手写 DOM 时漏一个 `data-xh-part` 或者写错名字，通道会明确告诉你哪个节点、哪个部件。
+三条 `wc.*` 是 Web Components 适配器的部件契约校验，也是日常最常遇到的三条：手写 DOM 时遗漏一个 `data-xh-part` 或写错名字，通道会明确指出节点与部件。
 
 ## 用法
 
@@ -70,16 +98,16 @@ const off = onDiagnostic((record) => {
 // 调阈值：'error' | 'warn' | 'silent'
 setDiagnosticsLevel("warn");
 
-// 关掉内建 console 输出，只走自己的订阅
+// 关闭内建 console 输出，只使用自己的订阅
 setDiagnosticsConsoleOutput(false);
 ```
 
-其余可用的口子：
+其余可用的接口：
 
 | 函数 | 作用 |
 | --- | --- |
-| `getDiagnostics()` | 拿到通道对象本身 |
-| `reportDiagnostic(record)` | 投递一条（自定义组件里用） |
+| `getDiagnostics()` | 获取通道对象本身 |
+| `reportDiagnostic(record)` | 投递一条（自定义组件中使用） |
 | `setDiagnosticsDedupe(on)` | 同一 `code + scope + instanceId + part + message` 是否只报一次 |
 | `resetDiagnostics()` | 清空订阅者、去重记录与全部开关 |
 
@@ -90,18 +118,18 @@ setDiagnosticsConsoleOutput(false);
 | 开发 | `warn` | 开 | 开 |
 | 生产 | `silent` | 关 | 开 |
 
-生产默认 `silent`，投递直接被丢弃，不产生任何开销。要在生产收集，显式调 `setDiagnosticsLevel('error')` 并挂自己的订阅。
+生产默认 `silent`，投递直接被丢弃，不产生任何开销。需要在生产收集时，显式调用 `setDiagnosticsLevel('error')` 并挂载自己的订阅。
 
-去重键包含 message——同一个码下不同文案是不同的问题，只有逐帧重复的同一条才该被压掉。去重集有容量上限，超出即整体清空，长跑进程不会无界增长。
+去重键包含 message：同一个码下不同文案是不同的问题，只有逐帧重复的同一条才应被压缩。去重集有容量上限，超出即整体清空，长时间运行的进程不会无界增长。
 
 ## 隔离性
 
-- 通道挂在全局，同一页面里多份 `@xihan-ui/core` 副本共用一条通道；
-- **订阅方抛错不会回流进组件**——你的上报逻辑炸了不会连累界面。
+- 通道挂在全局，同一页面中多份 `@xihan-ui/core` 副本共用一条通道；
+- 订阅方抛错不会回流进组件：上报逻辑出错不影响界面。
 
-## 在测试里用
+## 在测试中使用
 
-把阈值调到 `warn` 并订阅，就能把契约违约变成用例失败：
+把阈值调到 `warn` 并订阅，即可把契约违约变为用例失败：
 
 ```ts
 import { onDiagnostic, resetDiagnostics, setDiagnosticsLevel } from "@xihan-ui/core";
@@ -123,4 +151,4 @@ it("不应有契约违约", () => {
 
 - [解剖与部件契约](./anatomy)：部件契约校验的内容
 - [Web Components 适配器](../adapters/web-components)：三条 `wc.*` 码的来源
-- [版本与兼容性政策](./versioning)：名字怎么改、怎么删
+- [版本与兼容性政策](./versioning)：名字的变更与移除规则

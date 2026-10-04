@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/navigation-menu
 
-# NavigationMenu 导航菜单 `alpha`
+# NavigationMenu 导航菜单
 
 用于站点顶部的多级导航菜单。
 
@@ -81,7 +81,7 @@ const panels: Record<string, Array<{ href: string; title: string; description: s
 
 加粗的是必需部件。
 
-`data-scope="navigation-menu"`：**`root`** · **`list`** · **`item`** · `trigger` · `trigger-indicator` · `content` · **`link`** · `indicator` · `viewport`
+`data-scope="navigation-menu"`：**`root`** · **`list`** · **`item`** · `trigger` · `trigger-indicator` · `content` · `branch-trigger` · `branch-indicator` · `branch-content` · **`link`** · `indicator` · `viewport`
 
 ## 示例
 
@@ -345,6 +345,93 @@ const groups = [
 </div>
 ```
 
+### 面板子级
+
+面板里的条目再展开一层
+
+```vue
+<script setup lang="ts">
+import { XhNavigationMenuRoot } from "@xihan-ui/vue";
+
+const entries = [
+  {
+    value: "products",
+    label: "产品",
+    children: [
+      { value: "overview", label: "产品概览", href: "#/products" },
+      {
+        value: "adapters",
+        label: "框架适配器",
+        children: [
+          { value: "vue", label: "Vue", href: "#/products/vue" },
+          { value: "react", label: "React", href: "#/products/react" },
+          { value: "wc", label: "Web Components", href: "#/products/wc" },
+        ],
+      },
+      {
+        value: "tools",
+        label: "开发工具",
+        children: [
+          { value: "cli", label: "命令行", href: "#/products/cli" },
+          { value: "figma", label: "设计插件", href: "#/products/figma" },
+        ],
+      },
+    ],
+  },
+  {
+    value: "docs",
+    label: "文档",
+    children: [
+      { value: "guide", label: "上手指南", href: "#/docs/guide" },
+      { value: "components", label: "组件文档", href: "#/docs/components" },
+    ],
+  },
+];
+</script>
+
+<template>
+  <div style="inline-size: min(640px, 100%); padding-block-end: 260px">
+    <XhNavigationMenuRoot :collection="entries" />
+  </div>
+</template>
+```
+
+```html
+<div style="inline-size: min(640px, 100%); padding-block-end: 260px">
+  <xh-navigation-menu style="display: contents">
+    <nav data-xh-part="root">
+      <ul data-xh-part="list">
+        <li data-xh-part="item">
+          <button data-xh-part="trigger" value="products">产品</button>
+          <div data-xh-part="content" value="products">
+            <a data-xh-part="link" href="#/products">产品概览</a>
+            <button data-xh-part="branch-trigger" value="adapters">框架适配器<span data-xh-part="branch-indicator" value="adapters"></span></button>
+            <div data-xh-part="branch-content" value="adapters">
+              <a data-xh-part="link" href="#/products/vue">Vue</a>
+              <a data-xh-part="link" href="#/products/react">React</a>
+              <a data-xh-part="link" href="#/products/wc">Web Components</a>
+            </div>
+            <button data-xh-part="branch-trigger" value="tools">开发工具<span data-xh-part="branch-indicator" value="tools"></span></button>
+            <div data-xh-part="branch-content" value="tools">
+              <a data-xh-part="link" href="#/products/cli">命令行</a>
+              <a data-xh-part="link" href="#/products/figma">设计插件</a>
+            </div>
+          </div>
+        </li>
+        <li data-xh-part="item">
+          <button data-xh-part="trigger" value="docs">文档</button>
+          <div data-xh-part="content" value="docs">
+            <a data-xh-part="link" href="#/docs/guide">上手指南</a>
+            <a data-xh-part="link" href="#/docs/components">组件文档</a>
+          </div>
+        </li>
+        <li data-xh-part="indicator"></li>
+      </ul>
+    </nav>
+  </xh-navigation-menu>
+</div>
+```
+
 ## 设计指引
 
 ### 何时使用
@@ -355,17 +442,39 @@ const groups = [
 
 - 操作命令使用[菜单](./menu)。
 - 后台层级导航使用[侧栏导航](./side-nav)。
+- 面板里的子级还要再往下分层时，同样改用[侧栏导航](./side-nav)。
 
 ### 特性
 
 - 支持横向和竖向排列、延迟展开与键盘导航。
 - 没有子级的入口可直接渲染为链接。
+- 面板里的条目可以再带一层子级：`branch-trigger` 展开紧跟其后的 `branch-content`，行尾的 `branch-indicator` 随之转向下方。同一张面板只展开一枝；子级是面板里的一段，不另起浮层、不动高度、不播展开动画。
+- 每次展开面板都按当前页重新落定子级：当前页链接所在的那一枝展开，其余收起，打开面板就看得到自己在哪。
+- 给了 `collection` 又没写结构时，入口的 `children` 铺成面板，面板条目的 `children` 铺成一枝子级；子级里只放带 `href` 的链接，不再往下嵌套。`value` 全树唯一，不合法的嵌套当场报错。
 - `viewport` 可让所有面板在同一位置切换。
-- 当前链接使用 `aria-current="page"`。
+- 当前链接使用 `aria-current="page"`，并自带一条静态指示线（横排的直达链接贴底边，竖排与面板里的链接贴起始缘）；`indicator` 部件指的是开着的面板，两者各说各的。
 
 ### 组合
 
 - 窄屏时切换为抽屉或侧栏导航，不压缩顶部入口。
+
+### 接路由
+
+- Vue / React 的 `link`（直达链接与面板里的链接）缺省渲染 `<a>`，`href` 由作者写或取自 `collection`。接客户端路由时给 `XhNavigationMenuLink` 加 `asChild`，把路由链接放进去当唯一的子节点：部件属性与按压接线合到它渲出的元素上，跳转交给路由，点击后照常收起面板；子节点不是恰好一个元素时直接报错。
+- 当前页由作者按路由判定后写 `current`。
+- Web Components 不需要 asChild：`link` 本来就是作者写的节点，元素只往它身上写属性与监听、不替换它。路由库自己的链接元素，或自行拦截点击的 `<a>`，直接标 `data-xh-part="link"` 即可。
+
+```vue
+<XhNavigationMenuLink :current="route.path === '/docs'" as-child>
+  <RouterLink to="/docs">文档</RouterLink>
+</XhNavigationMenuLink>
+```
+
+```tsx
+<XhNavigationMenuLink current={pathname === "/docs"} asChild>
+  <Link to="/docs">文档</Link>
+</XhNavigationMenuLink>;
+```
 
 ### 最佳实践
 
@@ -384,7 +493,7 @@ const groups = [
 | 层 | 值 |
 | --- | --- |
 | 自定义元素 | `<xh-navigation-menu>` |
-| Vue 组件 | `XhNavigationMenuContent` `XhNavigationMenuIndicator` `XhNavigationMenuItem` `XhNavigationMenuLink` `XhNavigationMenuList` `XhNavigationMenuRoot` `XhNavigationMenuTrigger` `XhNavigationMenuTriggerIndicator` `XhNavigationMenuViewport` |
+| Vue 组件 | `XhNavigationMenuBranchContent` `XhNavigationMenuBranchIndicator` `XhNavigationMenuBranchTrigger` `XhNavigationMenuContent` `XhNavigationMenuIndicator` `XhNavigationMenuItem` `XhNavigationMenuLink` `XhNavigationMenuList` `XhNavigationMenuRoot` `XhNavigationMenuTrigger` `XhNavigationMenuTriggerIndicator` `XhNavigationMenuViewport` |
 | 组合式函数 | `useNavigationMenu` |
 | 状态机 | `navigationMenuMachine` |
 | 皮肤 | `@xihan-ui/styles/navigation-menu.css` |
@@ -393,19 +502,32 @@ const groups = [
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `collection` | `NavigationMenuNode[]` |  | 入口数据，入口文本与禁用的事实源。给了它，trigger 部件只需报 value。 缺省即回到「文本与禁用都写在部件上」的老路。 |
-| `value` | `string \| null` |  | 当前展开项，给定即受控；null 表示都收起。 |
+| `collection` | `NavigationMenuNode[]` |  | 入口数据，入口文本与禁用的事实源。提供后 trigger / branch-trigger 部件只需声明 value； 没写结构时按它铺开整套导航：入口的 children 铺成面板，面板条目的 children 铺成一枝子级。 未提供时回到文本与禁用都写在部件上的方式。 |
+| `value` | `string \| null` |  | 当前展开项，提供即受控；null 表示全部收起。 |
 | `defaultValue` | `string \| null` |  |  |
 | `orientation` | `Orientation` |  | 方向键轴向，默认 horizontal。 |
-| `delayDuration` | `number` |  | 悬停/聚焦到 trigger 后等多久才展开，默认 200ms。 |
-| `skipDelayDuration` | `number` |  | 收起之后的静默窗口，默认 300ms；窗口内再碰任意 trigger 直接展开。 |
+| `delayDuration` | `number` |  | 悬停 / 聚焦到 trigger 后等待多久才展开，默认 200ms。 |
+| `skipDelayDuration` | `number` |  | 收起之后的静默窗口，默认 300ms；窗口内再次触及任意 trigger 直接展开。 |
 | `dir` | `Direction` |  | 文字方向，默认 ltr。 |
-| `loop` | `boolean` |  | 方向键走到尽头是否回绕，默认 true。 |
-| `disabled` | `boolean` |  | 整套导航禁用：所有入口都转 aria-disabled，面板不再展开。 |
+| `loop` | `boolean` |  | 方向键到达末尾是否回绕，默认 true。 |
+| `disabled` | `boolean` |  | 整套导航禁用：所有入口都为 aria-disabled，面板不再展开。 |
 | `translations` | `Partial<NavigationMenuTranslations>` |  |  |
-| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定用哪族颜色。 |
+| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定使用哪族颜色。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg。 |
 | `onValueChange` | `(details: NavigationMenuValueChangeDetails) => void` |  | value 变化回调。 |
+
+### NavigationMenuNode
+
+`collection` 的元素。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `value` | `string` | 是 |  |
+| `label` | `string` |  | 入口文本；默认回退为 value。 |
+| `disabled` | `boolean` |  | 入口禁用：方向键跳过它，但它仍可聚焦、仍是导航起点。面板里带子级的条目禁用即展不开。 |
+| `href` | `string` |  | 直达目标。提供后该项即为一条链接：顶层没有面板，面板里没有子级。与 children 互斥。 |
+| `current` | `boolean` |  | 指向当前页面的链接：输出 aria-current="page"。 |
+| `children` | `NavigationMenuNode[]` |  | 下一层条目。顶层入口给了它，缺省结构就按它铺开面板（面板插槽 / renderPanel 仍优先）； 面板条目给了它即为一枝可展开的子级，子级里的条目只能是带 href 的链接，不再往下嵌套。 |
 
 ### 事件
 
@@ -414,6 +536,25 @@ const groups = [
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `value-change` | `NavigationMenuValueChangeDetails` | 展开项变化；detail 为 `{ value: string \| null }` |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhNavigationMenuBranchContent` | `value` | `string` | 是 |  |
+| `XhNavigationMenuBranchIndicator` | `value` | `string` | 是 |  |
+| `XhNavigationMenuBranchTrigger` | `value` | `string` | 是 |  |
+| `XhNavigationMenuBranchTrigger` | `disabled` | `boolean` |  | 默认交给 connect 查询 collection，写死 false 会覆盖数据中的禁用。 |
+| `XhNavigationMenuContent` | `value` | `string` | 是 |  |
+| `XhNavigationMenuLink` | `current` | `boolean` |  |  |
+| `XhNavigationMenuRoot` | `renderPanel` | `(node: NavigationMenuNodeMeta) => ReactNode` |  | 每张面板的内容；只提供 collection 时由它承载。 |
+| `XhNavigationMenuRoot` | `children` | `ReactNode` |  |  |
+| `XhNavigationMenuTrigger` | `value` | `string` | 是 |  |
+| `XhNavigationMenuTrigger` | `disabled` | `boolean` |  | 默认交给 connect 查询 collection，写死 false 会覆盖数据中的禁用。 |
+| `XhNavigationMenuTriggerIndicator` | `value` | `string` | 是 |  |
+| `XhNavigationMenuTriggerIndicator` | `disabled` | `boolean` |  |  |
 
 ### 状态
 
@@ -425,6 +566,9 @@ const groups = [
 | `trigger` | 'open' \| 'closed' |
 | `trigger-indicator` | 'open' \| 'closed' |
 | `content` | 'open' \| 'closed' |
+| `branch-trigger` | 'open' \| 'closed' |
+| `branch-indicator` | 'open' \| 'closed' |
+| `branch-content` | 'open' \| 'closed' |
 | `indicator` | 'open' \| 'closed' |
 | `viewport` | 'open' \| 'closed' |
 
@@ -432,9 +576,9 @@ const groups = [
 
 **状态**：`idle` · `opening` · `skipping`
 
-**事件**：`TRIGGER.POINTER` · `TRIGGER.FOCUS` · `TRIGGER.TOGGLE` · `DISMISS` · `VALUE.SET` · `PRESENCE.SET` · `after.delayDuration` · `after.skipDelayDuration`
+**事件**：`TRIGGER.POINTER` · `TRIGGER.FOCUS` · `TRIGGER.TOGGLE` · `DISMISS` · `VALUE.SET` · `PRESENCE.SET` · `after.delayDuration` · `after.skipDelayDuration` · `PRESS.START` · `PRESS.END` · `BRANCH.TOGGLE` · `BRANCH.DISMISS`
 
-**判据**：`hasValue` · `isCurrent` · `shouldKeepOpen`
+**判据**：`hasValue` · `isCurrent` · `shouldKeepOpen` · `canPress`
 
 ### connect API
 
@@ -442,10 +586,12 @@ const groups = [
 
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
-| `value` | `string \| null` | 当前展开的那一项；都收起时为 null。 |
-| `collection` | `readonly NavigationMenuNodeMeta[]` | collection 推出的入口元信息，按数据顺序排列；没给 collection 即空数组。 |
-| `open` | `boolean` | 有没有面板展开着。 |
+| `value` | `string \| null` | 当前展开的项；全部收起时为 null。 |
+| `collection` | `readonly NavigationMenuNodeMeta[]` | 由 collection 推导的入口元信息，按数据顺序排列；未提供 collection 时为空数组。 |
+| `open` | `boolean` | 是否有面板展开。 |
 | `isOpen` | `(value: string) => boolean` |  |
+| `branchValue` | `string \| null` | 面板里展开着的那一枝子级；都收着时为 null。 |
+| `isBranchOpen` | `(value: string) => boolean` |  |
 | `setValue` | `(next: string \| null) => void` |  |
 | `getRootProps` | `() => T['element']` |  |
 | `getListProps` | `() => T['element']` |  |
@@ -453,6 +599,9 @@ const groups = [
 | `getTriggerProps` | `(props: NavigationMenuTriggerProps) => T['button']` |  |
 | `getTriggerIndicatorProps` | `(props: NavigationMenuTriggerProps) => T['element']` |  |
 | `getContentProps` | `(props: NavigationMenuContentProps) => T['element']` |  |
+| `getBranchTriggerProps` | `(props: NavigationMenuTriggerProps) => T['button']` | 面板里一枝子级的开关：身份与禁用的声明同入口。 |
+| `getBranchIndicatorProps` | `(props: NavigationMenuContentProps) => T['element']` | 子级开关里的展开方向标记，按 value 与所在的开关配对。 |
+| `getBranchContentProps` | `(props: NavigationMenuContentProps) => T['element']` | 一枝子级的容器，按 value 与它的开关配对，收着时 hidden。 |
 | `getLinkProps` | `(props: NavigationMenuLinkProps) => T['element']` |  |
 | `getIndicatorProps` | `() => T['element']` |  |
 | `getViewportProps` | `() => T['element']` |  |
@@ -465,12 +614,15 @@ const groups = [
 
 | 按键 | 生效条件 | 行为 |
 | --- | --- | --- |
+| `Enter` / `Space` | held on trigger / branch-trigger / link, 导航未禁用且条目未禁用 | 按住期间入口、子级开关或面板链接投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下，子级开关与链接随面板收起一并撤下。开合与激活语义照旧由这一次按键承担 |
 | `ArrowRight` / `ArrowDown` | focus in trigger, 按键与 orientation 同轴 | 焦点移到下一个 trigger（禁用项跳过、尽头按 loop 回绕）；随后的自动展开走 delayDuration |
 | `ArrowLeft` / `ArrowUp` | focus in trigger, 按键与 orientation 同轴 | 焦点移到上一个 trigger |
 | `Home` | focus in trigger | 焦点移到首个可停留 trigger |
 | `End` | focus in trigger | 焦点移到末个可停留 trigger |
 | `Enter` / `Space` | focus in trigger, not disabled | 立即展开对应面板（不走 delayDuration）；面板是自动弹出来的那一次不收起，再按一次才收起 |
-| `Escape` | open | 收起面板并把焦点归还对应 trigger；静默窗口内这一次归还不会把面板重新弹出来 |
+| `Enter` / `Space` | focus in branch-trigger, not disabled | 展开或收起面板里的这一枝子级，焦点留在开关上；同一张面板只展开一枝，展开这一枝时另一枝收起。子级紧跟在开关之后，展开后 Tab 走进去，收着时带 hidden 被整段跳过 |
+| `Escape` | focus in 展开的 branch-content | 只收起这一枝子级并把焦点归还它的 branch-trigger，面板仍开着；再按一次 Escape 才收起面板 |
+| `Escape` | open, 焦点不在展开的 branch-content 里 | 收起面板并把焦点归还对应 trigger；静默窗口内这一次归还不会把面板重新弹出来 |
 | `Tab` / `Shift+Tab` | open, focus in trigger | 走进展开的面板：面板就在 trigger 之后，收起的面板带 hidden 因而被整个跳过 |
 
 ### ARIA
@@ -487,15 +639,26 @@ const groups = [
 | `content` | `aria-hidden` | !isOpen \|\| undefined |
 | `content` | `aria-labelledby` | `trigger` 部件的 id |
 | `content` | `role` | 'group' |
+| `branch-trigger` | `aria-controls` | `branch-content` 部件的 id |
+| `branch-trigger` | `aria-disabled` | 'true' \| 'false' |
+| `branch-trigger` | `aria-expanded` | 'true' \| 'false' |
+| `branch-indicator` | `aria-hidden` | 'true' |
+| `branch-content` | `aria-labelledby` | `branch-trigger` 部件的 id |
+| `branch-content` | `role` | 'group' |
 | `link` | `aria-current` | 'page' \| undefined |
 | `indicator` | `aria-hidden` | 'true' |
 | `viewport` | `aria-hidden` | !open \|\| undefined |
+
+- 子级开关是原生按钮，`aria-expanded` / `aria-controls` 指向子级；子级收着时带 `hidden`、被 Tab 整段跳过，展开后 Tab 顺着文档序走进去。
+- 焦点在子级里按 Escape 只收起这一枝、焦点回到它的开关，再按一次才收起面板。
 
 ## 样式参考
 
 ### 皮肤
 
-`@xihan-ui/styles/navigation-menu.css` 使用 `[data-scope="navigation-menu"][data-part="root"]` 部件选择器，位于 `xihan.components` 与 `xihan.motion` 层。覆盖样式使用 `xihan.overrides`。
+`@xihan-ui/styles/navigation-menu.css` 使用 `[data-scope="navigation-menu"][data-part="root"]` 部件选择器，位于 `xihan.components` 层。覆盖样式使用 `xihan.overrides`。
+
+`forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
 
 ### 数据属性
 
@@ -509,55 +672,81 @@ const groups = [
 | `root` | `data-tone` | props.tone |
 | `list` | `data-orientation` | props.orientation |
 | `trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `trigger` | `data-in-path` | ''（条件成立时才出现） |
 | `trigger` | `data-orientation` | props.orientation |
+| `trigger` | `data-pressed` | ''（条件成立时才出现） |
 | `trigger` | `data-state` | 'open' \| 'closed' |
+| `trigger` | `data-xh-collection-context` | 'nav' |
+| `trigger` | `data-xh-collection-item` | '' |
+| `trigger` | `data-xh-collection-size` | props.size |
 | `trigger-indicator` | `data-disabled` | ''（条件成立时才出现） |
 | `trigger-indicator` | `data-orientation` | props.orientation |
 | `trigger-indicator` | `data-state` | 'open' \| 'closed' |
+| `content` | `data-instant` | ''（条件成立时才出现） |
 | `content` | `data-orientation` | props.orientation |
 | `content` | `data-state` | 'open' \| 'closed' |
+| `branch-trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-state` | 'open' \| 'closed' |
+| `branch-trigger` | `data-xh-collection-context` | 'nav' |
+| `branch-trigger` | `data-xh-collection-item` | '' |
+| `branch-trigger` | `data-xh-collection-size` | props.size |
+| `branch-indicator` | `data-state` | 'open' \| 'closed' |
+| `branch-content` | `data-state` | 'open' \| 'closed' |
 | `link` | `data-current` | ''（条件成立时才出现） |
+| `link` | `data-pressed` | ''（条件成立时才出现） |
+| `link` | `data-xh-collection-context` | 'nav' |
+| `link` | `data-xh-collection-item` | '' |
+| `link` | `data-xh-collection-size` | props.size |
+| `indicator` | `data-instant` | ''（条件成立时才出现） |
 | `indicator` | `data-orientation` | props.orientation |
 | `indicator` | `data-state` | 'open' \| 'closed' |
 | `indicator` | `data-value` | context.get('value') |
+| `viewport` | `data-instant` | ''（条件成立时才出现） |
 | `viewport` | `data-orientation` | props.orientation |
 | `viewport` | `data-state` | 'open' \| 'closed' |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
+| `--xh-navigation-menu-branch-content-indent` | `branch-content` | `padding-inline-start` | `default` | `--xh-space-4` | navigation-menu 的 branch-content 部件 padding-inline-start 覆盖槽。 |
+| `--xh-navigation-menu-branch-indicator-size` | `branch-indicator` | `--xh-icon-size`<br>`block-size`<br>`inline-size` | `default` | `--xh-control-indicator-size` | navigation-menu 的 branch-indicator 部件 --xh-icon-size、block-size、inline-size 覆盖槽。 |
+| `--xh-navigation-menu-branch-trigger-gap` | `branch-trigger` | `gap` | `default` | `--xh-_navigation-menu-trigger-gap` | navigation-menu 的 branch-trigger 部件 gap 覆盖槽。 |
 | `--xh-navigation-menu-content-bg` | `content`<br>`viewport` | `background` | `default` | `--xh-bg-surface` | navigation-menu 的 content、viewport 部件 background 覆盖槽。 |
 | `--xh-navigation-menu-content-border` | `content`<br>`viewport` | `border` | `default` | `--xh-border-default` | navigation-menu 的 content、viewport 部件 border 覆盖槽。 |
-| `--xh-navigation-menu-content-gap` | `content` | `gap` | `default` | `--xh-space-1` | navigation-menu 的 content 部件 gap 覆盖槽。 |
+| `--xh-navigation-menu-content-gap` | `branch-content`<br>`content` | `gap` | `default` | `--xh-space-1` | navigation-menu 的 branch-content、content 部件 gap 覆盖槽。 |
+| `--xh-navigation-menu-content-max-w` | `content`<br>`viewport` | `max-inline-size` | `default` | `--xh-overlay-max-w-xl` | navigation-menu 的 content、viewport 部件 max-inline-size 覆盖槽。 |
 | `--xh-navigation-menu-content-min-w` | `content` | `min-inline-size` | `default` | `--xh-overlay-menu-min-w` | navigation-menu 的 content 部件 min-inline-size 覆盖槽。 |
 | `--xh-navigation-menu-content-offset` | `content`<br>`viewport` | `inset-block-start`<br>`inset-inline-start` | `default`<br>`orientation=vertical` | `--xh-space-1` | navigation-menu 的 content、viewport 部件 inset-block-start、inset-inline-start 覆盖槽。 |
 | `--xh-navigation-menu-content-p` | `content` | `padding` | `default` | `--xh-surface-pad-xs` | navigation-menu 的 content 部件 padding 覆盖槽。 |
-| `--xh-navigation-menu-content-radius` | `content`<br>`viewport` | `border-radius` | `default` | `--xh-shape-surface` | navigation-menu 的 content、viewport 部件 border-radius 覆盖槽。 |
+| `--xh-navigation-menu-content-radius` | `content`<br>`viewport` | `border-radius` | `default` | `--xh-shape-overlay` | navigation-menu 的 content、viewport 部件 border-radius 覆盖槽。 |
 | `--xh-navigation-menu-content-shadow` | `content`<br>`viewport` | `box-shadow` | `default` | `--xh-elevation-floating` | navigation-menu 的 content、viewport 部件 box-shadow 覆盖槽。 |
 | `--xh-navigation-menu-fg` | `root` | `color` | `default` | `--xh-fg-default` | navigation-menu 的 root 部件 color 覆盖槽。 |
-| `--xh-navigation-menu-font-size` | `root` | `font-size` | `default` | `--xh-_navigation-menu-font-size` | navigation-menu 的 root 部件 font-size 覆盖槽。 |
+| `--xh-navigation-menu-font-size` | `root`<br>`trigger` | `font-size` | `default` | `--xh-_navigation-menu-font-size` | navigation-menu 的 root、trigger 部件 font-size 覆盖槽。 |
 | `--xh-navigation-menu-gap` | `list` | `gap` | `default` | `--xh-space-1` | navigation-menu 的 list 部件 gap 覆盖槽。 |
-| `--xh-navigation-menu-icon-size` | `root` | `--xh-icon-size` | `default` | `--xh-glyph-size-text` | navigation-menu 的 root 部件 --xh-icon-size 覆盖槽。 |
-| `--xh-navigation-menu-indicator-color` | `indicator` | `background` | `default` | `--xh-_navigation-menu-accent` | navigation-menu 的 indicator 部件 background 覆盖槽。 |
-| `--xh-navigation-menu-indicator-radius` | `indicator` | `border-radius` | `default` | `--xh-shape-pill` | navigation-menu 的 indicator 部件 border-radius 覆盖槽。 |
-| `--xh-navigation-menu-indicator-thickness` | `indicator` | `block-size`<br>`inline-size`<br>`inset-block-end` | `default`<br>`orientation=vertical` | `--xh-stroke-thick` | navigation-menu 的 indicator 部件 block-size、inline-size、inset-block-end 覆盖槽。 |
+| `--xh-navigation-menu-icon-size` | `root` | `--xh-icon-size` | `default`<br>`size=lg`<br>`size=sm` | `--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | navigation-menu 的 root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-navigation-menu-indicator-color` | `indicator`<br>`link` | `background` | `current`<br>`default` | `--xh-_navigation-menu-accent` | navigation-menu 的 indicator、link 部件 background 覆盖槽。 |
+| `--xh-navigation-menu-indicator-radius` | `indicator`<br>`link` | `border-radius` | `current`<br>`default` | `--xh-shape-pill` | navigation-menu 的 indicator、link 部件 border-radius 覆盖槽。 |
+| `--xh-navigation-menu-indicator-thickness` | `indicator`<br>`item`<br>`link`<br>`list` | `block-size`<br>`inline-size`<br>`inset-block-end` | `current`<br>`default`<br>`orientation=horizontal`<br>`orientation=vertical` | `--xh-stroke-thick` | navigation-menu 的 indicator、item、link、list 部件 block-size、inline-size、inset-block-end 覆盖槽。 |
 | `--xh-navigation-menu-layer` | `content`<br>`viewport` | `z-index` | `default` | `--xh-_layer` | navigation-menu 的 content、viewport 部件 z-index 覆盖槽。 |
-| `--xh-navigation-menu-link-bg-hover` | `link` | `background` | `hover` | `--xh-_navigation-menu-highlight-bg` | navigation-menu 的 link 部件 background 覆盖槽。 |
-| `--xh-navigation-menu-link-fg` | `link` | `color` | `default` | `--xh-fg-default` | navigation-menu 的 link 部件 color 覆盖槽。 |
-| `--xh-navigation-menu-link-fg-current` | `link` | `color` | `current` | `--xh-_navigation-menu-current-fg` | navigation-menu 的 link 部件 color 覆盖槽。 |
-| `--xh-navigation-menu-link-font-size` | `link` | `font-size` | `default` | `--xh-_navigation-menu-link-font-size` | navigation-menu 的 link 部件 font-size 覆盖槽。 |
-| `--xh-navigation-menu-link-font-weight-current` | `link` | `font-weight` | `current` | `--xh-font-weight-medium` | navigation-menu 的 link 部件 font-weight 覆盖槽。 |
-| `--xh-navigation-menu-link-px` | `link` | `padding-inline` | `default` | `--xh-_navigation-menu-link-px` | navigation-menu 的 link 部件 padding-inline 覆盖槽。 |
-| `--xh-navigation-menu-link-py` | `link` | `padding-block` | `default` | `--xh-_navigation-menu-link-py` | navigation-menu 的 link 部件 padding-block 覆盖槽。 |
-| `--xh-navigation-menu-link-radius` | `link` | `border-radius` | `default` | `--xh-shape-control` | navigation-menu 的 link 部件 border-radius 覆盖槽。 |
-| `--xh-navigation-menu-trigger-bg-active` | `trigger` | `background` | `disabled`<br>`not([data-disabled])`<br>`state=open` | `--xh-_navigation-menu-active-bg` | navigation-menu 的 trigger 部件 background 覆盖槽。 |
-| `--xh-navigation-menu-trigger-bg-hover` | `trigger` | `background` | `disabled`<br>`hover`<br>`not([data-disabled])` | `--xh-_navigation-menu-highlight-bg` | navigation-menu 的 trigger 部件 background 覆盖槽。 |
-| `--xh-navigation-menu-trigger-fg` | `trigger` | `color` | `default` | `--xh-fg-muted` | navigation-menu 的 trigger 部件 color 覆盖槽。 |
-| `--xh-navigation-menu-trigger-font-weight` | `trigger` | `font-weight` | `default` | `--xh-text-label-weight` | navigation-menu 的 trigger 部件 font-weight 覆盖槽。 |
+| `--xh-navigation-menu-link-bg-hover` | `branch-trigger`<br>`link` | `background-color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`xh-collection-context=nav` | `--xh-_navigation-menu-highlight-bg` | navigation-menu 的 branch-trigger、link 部件 background-color 覆盖槽。 |
+| `--xh-navigation-menu-link-bg-pressed` | `branch-trigger`<br>`link` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`xh-collection-context=nav` | `--xh-bg-subtle-hover` | navigation-menu 的 branch-trigger、link 部件 background-color 覆盖槽。 |
+| `--xh-navigation-menu-link-fg` | `branch-trigger`<br>`link` | `color` | `default`<br>`disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`xh-collection-context=nav` | `--xh-fg-default` | navigation-menu 的 branch-trigger、link 部件 color 覆盖槽。 |
+| `--xh-navigation-menu-link-fg-current` | `link` | `color` | `current`<br>`disabled`<br>`error`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`xh-collection-context=nav` | `--xh-fg-brand-strong` | navigation-menu 的 link 部件 color 覆盖槽。 |
+| `--xh-navigation-menu-link-font-size` | `branch-trigger`<br>`link` | `font-size` | `default` | `--xh-_navigation-menu-link-font-size` | navigation-menu 的 branch-trigger、link 部件 font-size 覆盖槽。 |
+| `--xh-navigation-menu-link-font-weight-current` | `link` | `font-weight` | `current`<br>`disabled`<br>`error`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`xh-collection-context=nav` | `--xh-font-weight-medium` | navigation-menu 的 link 部件 font-weight 覆盖槽。 |
+| `--xh-navigation-menu-link-px` | `branch-trigger`<br>`link` | `padding-inline` | `default` | `--xh-_navigation-menu-link-px` | navigation-menu 的 branch-trigger、link 部件 padding-inline 覆盖槽。 |
+| `--xh-navigation-menu-link-py` | `branch-trigger`<br>`link` | `padding-block` | `default` | `--xh-_navigation-menu-link-py` | navigation-menu 的 branch-trigger、link 部件 padding-block 覆盖槽。 |
+| `--xh-navigation-menu-link-radius` | `branch-trigger`<br>`link` | `border-radius` | `default` | `--xh-shape-control` | navigation-menu 的 branch-trigger、link 部件 border-radius 覆盖槽。 |
+| `--xh-navigation-menu-trigger-bg-active` | `trigger` | `background-color` | `in-path`<br>`xh-collection-context=nav` | `--xh-_navigation-menu-highlight-bg` | navigation-menu 的 trigger 部件 background-color 覆盖槽。 |
+| `--xh-navigation-menu-trigger-bg-hover` | `trigger` | `background-color` | `disabled`<br>`error`<br>`hover`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`xh-collection-context=nav` | `--xh-_navigation-menu-highlight-bg` | navigation-menu 的 trigger 部件 background-color 覆盖槽。 |
+| `--xh-navigation-menu-trigger-bg-pressed` | `trigger` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`xh-collection-context=nav` | `--xh-bg-subtle-hover` | navigation-menu 的 trigger 部件 background-color 覆盖槽。 |
+| `--xh-navigation-menu-trigger-fg` | `trigger` | `color` | `default`<br>`xh-collection-context=nav` | `--xh-fg-muted` | navigation-menu 的 trigger 部件 color 覆盖槽。 |
+| `--xh-navigation-menu-trigger-font-weight` | `trigger` | `font-weight` | `default`<br>`xh-collection-context=nav` | `--xh-font-weight-regular` | navigation-menu 的 trigger 部件 font-weight 覆盖槽。 |
 | `--xh-navigation-menu-trigger-gap` | `trigger` | `gap` | `default` | `--xh-_navigation-menu-trigger-gap` | navigation-menu 的 trigger 部件 gap 覆盖槽。 |
 | `--xh-navigation-menu-trigger-h` | `trigger` | `block-size` | `default` | `--xh-_navigation-menu-trigger-h` | navigation-menu 的 trigger 部件 block-size 覆盖槽。 |
 | `--xh-navigation-menu-trigger-px` | `trigger` | `padding-inline` | `default` | `--xh-_navigation-menu-trigger-px` | navigation-menu 的 trigger 部件 padding-inline 覆盖槽。 |
@@ -567,7 +756,9 @@ const groups = [
 
 ### 动效
 
-关键帧 `xh-pop-in` · `xh-pop-out` 随皮肤自带，不引用别处文件里的名字；`background` · `block-size` · `inline-size` · `inset-block-start` · `inset-inline-start` · `rotate` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 切换 · 指示与换位 · 出现（锚定面板） · 出现（无锚定弹出）（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-fade-in` · `xh-fade-out` · `xh-pop-in` · `xh-pop-out` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立；`block-size` · `inline-size` · `rotate` · `translate` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 皮肤之外还有一段：退场由适配器的退场闸门把关，动画播完才真收起。
 
@@ -575,4 +766,4 @@ const groups = [
 
 ### RTL
 
-皮肤用逻辑属性排布（`inline-start` 一族），`dir="rtl"` 下自动镜像。
+皮肤用逻辑属性排布（`inline-start` 一族），`dir="rtl"` 下自动镜像；只认物理方向的量乘 `--xh-direction-sign` 换向，按就近的 `dir` 走；另有按 `dir` 分支的规则。

@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/scroll-area
 
-# ScrollArea 滚动区域 `alpha`
+# ScrollArea 滚动区域
 
 提供带自定义滚动条的内容区域。
 
@@ -27,14 +27,31 @@ import {
   XhScrollAreaViewport,
 } from "@xihan-ui/vue";
 
-const items = ["项目概览", "组件规范", "设计令牌", "无障碍", "交互状态", "主题配置", "构建流程", "发布记录", "迁移指南", "常见问题"];
+const items = [
+  { id: 1, tone: "brand", width: "76%" },
+  { id: 2, tone: "info", width: "58%" },
+  { id: 3, tone: "success", width: "84%" },
+  { id: 4, tone: "warning", width: "66%" },
+  { id: 5, tone: "danger", width: "72%" },
+  { id: 6, tone: "neutral", width: "54%" },
+  { id: 7, tone: "brand", width: "80%" },
+  { id: 8, tone: "info", width: "62%" },
+  { id: 9, tone: "success", width: "74%" },
+  { id: 10, tone: "warning", width: "56%" },
+] as const;
 </script>
 
 <template>
-  <XhScrollAreaRoot type="always" style="block-size: 180px; inline-size: min(360px, 100%); border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle)">
+  <XhScrollAreaRoot type="always" aria-label="纵向滚动占位区块" style="block-size: 180px; inline-size: min(360px, 100%); border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle)">
     <XhScrollAreaViewport>
       <XhScrollAreaContent style="padding: 12px 16px">
-        <div v-for="item in items" :key="item" style="padding-block: 7px">{{ item }}</div>
+        <span
+          v-for="item in items"
+          :key="item.id"
+          data-demo-block="line"
+          :data-tone="item.tone"
+          :style="{ '--xh-demo-block-inline-size': item.width, 'marginBlock': '14px' }"
+        />
       </XhScrollAreaContent>
     </XhScrollAreaViewport>
     <XhScrollAreaScrollbar orientation="vertical">
@@ -47,15 +64,20 @@ const items = ["项目概览", "组件规范", "设计令牌", "无障碍", "交
 ```
 
 ```html
-<xh-scroll-area type="always" style="display: contents">
+<xh-scroll-area type="always" aria-label="纵向滚动占位区块" style="display: contents">
   <div data-xh-part="root" style="block-size: 180px; inline-size: min(360px, 100%); border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle)">
     <div data-xh-part="viewport">
       <div data-xh-part="content" style="padding: 12px 16px">
-        <div style="padding-block: 7px">项目概览</div><div style="padding-block: 7px">组件规范</div>
-        <div style="padding-block: 7px">设计令牌</div><div style="padding-block: 7px">无障碍</div>
-        <div style="padding-block: 7px">交互状态</div><div style="padding-block: 7px">主题配置</div>
-        <div style="padding-block: 7px">构建流程</div><div style="padding-block: 7px">发布记录</div>
-        <div style="padding-block: 7px">迁移指南</div><div style="padding-block: 7px">常见问题</div>
+        <span data-demo-block="line" data-tone="brand" style="--xh-demo-block-inline-size: 76%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="info" style="--xh-demo-block-inline-size: 58%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="success" style="--xh-demo-block-inline-size: 84%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="warning" style="--xh-demo-block-inline-size: 66%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="danger" style="--xh-demo-block-inline-size: 72%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="neutral" style="--xh-demo-block-inline-size: 54%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="brand" style="--xh-demo-block-inline-size: 80%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="info" style="--xh-demo-block-inline-size: 62%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="success" style="--xh-demo-block-inline-size: 74%; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="warning" style="--xh-demo-block-inline-size: 56%; margin-block: 14px"></span>
       </div>
     </div>
     <div data-xh-part="scrollbar" orientation="vertical"><div data-xh-part="track"><div data-xh-part="thumb"></div></div></div>
@@ -87,23 +109,25 @@ import {
   XhScrollAreaViewport,
 } from "@xihan-ui/vue";
 
-const rows = Array.from({ length: 10 }, (_, index) => `ORD-${String(index + 1).padStart(4, "0")} · 华东区域 · 企业版年度订阅 · 已完成`);
+const tones = ["brand", "info", "success", "warning", "danger", "neutral"] as const;
+const rows = Array.from({ length: 10 }, (_, index) => ({ id: index + 1, tone: tones[index % tones.length] }));
 </script>
 
 <template>
   <XhScrollAreaRoot
     type="always"
+    aria-label="双轴滚动占位区块"
     style="block-size: 160px; inline-size: min(420px, 100%); border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle)"
   >
     <XhScrollAreaViewport>
       <XhScrollAreaContent style="padding: 12px 16px">
-        <p
+        <span
           v-for="row in rows"
-          :key="row"
-          style="margin: 0; line-height: 28px; white-space: nowrap"
-        >
-          {{ row }}
-        </p>
+          :key="row.id"
+          data-demo-block="line"
+          :data-tone="row.tone"
+          style="--xh-demo-block-inline-size: 560px; margin-block: 14px"
+        />
       </XhScrollAreaContent>
     </XhScrollAreaViewport>
     <XhScrollAreaScrollbar orientation="vertical">
@@ -122,16 +146,18 @@ const rows = Array.from({ length: 10 }, (_, index) => `ORD-${String(index + 1).p
 ```
 
 ```html
-<xh-scroll-area type="always" style="display: contents">
+<xh-scroll-area type="always" aria-label="双轴滚动占位区块" style="display: contents">
   <div data-xh-part="root" style="block-size: 160px; inline-size: min(420px, 100%); border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle)">
     <div data-xh-part="viewport">
       <div data-xh-part="content" style="padding: 12px 16px">
-        <p style="margin: 0; line-height: 28px; white-space: nowrap">ORD-0001 · 华东区域 · 企业版年度订阅 · 已完成</p>
-        <p style="margin: 0; line-height: 28px; white-space: nowrap">ORD-0002 · 华东区域 · 企业版年度订阅 · 已完成</p>
-        <p style="margin: 0; line-height: 28px; white-space: nowrap">ORD-0003 · 华东区域 · 企业版年度订阅 · 已完成</p>
-        <p style="margin: 0; line-height: 28px; white-space: nowrap">ORD-0004 · 华东区域 · 企业版年度订阅 · 已完成</p>
-        <p style="margin: 0; line-height: 28px; white-space: nowrap">ORD-0005 · 华东区域 · 企业版年度订阅 · 已完成</p>
-        <p style="margin: 0; line-height: 28px; white-space: nowrap">ORD-0006 · 华东区域 · 企业版年度订阅 · 已完成</p>
+        <span data-demo-block="line" data-tone="brand" style="--xh-demo-block-inline-size: 560px; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="info" style="--xh-demo-block-inline-size: 560px; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="success" style="--xh-demo-block-inline-size: 560px; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="warning" style="--xh-demo-block-inline-size: 560px; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="danger" style="--xh-demo-block-inline-size: 560px; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="neutral" style="--xh-demo-block-inline-size: 560px; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="brand" style="--xh-demo-block-inline-size: 560px; margin-block: 14px"></span>
+        <span data-demo-block="line" data-tone="info" style="--xh-demo-block-inline-size: 560px; margin-block: 14px"></span>
       </div>
     </div>
     <div data-xh-part="scrollbar" orientation="vertical"><div data-xh-part="track"><div data-xh-part="thumb"></div></div><div data-xh-part="corner"></div></div>
@@ -155,7 +181,7 @@ import {
   XhScrollAreaViewport,
 } from "@xihan-ui/vue";
 
-const cards = ["概览", "分析", "报告", "成员", "设置", "发布"];
+const cards = ["brand", "info", "success", "warning", "danger", "neutral"] as const;
 </script>
 
 <template>
@@ -167,20 +193,16 @@ const cards = ["概览", "分析", "报告", "成员", "设置", "发布"];
     <XhScrollAreaViewport>
       <XhScrollAreaContent style="display: flex; gap: 10px; padding: 10px 12px">
         <div
-          v-for="card in cards"
-          :key="card"
+          v-for="tone in cards"
+          :key="tone"
+          data-demo-block
+          :data-tone="tone"
           style="
             flex: none;
-            display: grid;
-            place-items: center;
             inline-size: 96px;
             block-size: 64px;
-            border-radius: var(--xh-shape-surface);
-            background: var(--xh-bg-subtle);
           "
-        >
-          {{ card }}
-        </div>
+        />
       </XhScrollAreaContent>
     </XhScrollAreaViewport>
     <XhScrollAreaScrollbar orientation="horizontal">
@@ -193,12 +215,9 @@ const cards = ["概览", "分析", "报告", "成员", "设置", "发布"];
 ```
 
 ```html
-<style>
-  #scroll-area-horizontal [data-card] { flex: none; display: grid; place-items: center; inline-size: 96px; block-size: 64px; border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle); }
-</style>
 <xh-scroll-area id="scroll-area-horizontal" orientation="horizontal" type="always" style="display: contents">
   <div data-xh-part="root" style="block-size: 110px; inline-size: min(420px, 100%); border-radius: var(--xh-shape-surface)">
-    <div data-xh-part="viewport"><div data-xh-part="content" style="display: flex; gap: 10px; padding: 10px 12px"><div data-card>概览</div><div data-card>分析</div><div data-card>报告</div><div data-card>成员</div><div data-card>设置</div><div data-card>发布</div></div></div>
+    <div data-xh-part="viewport"><div data-xh-part="content" style="display: flex; gap: 10px; padding: 10px 12px"><div data-demo-block data-tone="brand" style="flex: none; inline-size: 96px; block-size: 64px"></div><div data-demo-block data-tone="info" style="flex: none; inline-size: 96px; block-size: 64px"></div><div data-demo-block data-tone="success" style="flex: none; inline-size: 96px; block-size: 64px"></div><div data-demo-block data-tone="warning" style="flex: none; inline-size: 96px; block-size: 64px"></div><div data-demo-block data-tone="danger" style="flex: none; inline-size: 96px; block-size: 64px"></div><div data-demo-block data-tone="neutral" style="flex: none; inline-size: 96px; block-size: 64px"></div></div></div>
     <div data-xh-part="scrollbar" orientation="horizontal"><div data-xh-part="track"><div data-xh-part="thumb"></div></div></div>
   </div>
 </xh-scroll-area>
@@ -219,7 +238,8 @@ import {
   XhScrollAreaViewport,
 } from "@xihan-ui/vue";
 
-const rows = ["概览", "组件", "指南", "示例", "设计令牌", "无障碍", "主题", "动效", "国际化", "发布记录", "迁移指南", "常见问题"];
+const tones = ["brand", "info", "success", "warning", "danger", "neutral"] as const;
+const rows = Array.from({ length: 12 }, (_, index) => ({ id: index + 1, tone: tones[index % tones.length], width: `${56 + (index % 4) * 8}%` }));
 </script>
 
 <template>
@@ -230,9 +250,7 @@ const rows = ["概览", "组件", "指南", "示例", "设计令牌", "无障碍
   >
     <XhScrollAreaViewport>
       <XhScrollAreaContent style="padding: 12px 16px">
-        <p v-for="row in rows" :key="row" style="margin: 0; line-height: 30px">
-          {{ row }}
-        </p>
+        <span v-for="row in rows" :key="row.id" data-demo-block="line" :data-tone="row.tone" :style="{ '--xh-demo-block-inline-size': row.width, 'marginBlock': '15px' }" />
       </XhScrollAreaContent>
     </XhScrollAreaViewport>
     <XhScrollAreaScrollbar orientation="vertical">
@@ -249,14 +267,114 @@ const rows = ["概览", "组件", "指南", "示例", "设计令牌", "无障碍
   <div data-xh-part="root" style="block-size: 180px; inline-size: min(320px, 100%); border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle)">
     <div data-xh-part="viewport">
       <div data-xh-part="content" style="padding: 12px 16px">
-        <p style="margin: 0; line-height: 30px">概览</p><p style="margin: 0; line-height: 30px">组件</p><p style="margin: 0; line-height: 30px">指南</p><p style="margin: 0; line-height: 30px">示例</p>
-        <p style="margin: 0; line-height: 30px">设计令牌</p><p style="margin: 0; line-height: 30px">无障碍</p><p style="margin: 0; line-height: 30px">主题</p><p style="margin: 0; line-height: 30px">动效</p>
-        <p style="margin: 0; line-height: 30px">国际化</p><p style="margin: 0; line-height: 30px">发布记录</p><p style="margin: 0; line-height: 30px">迁移指南</p><p style="margin: 0; line-height: 30px">常见问题</p>
+        <span data-demo-block="line" data-tone="brand" style="--xh-demo-block-inline-size: 56%; margin-block: 15px"></span><span data-demo-block="line" data-tone="info" style="--xh-demo-block-inline-size: 64%; margin-block: 15px"></span><span data-demo-block="line" data-tone="success" style="--xh-demo-block-inline-size: 72%; margin-block: 15px"></span><span data-demo-block="line" data-tone="warning" style="--xh-demo-block-inline-size: 80%; margin-block: 15px"></span>
+        <span data-demo-block="line" data-tone="danger" style="--xh-demo-block-inline-size: 56%; margin-block: 15px"></span><span data-demo-block="line" data-tone="neutral" style="--xh-demo-block-inline-size: 64%; margin-block: 15px"></span><span data-demo-block="line" data-tone="brand" style="--xh-demo-block-inline-size: 72%; margin-block: 15px"></span><span data-demo-block="line" data-tone="info" style="--xh-demo-block-inline-size: 80%; margin-block: 15px"></span>
+        <span data-demo-block="line" data-tone="success" style="--xh-demo-block-inline-size: 56%; margin-block: 15px"></span><span data-demo-block="line" data-tone="warning" style="--xh-demo-block-inline-size: 64%; margin-block: 15px"></span><span data-demo-block="line" data-tone="danger" style="--xh-demo-block-inline-size: 72%; margin-block: 15px"></span><span data-demo-block="line" data-tone="neutral" style="--xh-demo-block-inline-size: 80%; margin-block: 15px"></span>
       </div>
     </div>
     <div data-xh-part="scrollbar" orientation="vertical"><div data-xh-part="track"><div data-xh-part="thumb"></div></div></div>
   </div>
 </xh-scroll-area>
+```
+
+### 命令式滚动与到底通知
+
+scrollTo 滚动视口，reach-end 在滚到底那一下通知一次，常用来提示或续载
+
+```vue
+<script setup lang="ts">
+import type { ScrollAreaScrollDetails } from "@xihan-ui/headless";
+import {
+  XhButton,
+  XhScrollAreaContent,
+  XhScrollAreaRoot,
+  XhScrollAreaScrollbar,
+  XhScrollAreaThumb,
+  XhScrollAreaTrack,
+  XhScrollAreaViewport,
+} from "@xihan-ui/vue";
+import { ref } from "vue";
+
+const rows = Array.from({ length: 20 }, (_, i) => `第 ${i + 1} 条记录`);
+const status = ref("往下滚到底看看");
+
+function onReachEnd(details: ScrollAreaScrollDetails): void {
+  if (details.orientation === "vertical")
+    status.value = "已经到底了";
+}
+</script>
+
+<template>
+  <div style="display: grid; gap: 12px; justify-items: start; inline-size: min(360px, 100%)">
+    <XhScrollAreaRoot
+      v-slot="{ scrollTo }"
+      type="always"
+      aria-label="记录列表"
+      style="block-size: 180px; inline-size: 100%; border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle)"
+      @reach-end="onReachEnd"
+    >
+      <XhScrollAreaViewport>
+        <XhScrollAreaContent style="padding: 8px 16px">
+          <p v-for="row in rows" :key="row" style="margin: 8px 0">{{ row }}</p>
+        </XhScrollAreaContent>
+      </XhScrollAreaViewport>
+      <XhScrollAreaScrollbar orientation="vertical">
+        <XhScrollAreaTrack>
+          <XhScrollAreaThumb />
+        </XhScrollAreaTrack>
+      </XhScrollAreaScrollbar>
+      <div style="position: absolute; inset-block-end: 8px; inset-inline-end: 20px">
+        <XhButton size="sm" variant="outline" @click="scrollTo({ top: 0, behavior: 'smooth' }); status = '往下滚到底看看'">
+          回到顶部
+        </XhButton>
+      </div>
+    </XhScrollAreaRoot>
+    <span aria-live="polite">{{ status }}</span>
+  </div>
+</template>
+```
+
+```html
+<div style="display: grid; gap: 12px; justify-items: start; inline-size: min(360px, 100%)">
+  <xh-scroll-area id="scroll-area-scroll-to" type="always" aria-label="记录列表" style="display: contents">
+    <div data-xh-part="root" style="block-size: 180px; inline-size: 100%; border-radius: var(--xh-shape-surface); background: var(--xh-bg-subtle)">
+      <div data-xh-part="viewport">
+        <div data-xh-part="content" style="padding: 8px 16px"></div>
+      </div>
+      <div data-xh-part="scrollbar" orientation="vertical"><div data-xh-part="track"><div data-xh-part="thumb"></div></div></div>
+      <div style="position: absolute; inset-block-end: 8px; inset-inline-end: 20px">
+        <xh-button id="scroll-area-scroll-to-top" size="sm" variant="outline">
+          <button data-xh-part="root">回到顶部</button>
+        </xh-button>
+      </div>
+    </div>
+  </xh-scroll-area>
+  <span id="scroll-area-scroll-to-status" aria-live="polite">往下滚到底看看</span>
+</div>
+
+<script type="module">
+  const area = document.getElementById("scroll-area-scroll-to");
+  const status = document.getElementById("scroll-area-scroll-to-status");
+  const content = area.querySelector('[data-xh-part="content"]');
+
+  for (let i = 1; i <= 20; i++) {
+    const row = document.createElement("p");
+    row.style.margin = "8px 0";
+    row.textContent = `第 ${i} 条记录`;
+    content.append(row);
+  }
+
+  // 元素的 scrollTo 滚的是 viewport，参数与原生同形
+  document.getElementById("scroll-area-scroll-to-top").addEventListener("click", () => {
+    area.scrollTo({ top: 0, behavior: "smooth" });
+    status.textContent = "往下滚到底看看";
+  });
+
+  area.addEventListener("reach-end", (event) => {
+    if (event.detail.orientation === "vertical")
+      status.textContent = "已经到底了";
+  });
+</script>
 ```
 
 ## 设计指引
@@ -278,6 +396,8 @@ const rows = ["概览", "组件", "指南", "示例", "设计令牌", "无障碍
 - 支持五种滚动条显示时机。
 - `fade` 变体在可滚动边缘显示渐隐提示。
 - 触屏设备默认保留原生滚动体验。
+- `scrollTo` 滚动视口，参数与原生 `Element.scrollTo` 的对象形式同形；`smooth` 在减弱动效下即刻到位。Vue 从组件实例与默认插槽取，React 从函数式 children 取，Web Components 直接调元素的 `scrollTo`。
+- `scroll-change` 按轴报滚动量，`reach-end` 在某条轴跨过末端那一下报一次；两者都不与原生 `scroll` 同名，不会冒泡进祖先的滚动监听。
 
 ### 组合
 
@@ -309,13 +429,24 @@ const rows = ["概览", "组件", "指南", "示例", "设计令牌", "无障碍
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `dir` | `Direction` |  | 排版方向，默认随文档。只影响横轴：RTL 下滚动量的正负、指针位移的方向都要翻一次。 必须显式给：组件不读计算样式，看不见从 RTL 祖先继承来的方向。 |
-| `forceVisible` | `boolean` |  | 触屏（粗指针）上也画自绘滚动条，默认 false：缺省交给原生滚动。 |
+| `dir` | `Direction` |  | 排版方向，默认随文档。只影响横轴：RTL 下滚动量的正负、指针位移的方向都要翻转。 必须显式提供：组件不读取计算样式，无法感知从 RTL 祖先继承的方向。 |
+| `forceVisible` | `boolean` |  | 触屏（粗指针）上也绘制自绘滚动条，默认 false：默认交给原生滚动。 |
 | `hideDelay` | `number` |  | 收起前的等待毫秒（type 为 scroll / hover / scroll-hover 时生效），默认 600。 |
-| `orientation` | `ScrollAreaOrientation` |  | 哪几条轴归本组件管，默认 both。 |
-| `size` | `Size` |  | 尺寸：sm / md / lg，换的是滚动条厚度，也是边缘渐隐的带宽。 |
-| `type` | `ScrollbarType` |  | 滚动条露面的时机，默认 scroll-hover。 |
+| `onReachEnd` | `(details: ScrollAreaScrollDetails) => void` |  | 某条轴滚到了末端：只在跨过末端那一下通知，停在末端不重复；内容不溢出时不通知。 |
+| `onScrollChange` | `(details: ScrollAreaScrollDetails) => void` |  | 某条轴的滚动量变了（滚轮、键盘、拖动与命令式滚动都算），按轴分别通知。 |
+| `orientation` | `ScrollAreaOrientation` |  | 归本组件管理的轴，默认 both。 |
+| `size` | `Size` |  | 尺寸：sm / md / lg，影响滚动条厚度，也是边缘渐隐的带宽。 |
+| `type` | `ScrollbarType` |  | 滚动条显示的时机，默认 scroll-hover。 |
 | `variant` | `ScrollAreaVariant` |  | 形态：plain / fade，默认 plain。 |
+
+### 事件
+
+自定义元素将载荷放在 `detail`；Vue 使用同名 emit。
+
+| 事件 | 载荷 | 说明 |
+| --- | --- | --- |
+| `scroll-change` | `ScrollAreaScrollDetails` | 某条轴的滚动量变了，按轴分别派发；detail 为 `{ orientation, offset, max }` |
+| `reach-end` | `ScrollAreaScrollDetails` | 某条轴滚到了末端，只在跨过末端那一下派发；detail 为 `{ orientation, offset, max }` |
 
 ### 插槽
 
@@ -324,6 +455,15 @@ const rows = ["概览", "组件", "指南", "示例", "设计令牌", "无障碍
 | Vue 组件 | 插槽 | 载荷 | 说明 |
 | --- | --- | --- | --- |
 | `XhScrollAreaRoot` | `default` | `ScrollAreaRootSlotProps` |  |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhScrollAreaRoot` | `children` | `SlotChildren<ScrollAreaRootSlotProps>` |  |  |
+| `XhScrollAreaScrollbar` | `orientation` | `Orientation` |  | 该滚动条管理哪条轴。 |
 
 ### 状态
 
@@ -344,15 +484,16 @@ const rows = ["概览", "组件", "指南", "示例", "设计令牌", "无障碍
 | `orientation` | `ScrollAreaOrientation` |  |
 | `vertical` | `ScrollAreaAxisState` |  |
 | `horizontal` | `ScrollAreaAxisState` |  |
-| `draggingAxis` | `Orientation \| null` | 正被拖动的那条轴；没在拖为 null。 |
-| `cornerVisible` | `boolean` | 右下角补丁该不该显形：两条滚动条同时在场才有它的位置。 |
+| `draggingAxis` | `Orientation \| null` | 正被拖动的轴；未拖动时为 null。 |
+| `cornerVisible` | `boolean` | 右下角补丁是否应显示：两条滚动条同时在场才有它的位置。 |
+| `scrollTo` | `(options: ScrollAreaScrollToOptions) => void` | 滚动视口，与原生 Element.scrollTo 的对象形式同形；视口还没挂上时什么也不做。 |
 | `getRootProps` | `() => T['element']` |  |
 | `getViewportProps` | `() => T['element']` |  |
 | `getContentProps` | `() => T['element']` |  |
-| `getScrollbarProps` | `(props: ScrollAreaScrollbarProps) => T['element']` | 某条轴的滚动条挂载点，同时充当那条 scrollbar 的根节点。 |
+| `getScrollbarProps` | `(props: ScrollAreaScrollbarProps) => T['element']` | 某条轴的滚动条挂载点，同时充当该 scrollbar 的根节点。 |
 | `getTrackProps` | `(props: ScrollAreaScrollbarProps) => T['element']` |  |
 | `getThumbProps` | `(props: ScrollAreaScrollbarProps) => T['element']` |  |
-| `getCornerProps` | `() => T['element']` | 交叉口补丁，写在竖条的挂载点里；只有两条都在场时才显形。 |
+| `getCornerProps` | `() => T['element']` | 交叉口补丁，写在竖条的挂载点中；只有两条都在场时才显示。 |
 
 ## 无障碍
 
@@ -417,14 +558,16 @@ const rows = ["概览", "组件", "指南", "示例", "设计令牌", "无障碍
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
 | `--xh-scroll-area-fade-size` | `viewport` | `-webkit-mask-image`<br>`mask-image` | `at-max-horizontal`<br>`at-max-vertical`<br>`at-min-horizontal`<br>`at-min-vertical`<br>`not([data-at-max-horizontal])`<br>`not([data-at-max-vertical])`<br>`not([data-at-min-horizontal])`<br>`not([data-at-min-vertical])`<br>`size=lg`<br>`size=sm`<br>`variant=fade` | `--xh-space-4`<br>`--xh-space-6`<br>`--xh-space-8` | scroll-area 的 viewport 部件 -webkit-mask-image、mask-image 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
+
+动效角色：状态 · 出现（见[动效规范](../design/motion#角色)）。
 
 `opacity` · `visibility` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 

@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/text-field
 
-# TextField 文本字段 `alpha`
+# TextField 文本字段
 
 单行或多行的自由文本输入。
 
@@ -14,13 +14,13 @@
 
 ## 用法
 
-root 持有状态，label 与 control 里的 input 各自向它取属性；不传 value 即为非受控，组件自己维护值
+root 持有状态，label 与 control 中的 input 各自向它取属性；不传 value 即为非受控，组件自行维护值
 
 ```vue
 <script setup lang="ts">
 import {
-  XhTextFieldControl,
   XhTextFieldClearTrigger,
+  XhTextFieldControl,
   XhTextFieldInput,
   XhTextFieldLabel,
   XhTextFieldRoot,
@@ -30,7 +30,7 @@ import {
 <template>
   <XhTextFieldRoot name="email" type="email" placeholder="输入你的邮箱" clearable>
     <XhTextFieldLabel>邮箱</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 16rem">
+    <XhTextFieldControl>
       <XhTextFieldInput />
       <XhTextFieldClearTrigger />
     </XhTextFieldControl>
@@ -42,7 +42,7 @@ import {
 <xh-text-field name="email" type="email" placeholder="输入你的邮箱" clearable>
   <div data-xh-part="root">
     <label data-xh-part="label">邮箱</label>
-    <div data-xh-part="control" style="inline-size: 16rem">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
       <button data-xh-part="clear-trigger"></button>
     </div>
@@ -60,7 +60,7 @@ import {
 
 ### 受控
 
-传了 value 就由宿主说了算，组件自己不再改状态；变化经 value-change 报出来，写不写回由宿主定
+传入 value 后由宿主决定，组件自身不再修改状态；变化经 value-change 报告，是否写回由宿主决定
 
 ```vue
 <script setup lang="ts">
@@ -78,7 +78,7 @@ const nickname = ref("曦寒");
 <template>
   <XhTextFieldRoot v-model:value="nickname" placeholder="请输入昵称">
     <XhTextFieldLabel>昵称</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
     </XhTextFieldControl>
   </XhTextFieldRoot>
@@ -91,7 +91,7 @@ const nickname = ref("曦寒");
 <xh-text-field id="text-field-controlled" value="曦寒" placeholder="请输入昵称">
   <div data-xh-part="root">
     <label data-xh-part="label">昵称</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -117,7 +117,7 @@ const nickname = ref("曦寒");
 
 ### 可清空与字数上限
 
-Control 把输入框与清空按钮圈进同一个框，clearable 让清空按钮可用并把 Escape 接管过来，maxLength 同时落成原生 maxlength 与机器侧截断
+Control 把输入框与清空按钮圈进同一个框，clearable 使清空按钮可用并接管 Escape，maxLength 按字素计（一个组合 emoji 算一个字），超出的部分从新打进来的文字里截掉
 
 ```vue
 <script setup lang="ts">
@@ -139,7 +139,7 @@ import {
     clearable
   >
     <XhTextFieldLabel>昵称</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
       <XhTextFieldClearTrigger />
     </XhTextFieldControl>
@@ -158,7 +158,7 @@ import {
 >
   <div data-xh-part="root">
     <label data-xh-part="label">昵称</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
       <button data-xh-part="clear-trigger"></button>
     </div>
@@ -179,7 +179,7 @@ import {
 
 ### 禁用与校验态
 
-disabled 与 readOnly 都改不动值，invalid 只把 aria-invalid 标出来、不拦输入
+disabled 与 readOnly 都不可修改值，invalid 只标注 aria-invalid、不拦截输入
 
 ```vue
 <script setup lang="ts">
@@ -194,21 +194,21 @@ import {
 <template>
   <XhTextFieldRoot default-value="改不动" disabled>
     <XhTextFieldLabel>禁用</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 160px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
     </XhTextFieldControl>
   </XhTextFieldRoot>
 
   <XhTextFieldRoot default-value="只能看" read-only>
     <XhTextFieldLabel>只读</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 160px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
     </XhTextFieldControl>
   </XhTextFieldRoot>
 
   <XhTextFieldRoot default-value="格式不对" invalid>
     <XhTextFieldLabel>校验失败</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 160px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
     </XhTextFieldControl>
   </XhTextFieldRoot>
@@ -219,7 +219,7 @@ import {
 <xh-text-field default-value="改不动" disabled>
   <div data-xh-part="root">
     <label data-xh-part="label">禁用</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -228,7 +228,7 @@ import {
 <xh-text-field default-value="只能看" read-only>
   <div data-xh-part="root">
     <label data-xh-part="label">只读</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -237,7 +237,7 @@ import {
 <xh-text-field default-value="格式不对" invalid>
   <div data-xh-part="root">
     <label data-xh-part="label">校验失败</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -246,7 +246,7 @@ import {
 
 ### 变体
 
-variant 决定底与描边怎么画：描边、淡色填底、无框；输入框没有实心档
+variant 决定底色与描边的绘制方式：描边、淡色填底、无框；输入框没有实心档
 
 ```vue
 <script setup lang="ts">
@@ -269,7 +269,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
     placeholder="请输入内容"
   >
     <XhTextFieldLabel>{{ v }}</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 180px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
     </XhTextFieldControl>
   </XhTextFieldRoot>
@@ -280,7 +280,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
 <xh-text-field variant="outline" placeholder="请输入内容">
   <div data-xh-part="root">
     <label data-xh-part="label">outline</label>
-    <div data-xh-part="control" style="inline-size: 180px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -289,7 +289,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
 <xh-text-field variant="subtle" placeholder="请输入内容">
   <div data-xh-part="root">
     <label data-xh-part="label">subtle</label>
-    <div data-xh-part="control" style="inline-size: 180px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -299,7 +299,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
 <xh-text-field variant="ghost" placeholder="请输入内容">
   <div data-xh-part="root">
     <label data-xh-part="label">ghost</label>
-    <div data-xh-part="control" style="inline-size: 180px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -308,7 +308,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
 
 ### 颜色
 
-tone 决定用哪族颜色，与 variant 正交；这里固定 subtle 形态，语气的底色差别不必聚焦就看得见
+tone 决定使用哪族颜色，与 variant 正交；这里固定 subtle 形态，语气的底色差别不必聚焦即可看到
 
 ```vue
 <script setup lang="ts">
@@ -332,7 +332,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
     placeholder="点进来看聚焦环"
   >
     <XhTextFieldLabel>{{ t }}</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 160px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
     </XhTextFieldControl>
   </XhTextFieldRoot>
@@ -344,7 +344,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 <xh-text-field variant="subtle" tone="brand" placeholder="点进来看聚焦环">
   <div data-xh-part="root">
     <label data-xh-part="label">brand</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -353,7 +353,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 <xh-text-field variant="subtle" tone="neutral" placeholder="点进来看聚焦环">
   <div data-xh-part="root">
     <label data-xh-part="label">neutral</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -362,7 +362,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 <xh-text-field variant="subtle" tone="success" placeholder="点进来看聚焦环">
   <div data-xh-part="root">
     <label data-xh-part="label">success</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -371,7 +371,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 <xh-text-field variant="subtle" tone="warning" placeholder="点进来看聚焦环">
   <div data-xh-part="root">
     <label data-xh-part="label">warning</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -380,7 +380,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 <xh-text-field variant="subtle" tone="danger" placeholder="点进来看聚焦环">
   <div data-xh-part="root">
     <label data-xh-part="label">danger</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -389,7 +389,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 <xh-text-field variant="subtle" tone="info" placeholder="点进来看聚焦环">
   <div data-xh-part="root">
     <label data-xh-part="label">info</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -398,7 +398,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 
 ### 尺寸
 
-size 只改高度、内边距与字号，标签与清空按钮一起跟着换档；不写就是缺省档
+size 只改变高度、内边距与字号，标签与清空按钮一起换档；不写即默认档
 
 ```vue
 <script setup lang="ts">
@@ -415,7 +415,7 @@ import {
   <!-- 固定 outline 形态，只看档位的差别 -->
   <XhTextFieldRoot variant="outline" size="sm" default-value="小" clearable>
     <XhTextFieldLabel>sm</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
       <XhTextFieldClearTrigger />
     </XhTextFieldControl>
@@ -423,7 +423,7 @@ import {
 
   <XhTextFieldRoot variant="outline" default-value="缺省" clearable>
     <XhTextFieldLabel>缺省</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
       <XhTextFieldClearTrigger />
     </XhTextFieldControl>
@@ -431,7 +431,7 @@ import {
 
   <XhTextFieldRoot variant="outline" size="lg" default-value="大" clearable>
     <XhTextFieldLabel>lg</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
       <XhTextFieldClearTrigger />
     </XhTextFieldControl>
@@ -444,7 +444,7 @@ import {
 <xh-text-field variant="outline" size="sm" default-value="小" clearable>
   <div data-xh-part="root">
     <label data-xh-part="label">sm</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
       <button data-xh-part="clear-trigger"></button>
     </div>
@@ -454,7 +454,7 @@ import {
 <xh-text-field variant="outline" default-value="缺省" clearable>
   <div data-xh-part="root">
     <label data-xh-part="label">缺省</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
       <button data-xh-part="clear-trigger"></button>
     </div>
@@ -464,7 +464,7 @@ import {
 <xh-text-field variant="outline" size="lg" default-value="大" clearable>
   <div data-xh-part="root">
     <label data-xh-part="label">lg</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
       <button data-xh-part="clear-trigger"></button>
     </div>
@@ -474,7 +474,7 @@ import {
 
 ### 程序化改值
 
-setValue 直接写值，只受禁用、只读与字数上限约束；clear 走清空意图，canClear 不成立时按兵不动
+setValue 直接写值，只受禁用、只读与字数上限约束；clear 执行清空意图，canClear 不成立时不做任何处理
 
 ```vue
 <script setup lang="ts">
@@ -494,7 +494,7 @@ import {
     clearable
   >
     <XhTextFieldLabel>收货人</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <XhTextFieldInput />
     </XhTextFieldControl>
     <div style="display: flex; gap: 8px">
@@ -511,7 +511,7 @@ import {
 <xh-text-field id="text-field-programmatic" placeholder="等着被写入" max-length="12" clearable>
   <div data-xh-part="root">
     <label data-xh-part="label">收货人</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -572,7 +572,7 @@ import {
 <template>
   <XhTextFieldRoot placeholder="you@example.com">
     <XhTextFieldLabel>邮箱</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 220px">
+    <XhTextFieldControl>
       <XhTextFieldInput
         autocomplete="email"
         inputmode="email"
@@ -583,7 +583,7 @@ import {
 
   <XhTextFieldRoot placeholder="11 位手机号" :max-length="11">
     <XhTextFieldLabel>手机号</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 220px">
+    <XhTextFieldControl>
       <XhTextFieldInput
         autocomplete="tel"
         inputmode="numeric"
@@ -598,7 +598,7 @@ import {
 <xh-text-field placeholder="you@example.com">
   <div data-xh-part="root">
     <label data-xh-part="label">邮箱</label>
-    <div data-xh-part="control" style="inline-size: 220px">
+    <div data-xh-part="control">
       <input
         data-xh-part="input"
         autocomplete="email"
@@ -612,7 +612,7 @@ import {
 <xh-text-field placeholder="11 位手机号" max-length="11">
   <div data-xh-part="root">
     <label data-xh-part="label">手机号</label>
-    <div data-xh-part="control" style="inline-size: 220px">
+    <div data-xh-part="control">
       <input
         data-xh-part="input"
         autocomplete="tel"
@@ -626,7 +626,7 @@ import {
 
 ### 事件
 
-值的变化走组件的 value-change，聚焦失焦这类原生事件直接写在 input 部件上
+值的变化经组件的 value-change，聚焦失焦等原生事件直接写在 input 部件上
 
 ```vue
 <script setup lang="ts">
@@ -653,7 +653,7 @@ function onValueChange(details: { value: string }) {
 <template>
   <XhTextFieldRoot placeholder="随便敲几个字" clearable @value-change="onValueChange">
     <XhTextFieldLabel>留言</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 220px">
+    <XhTextFieldControl>
       <XhTextFieldInput @focus="push('focus')" @blur="push('blur')" />
     </XhTextFieldControl>
   </XhTextFieldRoot>
@@ -669,7 +669,7 @@ function onValueChange(details: { value: string }) {
 <xh-text-field id="text-field-events" placeholder="随便敲几个字" clearable>
   <div data-xh-part="root">
     <label data-xh-part="label">留言</label>
-    <div data-xh-part="control" style="inline-size: 220px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -726,7 +726,7 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
 <template>
   <XhTextFieldRoot placeholder="0.00">
     <XhTextFieldLabel>金额</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <span :style="affix">¥</span>
       <XhTextFieldInput inputmode="decimal" />
       <span :style="affix">元</span>
@@ -735,7 +735,7 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
 
   <XhTextFieldRoot placeholder="170">
     <XhTextFieldLabel>身高</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 160px">
+    <XhTextFieldControl>
       <XhTextFieldInput inputmode="numeric" />
       <span :style="affix">cm</span>
     </XhTextFieldControl>
@@ -747,7 +747,7 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
 <xh-text-field placeholder="0.00">
   <div data-xh-part="root">
     <label data-xh-part="label">金额</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <!-- 不参与分宽，也不吃指针事件：点在前后缀上仍然落到输入框里 -->
       <span style="flex: none; color: var(--xh-fg-muted); pointer-events: none">¥</span>
       <input data-xh-part="input" inputmode="decimal" />
@@ -759,7 +759,7 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
 <xh-text-field placeholder="170">
   <div data-xh-part="root">
     <label data-xh-part="label">身高</label>
-    <div data-xh-part="control" style="inline-size: 160px">
+    <div data-xh-part="control">
       <input data-xh-part="input" inputmode="numeric" />
       <span style="flex: none; color: var(--xh-fg-muted); pointer-events: none">cm</span>
     </div>
@@ -769,7 +769,7 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
 
 ### 密码与明暗切换
 
-写在 input 部件上的 type 盖过默认的 text，明暗由宿主的一个布尔翻转
+写在 input 部件上的 type 覆盖默认的 text，明暗由宿主的一个布尔切换
 
 ```vue
 <script setup lang="ts">
@@ -788,7 +788,7 @@ const visible = ref(false);
   <XhTextFieldRoot placeholder="请输入密码" :max-length="20">
     <XhTextFieldLabel>密码</XhTextFieldLabel>
     <div style="display: flex; gap: 4px">
-      <XhTextFieldControl style="inline-size: 200px">
+      <XhTextFieldControl>
         <XhTextFieldInput
           :type="visible ? 'text' : 'password'"
           autocomplete="current-password"
@@ -808,7 +808,7 @@ const visible = ref(false);
   <div data-xh-part="root">
     <label data-xh-part="label">密码</label>
     <div style="display: flex; gap: 4px">
-      <div data-xh-part="control" style="inline-size: 200px">
+      <div data-xh-part="control">
         <input data-xh-part="input" autocomplete="current-password" />
       </div>
       <button type="button" id="text-field-password-toggle" aria-pressed="false">显示</button>
@@ -834,7 +834,7 @@ const visible = ref(false);
 
 ### 限制可输入的字符
 
-beforeinput 直接写在 input 部件上，非法字符进不了框，值与框里的内容始终一致
+beforeinput 直接写在 input 部件上，非法字符无法进入框，值与框中的内容始终一致
 
 ```vue
 <script setup lang="ts">
@@ -868,14 +868,14 @@ function noSpace(event: Event) {
 <template>
   <XhTextFieldRoot placeholder="只收数字" :max-length="11">
     <XhTextFieldLabel>手机号</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <XhTextFieldInput inputmode="numeric" @beforeinput="onlyDigits" />
     </XhTextFieldControl>
   </XhTextFieldRoot>
 
   <XhTextFieldRoot placeholder="空格进不来">
     <XhTextFieldLabel>账号</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 200px">
+    <XhTextFieldControl>
       <XhTextFieldInput @beforeinput="noSpace" />
     </XhTextFieldControl>
   </XhTextFieldRoot>
@@ -886,7 +886,7 @@ function noSpace(event: Event) {
 <xh-text-field id="text-field-filter-digits" placeholder="只收数字" max-length="11">
   <div data-xh-part="root">
     <label data-xh-part="label">手机号</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <input data-xh-part="input" inputmode="numeric" />
     </div>
   </div>
@@ -895,7 +895,7 @@ function noSpace(event: Event) {
 <xh-text-field id="text-field-filter-space" placeholder="空格进不来">
   <div data-xh-part="root">
     <label data-xh-part="label">账号</label>
-    <div data-xh-part="control" style="inline-size: 200px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
   </div>
@@ -930,7 +930,7 @@ function noSpace(event: Event) {
 
 ### 聚焦与选区
 
-input 部件就是一个原生 input，拿到它的节点就能聚焦、全选、把光标挪到末尾
+input 部件就是一个原生 input，取得它的节点即可聚焦、全选、把光标移到末尾
 
 ```vue
 <script setup lang="ts">
@@ -966,7 +966,7 @@ function caretToEnd(): void {
 <template>
   <XhTextFieldRoot default-value="曦寒组件库">
     <XhTextFieldLabel>标题</XhTextFieldLabel>
-    <XhTextFieldControl style="inline-size: 220px">
+    <XhTextFieldControl>
       <XhTextFieldInput :ref="bindInput" />
     </XhTextFieldControl>
     <div style="display: flex; gap: 8px">
@@ -983,7 +983,7 @@ function caretToEnd(): void {
 <xh-text-field id="text-field-focus" default-value="曦寒组件库">
   <div data-xh-part="root">
     <label data-xh-part="label">标题</label>
-    <div data-xh-part="control" style="inline-size: 220px">
+    <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
     <div style="display: flex; gap: 8px">
@@ -1018,7 +1018,7 @@ function caretToEnd(): void {
 
 ### 输入组
 
-圆角槽换成只留外侧的一组值，中缝用负外边距叠掉一条描边，相邻控件拼成一体
+圆角槽换为只保留外侧的一组值，中缝用负外边距叠掉一条描边，相邻控件拼为一体
 
 ```vue
 <script setup lang="ts">
@@ -1135,9 +1135,9 @@ const middleControl = "inline-size: 160px; margin-inline: -1px; --xh-text-field-
 </xh-text-field>
 ```
 
-### 多行与自动长高
+### 多行与自动增高
 
-input 部件写成 textarea 即多行宿主；autoSize 让高度跟内容走，对象形态钉行数上下限（顶到 maxRows 后内部滚动）
+input 部件写为 textarea 即多行宿主；autoSize 使高度跟随内容，对象形态固定行数上下限（达到 maxRows 后内部滚动）
 
 ```vue
 <script setup lang="ts">
@@ -1220,55 +1220,43 @@ const note = ref("");
 
 ### 何时使用
 
-- 姓名、标题、描述、搜索词这类没有固定候选的文本。
+- 姓名、标题、描述、搜索词等没有固定候选的文本。
 
 ### 何时不用
 
-- 值来自一份已知清单：用[选择器](./select)或[组合框](./combobox)。
-- 输入的是数字并需要加减：用[数字字段](./number-field)。
-- 输入的是日期或时间：用[日期字段](./date-field)、[时间字段](./time-field)。
+- 值来自已知清单时，使用[选择器](./select)或[组合框](./combobox)。
+- 输入数字并需要加减时，使用[数字字段](./number-field)。
+- 输入日期或时间时，使用[日期字段](./date-field)、[时间字段](./time-field)。
 
 ### 特性
 
 - `type` 覆盖 `text` / `password` / `email` / `tel` / `url` / `search`。
-- `clearable` 给出清空按钮，`maxLength` 给出字数上限。
-- 输入部件用 `as="textarea"` 切到多行；`autoSize` 为 `true` 时随内容长高，也可用
-  `{ minRows, maxRows }` 限定行数。两个边界给值时必须是大于等于 1 的有限整数，且
-  `minRows` 不得大于 `maxRows`；无效配置会明确失败，不会夹取或沿用旧配置。
-- 自动高度会跟随输入、程序化写值与运行期配置变化重新测量。关闭 `autoSize`、换回单行、
-  替换输入节点或卸载组件时，会归还启用前的 `block-size` 与 `overflow-y` 内联声明及其 priority；
-  作者原本没有写的声明才会被移除。
-- 自动高度把一只隐藏 textarea 临时挂到输入框所属 Document，以复制后的排版与宽度计算值取得真实
-  内容高度和单行高度，换算 `minRows` / `maxRows`；`line-height: normal` 不按字号猜测。`content-box` 与 `border-box`
-  分别按自己的声明盒计算内距和边框。量高要求 textarea 已连接到带 Window 的 Document，且当前只接受
-  `writing-mode: horizontal-tb`；其他书写模式会明确失败，不会把物理纵向滚动尺寸误当成逻辑块尺寸。
-- `prefix` / `suffix` 在框内摆货币符、单位或图标，两段对读屏隐藏。
-- 默认皮肤把控件接入 Field Chrome：Headless 在真实视觉盒、输入、装饰段上分别投影
-  `data-xh-field-chrome`、`data-xh-field-input`、`data-xh-field-affix`，单行与 textarea 由
-  `data-xh-field-layout` 明确区分。旧 `data-multiline` / `data-auto-resize` 视觉钩子已删除，
-  自定义皮肤应读取新的家族角色，不提供双写兼容。
-- 默认字段使用无边框实体面、轻阴影与表面圆角；需要显式边界时使用 `outline`，
-  需要中性填充或透明底时分别使用 `subtle` / `ghost`。
-- 清空按钮复用 Action Control 的 `field-inset` profile 和 `has-value` 显示策略；粗指针命中区、
-  pressed/focus/forced-colors 均由家族配方提供，适配器不另算尺寸或可见性。
-- 开启 `clearable` 后，清空按钮仍在空值时收起，只在有值且可编辑时出现；字段聚焦边界平滑过渡。
-- `showCount` 显出字数部件，数字取 `count` 与 `maxLength`，顶到上限时换色。
-- 放在 FormFieldGroup 里时，未声明的 `disabled` / `readOnly` / `required` / `invalid` 会从最近的
-  Field 或 Form 继承；实例显式写 `false` 仍以实例为准。Field 的标签、说明和错误描述链保持挂到 input。
+- `clearable` 显示清空按钮，`maxLength` 设置字数上限。
+- 输入部件用 `as="textarea"` 切换到多行；`autoSize` 为 `true` 时随内容增高，也可用 `{ minRows, maxRows }` 限定行数。两个边界必须是大于等于 1 的有限整数，且 `minRows` 不得大于 `maxRows`；无效配置会明确失败，不夹取也不沿用旧配置。
+- 自动高度跟随输入、程序化写值与运行期配置变化重新测量。关闭 `autoSize`、换回单行、替换输入节点或卸载组件时，归还启用前的 `block-size` 与 `overflow-y` 内联声明及其 priority；只移除作者原本没有写的声明。
+- 自动高度把一个隐藏 textarea 临时挂到输入框所属 Document，以复制后的排版与宽度计算值取得真实内容高度和单行高度，换算 `minRows` / `maxRows`；`line-height: normal` 不按字号推测。`content-box` 与 `border-box` 分别按自己的声明盒计算内距和边框。测量要求 textarea 已连接到带 Window 的 Document，且当前只接受 `writing-mode: horizontal-tb`；其他书写模式会明确失败，不把物理纵向滚动尺寸误当逻辑块尺寸。
+- `prefix` / `suffix` 在框内放置货币符、单位或图标，两段对读屏隐藏。
+- 默认皮肤把控件接入 Field Chrome：Headless 在真实视觉盒、输入、装饰段上分别投影 `data-xh-field-chrome`、`data-xh-field-input`、`data-xh-field-affix`，单行与 textarea 由 `data-xh-field-layout` 区分。旧 `data-multiline` / `data-auto-resize` 视觉钩子已删除，自定义皮肤应读取新的家族角色，不提供双写兼容。
+- 默认即 `outline`：`--xh-bg-canvas` 底、`--xh-border-control` 描边、control 圆角、无阴影，不写 `variant` 时 root 与 control 都落 `data-variant="outline"`；`subtle` 为中性填充、`ghost` 为透明底，两者在悬停与聚焦时浮出描边，聚焦描边一律 `--xh-border-control-focus`。
+- 清空按钮复用 Action Control 的 `field-inset` profile 和 `has-value` 显示策略；粗指针命中区、pressed / focus / forced-colors 均由家族配方提供，适配器不另行计算尺寸或可见性。
+- 开启 `clearable` 后，清空按钮在空值时收起，只在有值且可编辑时出现；字段聚焦边界平滑过渡。
+- `showCount` 显示字数部件，数字取 `count` 与 `maxLength`，达到上限时换色。
+- 字数与 `maxLength` 都按字素计：组合 emoji、国旗与带变音符的字母各算一个字。上限不投影成按 UTF-16 码元计的原生 `maxlength`；一次编辑超出时截掉的是这次新插入的文本里放不下的那一截，光标落在保留下来的文本之后；输入法组合期间不截，落定时再按上限收住。
+- 放在 FormFieldGroup 内时，未声明的 `disabled` / `readOnly` / `required` / `invalid` 从最近的 Field 或 Form 继承；实例显式写 `false` 时以实例为准。Field 的标签、说明和错误描述链保持挂到 input。
 - 输入组、限制可输入字符由作者组合，组件不预设。
 
 ### 组合
 
-- 外面套[表单字段](./field)拿标签与错误文本；与[按钮](./button)拼成输入组。
+- 外层放[表单字段](./field)获取标签与错误文本；与[按钮](./button)组成输入组。
 
 ### 最佳实践
 
-- `type` 要写对：移动端的软键盘按它切换，写错会让用户多按很多次。
-- 密码框的明暗切换按钮要有可及名字，并在切换后更新它。
+- `type` 必须正确：移动端软键盘按它切换，写错会增加用户的按键次数。
+- 密码框的明暗切换按钮要有可访问名称，并在切换后更新。
 
 ### 反模式
 
-- 用它收集固定格式的分段值（日期、验证码）：用[日期字段](./date-field)、[分格输入](./pin-input)。
+- 用它收集固定格式的分段值（日期、验证码）：应使用[日期字段](./date-field)、[分格输入](./pin-input)。
 - 输入时就报格式错误。
 
 ## API 参考
@@ -1287,24 +1275,25 @@ const note = ref("");
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `value` | `string` |  | 受控值；给了就由宿主说了算，机器不自改。 |
+| `value` | `string` |  | 受控值；提供后由宿主决定，状态机不自行修改。 |
 | `defaultValue` | `string` |  | 非受控初值。 |
-| `type` | `TextFieldType` |  | 单行宿主的输入类型，缺省 text；as 为 textarea 时不发这条属性。 |
+| `type` | `TextFieldType` |  | 单行宿主的输入类型，默认 text；as 为 textarea 时不发该属性。 |
 | `placeholder` | `string` |  |  |
 | `disabled` | `boolean` |  |  |
 | `readOnly` | `boolean` |  |  |
 | `required` | `boolean` |  |  |
 | `invalid` | `boolean` |  |  |
-| `name` | `string` |  | 表单字段名；给了才参与提交。 |
-| `maxLength` | `number` |  | 字符数上限。同时落成原生 maxlength 与机器侧的截断，两道都要。 |
-| `clearable` | `boolean` |  | 开启清空能力：有值时显出清空按钮、Escape 接管。关掉时按钮带 hidden 收起。 |
-| `showCount` | `boolean` |  | 显出字数部件：关掉时 count 部件带 hidden 收起。 |
-| `autoSize` | `boolean \| TextFieldAutoSize` |  | 多行宿主的自动高度：按横向书写的真实行盒跟内容长高；对象形态钉行数上下限。 |
-| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定输入框的底与描边怎么画。 |
-| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦强调用哪族颜色。 |
+| `name` | `string` |  | 表单字段名；提供后才参与提交。 |
+| `maxLength` | `number` |  | 字数上限，按字素计（组合 emoji、国旗、带变音符的字母都算一个），与 count 同一口径。 原生 maxlength 按 UTF-16 码元计，会把一个 emoji 算成两个以上，因此不投影； 超出的部分由连接层从这次新插入的文本里截掉（与原生 maxlength 同样的做法），输入法组合期间不截、落定时再截。 |
+| `clearable` | `boolean` |  | 开启清空能力：有值时显示清空按钮、Escape 接管。关闭时按钮带 hidden 收起。 |
+| `showCount` | `boolean` |  | 显示字数部件：关闭时 count 部件带 hidden 收起。 |
+| `autoSize` | `boolean \| TextFieldAutoSize` |  | 多行宿主的自动高度：按横向书写的真实行盒随内容增高；对象形态固定行数上下限。 |
+| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定底色与描边的绘制方式。默认 outline。 |
+| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦强调使用哪族颜色。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg，决定输入框与清空按钮的几何档位。 |
-| `translations` | `Partial<TextFieldTranslations>` |  | 读屏文案；缺省英文。 |
+| `translations` | `Partial<TextFieldTranslations>` |  | 读屏文案；默认英文。 |
 | `onValueChange` | `(details: TextFieldValueChangeDetails) => void` |  |  |
+| `onClear` | `() => void` |  | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 
 ### 事件
 
@@ -1313,6 +1302,7 @@ const note = ref("");
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `value-change` | `TextFieldValueChangeDetails` | 值变化；detail 为 `{ value: string }` |
+| `clear` | `` | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 
 ### 插槽
 
@@ -1323,13 +1313,23 @@ const note = ref("");
 | `XhTextFieldCount` | `default` | `TextFieldCountSlotProps` |  |
 | `XhTextFieldRoot` | `default` | `TextFieldRootSlotProps` |  |
 
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhTextFieldCount` | `children` | `SlotChildren<TextFieldCountSlotProps>` |  |  |
+| `XhTextFieldInput` | `as` | `TextFieldInputHost` |  | 输入框渲染为哪个标签，默认 input；写 textarea 即多行宿主，接入 autoSize 自动高度。 |
+| `XhTextFieldRoot` | `children` | `SlotChildren<TextFieldRootSlotProps>` |  |  |
+
 ### 状态
 
 以下名称仅用于内部状态机。
 
 **状态**：`idle`
 
-**事件**：`VALUE.SET` · `VALUE.CLEAR` · `FORM.RESET`
+**事件**：`VALUE.SET` · `VALUE.CLEAR` · `FORM.RESET` · `PRESS.START` · `PRESS.END`
 
 **判据**：`canEdit` · `canClear`
 
@@ -1340,27 +1340,27 @@ const note = ref("");
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
 | `value` | `string` |  |
-| `empty` | `boolean` | 值为空串。作者据此显示占位说明一类的东西。 |
+| `empty` | `boolean` | 值为空串。作者据此显示占位说明等内容。 |
 | `disabled` | `boolean` |  |
 | `readOnly` | `boolean` |  |
 | `invalid` | `boolean` |  |
 | `clearable` | `boolean` |  |
-| `atLimit` | `boolean` | 已顶到 maxLength：再敲也进不去，作者据此把字数提示标红。 |
-| `count` | `number` | 当前字数，即 value 的长度。作者拿它渲染 count 部件里的数字。 |
-| `maxLength` | `number \| undefined` | 字数上限的原样透传；没设上限时是 undefined，此时只渲当前字数。 |
-| `showCount` | `boolean` | 字数部件此刻是否显出（开了 showCount）。 |
-| `canClear` | `boolean` | 清空按钮此刻是否可用（开了 clearable、可编辑、且有值）。 |
-| `setValue` | `(next: string) => void` | 直接写值，只受 disabled/readOnly 与 maxLength 约束，与 clearable 无关。 |
-| `clear` | `() => void` | 走清空意图，受 canClear 约束；无条件清空请用 setValue('')。 |
-| `autoSize` | `boolean \| TextFieldAutoSize` | 自动高度配置的原样透传；适配器在程序化写值后据此补量一次。 |
+| `atLimit` | `boolean` | 已到达 maxLength：无法再输入，作者据此把字数提示标红。 |
+| `count` | `number` | 当前字数，按字素计（一个组合 emoji 算一个）。作者用它渲染 count 部件中的数字。 |
+| `maxLength` | `number \| undefined` | 字数上限的原样透传；未设上限时为 undefined，此时只渲染当前字数。 |
+| `showCount` | `boolean` | 字数部件当前是否显示（开启了 showCount）。 |
+| `canClear` | `boolean` | 清空按钮当前是否可用（开启 clearable、可编辑、且有值）。 |
+| `setValue` | `(next: string) => void` | 直接写值，只受 disabled / readOnly 与 maxLength 约束，与 clearable 无关。 |
+| `clear` | `() => void` | 发起清空意图，受 canClear 约束；无条件清空使用 setValue('')。 |
+| `autoSize` | `boolean \| TextFieldAutoSize` | 自动高度配置的原样透传；适配器在程序化写值后据此补测一次。 |
 | `getRootProps` | `() => T['element']` |  |
-| `getControlProps` | `() => T['element']` | 视觉盒；写了它就由它画描边与聚焦环，不写时输入框自己当盒。 |
+| `getControlProps` | `() => T['element']` | 视觉盒；提供后由它绘制描边与聚焦环，未提供时输入框自身作为盒。 |
 | `getLabelProps` | `() => T['label']` |  |
-| `getInputProps` | `(props?: TextFieldInputProps) => T['input']` | 传 as: 'textarea' 即多行宿主：撤掉 type、接上自动高度。 |
+| `getInputProps` | `(props?: TextFieldInputProps) => T['input']` | 传 as: 'textarea' 即多行宿主：去除 type、接入自动高度。 |
 | `getPrefixProps` | `() => T['element']` | 输入框前的装饰段（货币符、单位、图标）；对读屏隐藏，不参与名字链。 |
 | `getSuffixProps` | `() => T['element']` | 输入框后的装饰段；对读屏隐藏，不参与名字链。 |
 | `getClearTriggerProps` | `() => T['button']` |  |
-| `getCountProps` | `() => T['element']` | 字数部件：承载 count / maxLength 两个数字，没开 showCount 时带 hidden 收起。 |
+| `getCountProps` | `() => T['element']` | 字数部件：承载 count / maxLength 两个数字，未开启 showCount 时带 hidden 收起。 |
 
 ## 无障碍
 
@@ -1371,6 +1371,7 @@ const note = ref("");
 | 按键 | 生效条件 | 行为 |
 | --- | --- | --- |
 | `Escape` | focus in input, clearable 且值非空, not disabled/readOnly | 清空值；三个条件缺一即不接管该键，交回给外层与浏览器 |
+| `Enter` / `Space` | held in clear-trigger, clearable 且值非空, not disabled/readOnly | 按住期间清空按钮投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下，值清空后按钮藏起一并撤下。清空按钮不占 Tab 位，键盘这一路只在焦点落到它身上时有面 |
 
 ### ARIA
 
@@ -1393,6 +1394,8 @@ const note = ref("");
 
 `@xihan-ui/styles/text-field.css` 使用 `[data-scope="text-field"][data-part="root"]` 部件选择器，位于 `xihan.components` 层。覆盖样式使用 `xihan.overrides`。
 
+`forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
+
 ### 数据属性
 
 由 `connect` 生成；条件不成立时不输出无值属性。
@@ -1414,6 +1417,7 @@ const note = ref("");
 | `control` | `data-empty` | ''（条件成立时才出现） |
 | `control` | `data-invalid` | ''（条件成立时才出现） |
 | `control` | `data-readonly` | ''（条件成立时才出现） |
+| `control` | `data-variant` | props.variant |
 | `control` | `data-xh-field-chrome` | '' |
 | `control` | `data-xh-field-size` | props.size |
 | `prefix` | `data-disabled` | ''（条件成立时才出现） |
@@ -1427,24 +1431,26 @@ const note = ref("");
 | `input` | `data-xh-field-layout` | 'textarea' \| 'single-line' |
 | `suffix` | `data-disabled` | ''（条件成立时才出现） |
 | `suffix` | `data-xh-field-affix` | 'suffix' |
+| `clear-trigger` | `data-pressed` | ''（条件成立时才出现） |
 | `clear-trigger` | `data-xh-action-control` | '' |
 | `clear-trigger` | `data-xh-action-display` | 'has-value' |
 | `clear-trigger` | `data-xh-action-has-value` | ''（条件成立时才出现） |
 | `clear-trigger` | `data-xh-action-profile` | 'field-inset' |
 | `clear-trigger` | `data-xh-action-size` | props.size |
+| `clear-trigger` | `data-xh-action-variant` | 'ghost' |
 | `count` | `data-at-max` | ''（条件成立时才出现） |
 | `count` | `data-disabled` | ''（条件成立时才出现） |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-text-field-action-bg` | `clear-trigger` | `background-color` | `default` | `transparent` | text-field 的 clear-trigger 部件 background-color 覆盖槽。 |
-| `--xh-text-field-action-bg-active` | `clear-trigger` | `background-color` | `active`<br>`disabled`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-bg-subtle-active` | text-field 的 clear-trigger 部件 background-color 覆盖槽。 |
-| `--xh-text-field-action-bg-hover` | `clear-trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-bg-subtle-hover` | text-field 的 clear-trigger 部件 background-color 覆盖槽。 |
+| `--xh-text-field-action-bg` | `clear-trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | text-field 的 clear-trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-text-field-action-bg-active` | `clear-trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | text-field 的 clear-trigger 部件 background-color 覆盖槽。 |
+| `--xh-text-field-action-bg-hover` | `clear-trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | text-field 的 clear-trigger 部件 background-color 覆盖槽。 |
 | `--xh-text-field-action-fg` | `clear-trigger` | `color` | `default` | `--xh-fg-muted` | text-field 的 clear-trigger 部件 color 覆盖槽。 |
 | `--xh-text-field-action-fg-hover` | `clear-trigger` | `color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-fg-default` | text-field 的 clear-trigger 部件 color 覆盖槽。 |
 | `--xh-text-field-action-font-size` | `clear-trigger` | `font-size` | `default` | `--xh-_text-field-action-font-size` | text-field 的 clear-trigger 部件 font-size 覆盖槽。 |
@@ -1453,42 +1459,45 @@ const note = ref("");
 | `--xh-text-field-affix-fg` | `prefix`<br>`suffix` | `color` | `xh-field-affix` | `--xh-fg-muted` | text-field 的 prefix、suffix 部件 color 覆盖槽。 |
 | `--xh-text-field-affix-fg-disabled` | `prefix`<br>`suffix` | `color` | `disabled`<br>`xh-field-affix` | `--xh-fg-disabled` | text-field 的 prefix、suffix 部件 color 覆盖槽。 |
 | `--xh-text-field-affix-font-size` | `prefix`<br>`suffix` | `font-size` | `xh-field-affix` | `--xh-_text-field-font-size` | text-field 的 prefix、suffix 部件 font-size 覆盖槽。 |
-| `--xh-text-field-control-bg` | `control` | `background-color` | `xh-field-chrome` | `--xh-_text-field-bg` | text-field 的 control 部件 background-color 覆盖槽。 |
-| `--xh-text-field-control-bg-disabled` | `control` | `background-color` | `disabled`<br>`xh-field-chrome` | `--xh-bg-subtle` | text-field 的 control 部件 background-color 覆盖槽。 |
-| `--xh-text-field-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_text-field-bg-hover` | text-field 的 control 部件 background-color 覆盖槽。 |
-| `--xh-text-field-control-bg-readonly` | `control` | `background-color` | `readonly`<br>`xh-field-chrome` | `--xh-bg-subtle` | text-field 的 control 部件 background-color 覆盖槽。 |
-| `--xh-text-field-control-border` | `control` | `border` | `xh-field-chrome` | `--xh-_text-field-border` | text-field 的 control 部件 border 覆盖槽。 |
+| `--xh-text-field-control-bg` | `control` | `background-color` | `xh-field-chrome` | `--xh-_field-variant-bg-rest` | text-field 的 control 部件 background-color 覆盖槽。 |
+| `--xh-text-field-control-bg-disabled` | `control` | `background-color` | `disabled`<br>`xh-field-chrome` | `--xh-_field-variant-bg-disabled` | text-field 的 control 部件 background-color 覆盖槽。 |
+| `--xh-text-field-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-hover` | text-field 的 control 部件 background-color 覆盖槽。 |
+| `--xh-text-field-control-bg-readonly` | `control` | `background-color` | `readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-read-only` | text-field 的 control 部件 background-color 覆盖槽。 |
+| `--xh-text-field-control-border` | `control` | `border` | `xh-field-chrome` | `--xh-_field-variant-border-rest` | text-field 的 control 部件 border 覆盖槽。 |
 | `--xh-text-field-control-border-at-max` | `control` | `border-color` | `at-max`<br>`invalid`<br>`not([data-invalid])` | `--xh-border-at-limit` | text-field 的 control 部件 border-color 覆盖槽。 |
-| `--xh-text-field-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`xh-field-chrome` | `--xh-_text-field-border-focus` | text-field 的 control 部件 border-color 覆盖槽。 |
-| `--xh-text-field-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_text-field-border-hover` | text-field 的 control 部件 border-color 覆盖槽。 |
-| `--xh-text-field-control-border-invalid` | `control` | `border-color` | `invalid`<br>`xh-field-chrome` | `--xh-border-invalid` | text-field 的 control 部件 border-color 覆盖槽。 |
+| `--xh-text-field-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`xh-field-chrome` | `--xh-_field-variant-border-focus` | text-field 的 control 部件 border-color 覆盖槽。 |
+| `--xh-text-field-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-border-hover` | text-field 的 control 部件 border-color 覆盖槽。 |
+| `--xh-text-field-control-border-invalid` | `control` | `border-color` | `invalid`<br>`xh-field-chrome` | `--xh-_field-variant-border-invalid` | text-field 的 control 部件 border-color 覆盖槽。 |
 | `--xh-text-field-control-fg` | `control` | `color` | `xh-field-chrome` | `--xh-fg-default` | text-field 的 control 部件 color 覆盖槽。 |
 | `--xh-text-field-control-gap` | `control` | `gap` | `xh-field-chrome` | `--xh-_text-field-gap` | text-field 的 control 部件 gap 覆盖槽。 |
 | `--xh-text-field-control-h` | `control` | `block-size`<br>`min-block-size` | `has([data-xh-field-input][data-xh-field-layout='multi-tag'])`<br>`has([data-xh-field-input][data-xh-field-layout='single-line'])`<br>`has([data-xh-field-input][data-xh-field-layout='textarea'])`<br>`xh-field-chrome`<br>`xh-field-input`<br>`xh-field-layout=multi-tag`<br>`xh-field-layout=single-line`<br>`xh-field-layout=textarea` | `--xh-_text-field-h` | text-field 的 control 部件 block-size、min-block-size 覆盖槽。 |
 | `--xh-text-field-control-max-h` | `control` | `max-block-size` | `has([data-xh-field-input][data-xh-field-auto-size])`<br>`xh-field-auto-size`<br>`xh-field-input` | `--xh-viewport-h-sm` | text-field 的 control 部件 max-block-size 覆盖槽。 |
 | `--xh-text-field-control-min-w` | `control`<br>`root` | `min-inline-size` | `default`<br>`xh-field-chrome` | `--xh-control-min-w` | text-field 的 control、root 部件 min-inline-size 覆盖槽。 |
 | `--xh-text-field-control-px` | `control` | `padding-inline` | `xh-field-chrome` | `--xh-_text-field-px` | text-field 的 control 部件 padding-inline 覆盖槽。 |
-| `--xh-text-field-control-radius` | `control` | `border-radius` | `xh-field-chrome` | `--xh-shape-surface` | text-field 的 control 部件 border-radius 覆盖槽。 |
-| `--xh-text-field-control-shadow` | `control` | `box-shadow` | `xh-field-chrome` | `--xh-_text-field-shadow` | text-field 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-text-field-control-radius` | `control` | `border-radius` | `xh-field-chrome` | `--xh-shape-control` | text-field 的 control 部件 border-radius 覆盖槽。 |
+| `--xh-text-field-control-shadow` | `control` | `box-shadow` | `xh-field-chrome` | `none` | text-field 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-text-field-control-w` | `root` | `inline-size`<br>`min-inline-size` | `default` | `--xh-control-w` | text-field 的 root 部件 inline-size、min-inline-size 覆盖槽。 |
 | `--xh-text-field-count-fg` | `count` | `color` | `default` | `--xh-fg-muted` | text-field 的 count 部件 color 覆盖槽。 |
 | `--xh-text-field-count-fg-at-max` | `count` | `color` | `at-max` | `--xh-fg-warning` | text-field 的 count 部件 color 覆盖槽。 |
 | `--xh-text-field-count-fg-disabled` | `count` | `color` | `disabled` | `--xh-fg-disabled` | text-field 的 count 部件 color 覆盖槽。 |
 | `--xh-text-field-count-font-size` | `count` | `font-size` | `default` | `--xh-_text-field-action-font-size` | text-field 的 count 部件 font-size 覆盖槽。 |
 | `--xh-text-field-gap` | `root` | `gap` | `default` | `--xh-space-1` | text-field 的 root 部件 gap 覆盖槽。 |
-| `--xh-text-field-icon-size` | `root` | `--xh-icon-size` | `default`<br>`size=lg`<br>`size=sm` | `--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | text-field 的 root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-text-field-icon-size` | `control`<br>`root` | `--xh-icon-size` | `default`<br>`size=lg`<br>`size=sm`<br>`xh-field-chrome` | `--xh-_field-size-glyph-size`<br>`--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | text-field 的 control、root 部件 --xh-icon-size 覆盖槽。 |
 | `--xh-text-field-input-autofill-bg` | `input` | `box-shadow` | `-webkit-autofill`<br>`autofill`<br>`xh-field-input` | `--xh-bg-canvas` | text-field 的 input 部件 box-shadow 覆盖槽。 |
 | `--xh-text-field-input-autofill-fg` | `input` | `-webkit-text-fill-color` | `-webkit-autofill`<br>`autofill`<br>`xh-field-input` | `--xh-fg-default` | text-field 的 input 部件 -webkit-text-fill-color 覆盖槽。 |
 | `--xh-text-field-input-fg` | `input` | `color` | `xh-field-input` | `--xh-fg-default` | text-field 的 input 部件 color 覆盖槽。 |
 | `--xh-text-field-input-font-size` | `input` | `font-size` | `xh-field-input` | `--xh-_text-field-font-size` | text-field 的 input 部件 font-size 覆盖槽。 |
 | `--xh-text-field-label-fg` | `label` | `color` | `default` | `--xh-fg-default` | text-field 的 label 部件 color 覆盖槽。 |
 | `--xh-text-field-label-fg-disabled` | `label` | `color` | `disabled` | `--xh-fg-subtle` | text-field 的 label 部件 color 覆盖槽。 |
-| `--xh-text-field-label-font-size` | `label` | `font-size` | `default` | `--xh-_text-field-label-font-size` | text-field 的 label 部件 font-size 覆盖槽。 |
+| `--xh-text-field-label-font-size` | `label` | `font-size` | `default` | `--xh-text-label-size` | text-field 的 label 部件 font-size 覆盖槽。 |
 | `--xh-text-field-label-font-weight` | `label` | `font-weight` | `default` | `--xh-text-label-weight` | text-field 的 label 部件 font-weight 覆盖槽。 |
 | `--xh-text-field-placeholder-fg` | `input` | `color` | `placeholder`<br>`xh-field-input` | `--xh-fg-subtle` | text-field 的 input 部件 color 覆盖槽。 |
 | `--xh-text-field-textarea-py` | `input` | `padding-block` | `xh-field-input`<br>`xh-field-layout=textarea` | `--xh-space-2` | text-field 的 input 部件 padding-block 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
+
+动效角色：按压 · 状态（见[动效规范](../design/motion#角色)）。
 
 本组件皮肤不含过渡与关键帧，也没有脚本驱动的动效：状态一变，外观立即到位。
 

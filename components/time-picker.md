@@ -34,14 +34,14 @@ import {
 } from "@xihan-ui/vue";
 import { ref } from "vue";
 
-const value = ref("09:30");
+const value = ref<string[]>(["09:30"]);
 </script>
 
 <template>
   <XhTimePickerRoot
     v-model:value="value"
     name="meeting-time"
-    :step="15"
+    :time-step="{ minute: 15 }"
   >
     <XhTimePickerLabel>会议开始</XhTimePickerLabel>
     <XhTimePickerControl>
@@ -67,13 +67,13 @@ const value = ref("09:30");
   </XhTimePickerRoot>
 
   <span aria-live="polite" style="font-size: 13px">
-    当前值：{{ value || "（未填齐）" }}
+    当前值：{{ value[0] ?? "（未填齐）" }}
   </span>
 </template>
 ```
 
 ```html
-<xh-time-picker id="time-picker-basic" name="meeting-time" value="09:30" step="15">
+<xh-time-picker id="time-picker-basic" name="meeting-time" value="09:30" time-step='{"minute":15}'>
   <div data-xh-part="root">
     <label data-xh-part="label">会议开始</label>
     <div data-xh-part="control">
@@ -136,7 +136,7 @@ const value = ref("09:30");
   picker.addEventListener("value-change", (event) => {
     const next = event.detail.value;
     picker.value = next;
-    readout.textContent = next || "（未填齐）";
+    readout.textContent = next[0] ?? "（未填齐）";
   });
 </script>
 ```
@@ -145,13 +145,13 @@ const value = ref("09:30");
 
 加粗的是必需部件。
 
-`data-scope="time-picker"`：**`root`** · `label` · **`control`** · `segment-group` · **`segment`** · **`trigger`** · `clear-trigger` · `positioner` · **`content`** · `preset-group` · `preset` · `column` · `item` · `hidden-input`
+`data-scope="time-picker"`：**`root`** · `label` · **`control`** · `tag-list` · `segment-group` · `segment` · **`trigger`** · `clear-trigger` · `positioner` · **`content`** · `preset-group` · `preset` · `column` · `item` · `confirm-trigger` · `hidden-input`
 
 ## 示例
 
-### 分列步长
+### 按单位步长
 
-step=15 只裁浮层里的可选值（分列剩四格），段位上手打的分数不受它限制
+timeStep 给时、分、秒各设步长，{ minute: 15 } 只裁剪浮层中的可选值（分列剩四格），段位上手动输入的分钟数不受它限制
 
 ```vue
 <script setup lang="ts">
@@ -169,11 +169,11 @@ import {
 } from "@xihan-ui/vue";
 import { ref } from "vue";
 
-const value = ref("09:30");
+const value = ref<string[]>(["09:30"]);
 </script>
 
 <template>
-  <XhTimePickerRoot v-model:value="value" :step="15">
+  <XhTimePickerRoot v-model:value="value" :time-step="{ minute: 15 }">
     <XhTimePickerLabel>预约时段</XhTimePickerLabel>
     <XhTimePickerControl>
       <XhTimePickerSegmentGroup>
@@ -196,12 +196,12 @@ const value = ref("09:30");
     </XhTimePickerPositioner>
   </XhTimePickerRoot>
 
-  <span style="font-size: 13px">当前值：{{ value || "（空）" }}</span>
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
 </template>
 ```
 
 ```html
-<xh-time-picker id="time-picker-step" step="15" default-value="09:30">
+<xh-time-picker id="time-picker-step" time-step='{"minute":15}' default-value="09:30">
   <div data-xh-part="root">
     <label data-xh-part="label">预约时段</label>
     <div data-xh-part="control">
@@ -260,14 +260,14 @@ const value = ref("09:30");
   const picker = document.getElementById("time-picker-step");
   const readout = document.getElementById("time-picker-step-value");
   picker.addEventListener("value-change", (event) => {
-    readout.textContent = event.detail.value || "（空）";
+    readout.textContent = event.detail.value[0] ?? "（空）";
   });
 </script>
 ```
 
 ### 12 小时制
 
-时列写的是显示值 01-12，落到哪个真实小时由上下午说了算：输入行里敲、浮层里挑都改它
+时列写的是显示值 01-12，落到哪个真实小时由上下午决定：输入行中输入、浮层中选择都会修改它
 
 ```vue
 <script setup lang="ts">
@@ -285,7 +285,7 @@ import {
 } from "@xihan-ui/vue";
 import { ref } from "vue";
 
-const value = ref("09:30");
+const value = ref<string[]>(["09:30"]);
 </script>
 
 <template>
@@ -316,7 +316,7 @@ const value = ref("09:30");
     </XhTimePickerPositioner>
   </XhTimePickerRoot>
 
-  <span style="font-size: 13px">值仍是 24 小时的串：{{ value || "（空）" }}</span>
+  <span style="font-size: 13px">值仍是 24 小时的串：{{ value[0] ?? "（空）" }}</span>
 </template>
 ```
 
@@ -429,14 +429,14 @@ const value = ref("09:30");
   const picker = document.getElementById("time-picker-hour-cycle");
   const readout = document.getElementById("time-picker-hour-cycle-value");
   picker.addEventListener("value-change", (event) => {
-    readout.textContent = event.detail.value || "（空）";
+    readout.textContent = event.detail.value[0] ?? "（空）";
   });
 </script>
 ```
 
 ### 精度到秒
 
-granularity 同时决定输入行显示几段、浮层里排几列
+granularity 同时决定输入行显示几段、浮层中排几列
 
 ```vue
 <script setup lang="ts">
@@ -454,7 +454,7 @@ import {
 } from "@xihan-ui/vue";
 import { ref } from "vue";
 
-const value = ref("");
+const value = ref<string[]>([]);
 </script>
 
 <template>
@@ -485,7 +485,7 @@ const value = ref("");
     </XhTimePickerPositioner>
   </XhTimePickerRoot>
 
-  <span style="font-size: 13px">当前值：{{ value || "（空）" }}</span>
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
 </template>
 ```
 
@@ -668,14 +668,14 @@ const value = ref("");
   const picker = document.getElementById("time-picker-granularity");
   const readout = document.getElementById("time-picker-granularity-value");
   picker.addEventListener("value-change", (event) => {
-    readout.textContent = event.detail.value || "（空）";
+    readout.textContent = event.detail.value[0] ?? "（空）";
   });
 </script>
 ```
 
 ### 禁用 / 只读 / 校验失败
 
-禁用整条退出 Tab 序，只读仍能展开浏览只是改不动值，invalid 只改标注
+禁用整条退出 Tab 序列，只读仍能展开浏览只是不可修改值，invalid 只改变标注
 
 ```vue
 <script setup lang="ts">
@@ -790,7 +790,7 @@ const states = [
 
 ### 可选时段
 
-min / max 直接把界外的格从列里裁掉；分列还会随已选的时再裁一遍
+min / max 直接把界外的格从列中裁掉；分列还会随已选的小时再裁剪一次
 
 ```vue
 <script setup lang="ts">
@@ -807,11 +807,11 @@ import {
 } from "@xihan-ui/vue";
 import { ref } from "vue";
 
-const value = ref("");
+const value = ref<string[]>([]);
 </script>
 
 <template>
-  <XhTimePickerRoot v-model:value="value" min="09:00" max="18:00" :step="30">
+  <XhTimePickerRoot v-model:value="value" min="09:00" max="18:00" :time-step="{ minute: 30 }">
     <XhTimePickerLabel>面谈时段</XhTimePickerLabel>
     <XhTimePickerControl>
       <XhTimePickerSegmentGroup>
@@ -834,13 +834,13 @@ const value = ref("");
   </XhTimePickerRoot>
 
   <span style="font-size: 13px">
-    手打进段位的时间不受裁剪限制，越界只被标注：{{ value || "（空）" }}
+    手打进段位的时间不受裁剪限制，越界只被标注：{{ value[0] ?? "（空）" }}
   </span>
 </template>
 ```
 
 ```html
-<xh-time-picker id="time-picker-range" min="09:00" max="18:00" step="30">
+<xh-time-picker id="time-picker-range" min="09:00" max="18:00" time-step='{"minute":30}'>
   <div data-xh-part="root">
     <label data-xh-part="label">面谈时段</label>
     <div data-xh-part="control">
@@ -892,7 +892,7 @@ const value = ref("");
     return cell;
   }
 
-  // 列里排哪些格子由组件给：越界的、不合 step 的、随已选的时收窄掉的，都已经不在里面
+  // 列里排哪些格子由组件给：越界的、不在步进上的、随已选的时收窄掉的，都已经不在里面
   function paint() {
     for (const column of picker.columns) {
       const shape = column.options.join(",");
@@ -907,16 +907,16 @@ const value = ref("");
     picker.addEventListener(type, paint);
 
   picker.addEventListener("value-change", (event) => {
-    readout.textContent = event.detail.value || "（空）";
+    readout.textContent = event.detail.value[0] ?? "（空）";
   });
 
   paint();
 </script>
 ```
 
-### 浮层里的操作按钮
+### 浮层中的操作按钮
 
-列表下面这排按钮是作者自己的节点，键盘事件在它这一层收口，不再上交给列表
+列表下方这排按钮是作者自己的节点，键盘事件在这一层收口，不再上交给列表
 
 ```vue
 <script setup lang="ts">
@@ -934,7 +934,7 @@ import {
 } from "@xihan-ui/vue";
 import { ref } from "vue";
 
-const value = ref("");
+const value = ref<string[]>([]);
 
 // 此刻的时分，两位补零
 function now() {
@@ -949,7 +949,7 @@ function now() {
   <XhTimePickerRoot
     v-slot="{ canClear, setValue, clear, setOpen }"
     v-model:value="value"
-    :step="15"
+    :time-step="{ minute: 15 }"
   >
     <XhTimePickerLabel>提交时刻</XhTimePickerLabel>
     <XhTimePickerControl>
@@ -972,7 +972,7 @@ function now() {
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 8px" @keydown.stop>
-          <XhButton size="sm" variant="ghost" @click="setValue(now())">此刻</XhButton>
+          <XhButton size="sm" variant="ghost" @click="setValue([now()])">此刻</XhButton>
           <XhButton size="sm" variant="ghost" :disabled="!canClear" @click="clear()">
             清空
           </XhButton>
@@ -982,12 +982,12 @@ function now() {
     </XhTimePickerPositioner>
   </XhTimePickerRoot>
 
-  <span style="font-size: 13px">当前值：{{ value || "（空）" }}</span>
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
 </template>
 ```
 
 ```html
-<xh-time-picker id="time-picker-actions" step="15">
+<xh-time-picker id="time-picker-actions" time-step='{"minute":15}'>
   <div data-xh-part="root">
     <label data-xh-part="label">提交时刻</label>
     <div data-xh-part="control">
@@ -1066,14 +1066,14 @@ function now() {
   // 值与开合都由宿主持有，写回元素才生效
   function setValue(next) {
     picker.value = next;
-    readout.textContent = next || "（空）";
+    readout.textContent = next[0] ?? "（空）";
   }
 
   function setOpen(next) {
     picker.open = next;
   }
 
-  setValue("");
+  setValue([]);
   setOpen(false);
   picker.addEventListener("value-change", (event) => setValue(event.detail.value));
   picker.addEventListener("open-change", (event) => setOpen(event.detail.open));
@@ -1083,12 +1083,12 @@ function now() {
     const now = new Date();
     const hour = String(now.getHours()).padStart(2, "0");
     const minute = String(now.getMinutes()).padStart(2, "0");
-    setValue(`${hour}:${minute}`);
+    setValue([`${hour}:${minute}`]);
   });
 
   document
     .getElementById("time-picker-actions-clear")
-    .addEventListener("click", () => setValue(""));
+    .addEventListener("click", () => setValue([]));
 
   document
     .getElementById("time-picker-actions-ok")
@@ -1096,9 +1096,9 @@ function now() {
 </script>
 ```
 
-### 自定可选格
+### 自定义可选格
 
-列里渲染哪几格由作者决定，午休两格整段拿掉；手打进段位的时被吸到下一个可约小时
+列中渲染哪几格由作者决定，午休两格整段移除；手动输入段位的小时被吸附到下一个可约小时
 
 ```vue
 <script setup lang="ts">
@@ -1118,7 +1118,7 @@ import { ref } from "vue";
 // 午休不接待
 const closed = [12, 13];
 
-const value = ref("09:00");
+const value = ref<string[]>(["09:00"]);
 
 // 列里只留通过谓词的那几格
 function bookable(options: readonly string[]) {
@@ -1138,10 +1138,10 @@ function snap(next: string) {
 <template>
   <XhTimePickerRoot
     :value="value"
-    :step="30"
+    :time-step="{ minute: 30 }"
     min="09:00"
     max="18:00"
-    @update:value="value = snap($event)"
+    @update:value="value = $event.map(snap)"
   >
     <XhTimePickerLabel>面谈时刻</XhTimePickerLabel>
     <XhTimePickerControl>
@@ -1166,12 +1166,12 @@ function snap(next: string) {
     </XhTimePickerPositioner>
   </XhTimePickerRoot>
 
-  <span style="font-size: 13px">当前值：{{ value || "（空）" }}</span>
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
 </template>
 ```
 
 ```html
-<xh-time-picker id="time-picker-predicate" step="30" min="09:00" max="18:00">
+<xh-time-picker id="time-picker-predicate" time-step='{"minute":30}' min="09:00" max="18:00">
   <div data-xh-part="root">
     <label data-xh-part="label">面谈时刻</label>
     <div data-xh-part="control">
@@ -1224,17 +1224,17 @@ function snap(next: string) {
   // 值由宿主持有：吸附之后写回元素才生效
   function apply(next) {
     picker.value = next;
-    readout.textContent = next || "（空）";
+    readout.textContent = next[0] ?? "（空）";
   }
 
-  apply("09:00");
-  picker.addEventListener("value-change", (event) => apply(snap(event.detail.value)));
+  apply(["09:00"]);
+  picker.addEventListener("value-change", (event) => apply(event.detail.value.map(snap)));
 </script>
 ```
 
 ### 三轴
 
-variant 决定描边与底怎么画、tone 决定用哪族颜色、size 换几何档；三者只落在 root，浮层里的格子一并跟着换
+variant 决定描边与底色的绘制方式、tone 决定使用哪族颜色、size 切换几何档；三者只落在 root，浮层中的格子一并随之变化
 
 ```vue
 <script setup lang="ts">
@@ -1363,9 +1363,9 @@ const sizes: Size[] = ["sm", "md", "lg"];
 </script>
 ```
 
-### 可选的触发钮
+### 可选的触发按钮
 
-点输入行本来就展开，这个按钮不是必需的；要它是因为它才带 aria-haspopup / aria-expanded
+点击输入行本来就会展开，该按钮不是必需的；需要它是因为它才带 aria-haspopup / aria-expanded
 
 ```vue
 <script setup lang="ts">
@@ -1384,7 +1384,7 @@ import {
 } from "@xihan-ui/vue";
 import { ref } from "vue";
 
-const value = ref("09:30");
+const value = ref<string[]>(["09:30"]);
 </script>
 
 <template>
@@ -1413,7 +1413,7 @@ const value = ref("09:30");
     </XhTimePickerPositioner>
   </XhTimePickerRoot>
 
-  <span style="font-size: 13px">当前值：{{ value || "（空）" }}</span>
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
 </template>
 ```
 
@@ -1482,14 +1482,14 @@ const value = ref("09:30");
   }
 
   picker.addEventListener("value-change", (event) => {
-    readout.textContent = event.detail.value || "（空）";
+    readout.textContent = event.detail.value[0] ?? "（空）";
   });
 </script>
 ```
 
 ### 快捷选项
 
-presets 在列旁边多排一列，点一条整份写进值并收起；时刻在组件外算好再传
+presets 在列旁边多排一列，点击一条即整份写入值并收起；时刻在组件外计算后再传入
 
 ```vue
 <script setup lang="ts">
@@ -1508,7 +1508,7 @@ import {
 } from "@xihan-ui/vue";
 import { computed, ref } from "vue";
 
-const value = ref("");
+const value = ref<string[]>([]);
 
 // 时刻算一次就固定下来：connect 每帧都会跑一遍，把「此刻」放进渲染期会每帧算出新值
 const presets = computed(() => [
@@ -1520,7 +1520,7 @@ const presets = computed(() => [
 </script>
 
 <template>
-  <XhTimePickerRoot v-model:value="value" :presets="presets" :step="15">
+  <XhTimePickerRoot v-model:value="value" :presets="presets" :time-step="{ minute: 15 }">
     <XhTimePickerLabel>提交时刻</XhTimePickerLabel>
     <XhTimePickerControl>
       <XhTimePickerSegmentGroup>
@@ -1543,7 +1543,7 @@ const presets = computed(() => [
     </XhTimePickerPositioner>
   </XhTimePickerRoot>
 
-  <span style="font-size: 13px">当前值：{{ value || "（空）" }}</span>
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
 </template>
 ```
 
@@ -1555,7 +1555,7 @@ const presets = computed(() => [
 
 <!-- 结构先收在模板里：列里的格子与快捷选项要在元素接线前就位，所以铺满了才入页 -->
 <template id="time-picker-presets-shell">
-  <xh-time-picker step="15">
+  <xh-time-picker time-step='{"minute":15}'>
     <div data-xh-part="root">
       <label data-xh-part="label">提交时刻</label>
       <div data-xh-part="control">
@@ -1625,10 +1625,275 @@ const presets = computed(() => [
   const picker = node.querySelector("xh-time-picker");
   picker.presets = presets;
   picker.addEventListener("value-change", (event) => {
-    readout.textContent = event.detail.value || "（空）";
+    readout.textContent = event.detail.value[0] ?? "（空）";
   });
 
   stage.append(node);
+</script>
+```
+
+### 按已选的时判定
+
+isTimeUnavailable 的第三个参数带已选的时：9 点只能约 30 分以后，别的整点不受限
+
+```vue
+<script setup lang="ts">
+import type { TimeColumnUnit, TimeUnavailableContext } from "@xihan-ui/headless";
+import {
+  XhTimePickerColumn,
+  XhTimePickerContent,
+  XhTimePickerControl,
+  XhTimePickerItem,
+  XhTimePickerLabel,
+  XhTimePickerPositioner,
+  XhTimePickerRoot,
+  XhTimePickerSegment,
+  XhTimePickerSegmentGroup,
+} from "@xihan-ui/vue";
+import { ref } from "vue";
+
+const value = ref<string[]>(["09:30"]);
+
+// 判真的格子仍在列里、仍可聚焦，只是选不中；时列的值恒按 24 小时制给
+function isTimeUnavailable(option: string, unit: TimeColumnUnit, context: TimeUnavailableContext): boolean {
+  return unit === "minute" && context.hour === 9 && Number(option) < 30;
+}
+</script>
+
+<template>
+  <XhTimePickerRoot
+    v-model:value="value"
+    min="09:00"
+    max="18:00"
+    :time-step="{ minute: 15 }"
+    :is-time-unavailable="isTimeUnavailable"
+  >
+    <XhTimePickerLabel>到店时刻</XhTimePickerLabel>
+    <XhTimePickerControl>
+      <XhTimePickerSegmentGroup>
+        <XhTimePickerSegment segment="hour" />
+        <span>:</span>
+        <XhTimePickerSegment segment="minute" />
+      </XhTimePickerSegmentGroup>
+    </XhTimePickerControl>
+    <XhTimePickerPositioner>
+      <XhTimePickerContent>
+        <XhTimePickerColumn v-slot="{ options }" unit="hour">
+          <XhTimePickerItem v-for="o in options" :key="o" :value="o" />
+        </XhTimePickerColumn>
+        <XhTimePickerColumn v-slot="{ options }" unit="minute">
+          <XhTimePickerItem v-for="o in options" :key="o" :value="o" />
+        </XhTimePickerColumn>
+      </XhTimePickerContent>
+    </XhTimePickerPositioner>
+  </XhTimePickerRoot>
+
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
+</template>
+```
+
+```html
+<xh-time-picker id="time-picker-unavailable" min="09:00" max="18:00" time-step='{"minute":15}' default-value="09:30">
+  <div data-xh-part="root">
+    <label data-xh-part="label">到店时刻</label>
+    <div data-xh-part="control">
+      <div data-xh-part="segment-group">
+        <span data-xh-part="segment" segment="hour"></span>
+        <span>:</span>
+        <span data-xh-part="segment" segment="minute"></span>
+      </div>
+      <button data-xh-part="trigger"></button>
+    </div>
+    <div data-xh-part="positioner">
+      <div data-xh-part="content">
+        <!-- 界与步进圈出来的格子：时列 09 到 18、分列每 15 分钟一格 -->
+        <div data-xh-part="column" unit="hour">
+          <div data-xh-part="item" value="09"></div>
+          <div data-xh-part="item" value="10"></div>
+          <div data-xh-part="item" value="11"></div>
+          <div data-xh-part="item" value="12"></div>
+          <div data-xh-part="item" value="13"></div>
+          <div data-xh-part="item" value="14"></div>
+          <div data-xh-part="item" value="15"></div>
+          <div data-xh-part="item" value="16"></div>
+          <div data-xh-part="item" value="17"></div>
+          <div data-xh-part="item" value="18"></div>
+        </div>
+        <div data-xh-part="column" unit="minute">
+          <div data-xh-part="item" value="00"></div>
+          <div data-xh-part="item" value="15"></div>
+          <div data-xh-part="item" value="30"></div>
+          <div data-xh-part="item" value="45"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</xh-time-picker>
+
+<span style="font-size: 13px">当前值：<span id="time-picker-unavailable-value">09:30</span></span>
+
+<script type="module">
+  const picker = document.getElementById("time-picker-unavailable");
+  const readout = document.getElementById("time-picker-unavailable-value");
+
+  // 判真的格子仍在列里、仍可聚焦，只是选不中；时列的值恒按 24 小时制给
+  picker.isTimeUnavailable = (option, unit, context) =>
+    unit === "minute" && context.hour === 9 && Number(option) < 30;
+
+  picker.addEventListener("value-change", (event) => {
+    readout.textContent = event.detail.value[0] ?? "（空）";
+  });
+</script>
+```
+
+### 多选成标签
+
+selectionMode="multiple" 时各列拼出的是草稿，按「添加」收进值、浮层不收，可以接着添；选中的时刻在输入行里排成标签，点叉或在展开钮上按退格摘掉
+
+```vue
+<script setup lang="ts">
+import {
+  XhTimePickerClearTrigger,
+  XhTimePickerColumn,
+  XhTimePickerConfirmTrigger,
+  XhTimePickerContent,
+  XhTimePickerControl,
+  XhTimePickerHiddenInput,
+  XhTimePickerItem,
+  XhTimePickerLabel,
+  XhTimePickerPositioner,
+  XhTimePickerRoot,
+  XhTimePickerTagList,
+  XhTimePickerTrigger,
+} from "@xihan-ui/vue";
+import { ref } from "vue";
+
+const value = ref<string[]>(["09:00", "14:30"]);
+</script>
+
+<template>
+  <XhTimePickerRoot
+    v-model:value="value"
+    name="reminders"
+    selection-mode="multiple"
+    :time-step="{ minute: 15 }"
+  >
+    <XhTimePickerLabel>提醒时刻</XhTimePickerLabel>
+    <XhTimePickerControl>
+      <XhTimePickerTagList />
+      <XhTimePickerClearTrigger />
+      <XhTimePickerTrigger />
+    </XhTimePickerControl>
+    <XhTimePickerHiddenInput />
+    <XhTimePickerPositioner>
+      <XhTimePickerContent>
+        <XhTimePickerColumn v-slot="{ options }" unit="hour">
+          <XhTimePickerItem v-for="o in options" :key="o" :value="o" />
+        </XhTimePickerColumn>
+        <XhTimePickerColumn v-slot="{ options }" unit="minute">
+          <XhTimePickerItem v-for="o in options" :key="o" :value="o" />
+        </XhTimePickerColumn>
+        <XhTimePickerConfirmTrigger>添加</XhTimePickerConfirmTrigger>
+      </XhTimePickerContent>
+    </XhTimePickerPositioner>
+  </XhTimePickerRoot>
+
+  <span aria-live="polite" style="font-size: 13px">
+    当前值：{{ value.join("、") || "（空）" }}
+  </span>
+</template>
+```
+
+```html
+<xh-time-picker id="time-picker-multiple" name="reminders" selection-mode="multiple" time-step='{"minute":15}'>
+  <div data-xh-part="root">
+    <label data-xh-part="label">提醒时刻</label>
+    <div data-xh-part="control">
+      <span data-xh-part="tag-list"></span>
+      <button data-xh-part="clear-trigger"></button>
+      <button data-xh-part="trigger"></button>
+    </div>
+    <input data-xh-part="hidden-input" />
+    <div data-xh-part="positioner">
+      <div data-xh-part="content">
+        <div data-xh-part="column" unit="hour">
+          <div data-xh-part="item" value="00"></div>
+          <div data-xh-part="item" value="01"></div>
+          <div data-xh-part="item" value="02"></div>
+          <div data-xh-part="item" value="03"></div>
+          <div data-xh-part="item" value="04"></div>
+          <div data-xh-part="item" value="05"></div>
+          <div data-xh-part="item" value="06"></div>
+          <div data-xh-part="item" value="07"></div>
+          <div data-xh-part="item" value="08"></div>
+          <div data-xh-part="item" value="09"></div>
+          <div data-xh-part="item" value="10"></div>
+          <div data-xh-part="item" value="11"></div>
+          <div data-xh-part="item" value="12"></div>
+          <div data-xh-part="item" value="13"></div>
+          <div data-xh-part="item" value="14"></div>
+          <div data-xh-part="item" value="15"></div>
+          <div data-xh-part="item" value="16"></div>
+          <div data-xh-part="item" value="17"></div>
+          <div data-xh-part="item" value="18"></div>
+          <div data-xh-part="item" value="19"></div>
+          <div data-xh-part="item" value="20"></div>
+          <div data-xh-part="item" value="21"></div>
+          <div data-xh-part="item" value="22"></div>
+          <div data-xh-part="item" value="23"></div>
+        </div>
+        <div data-xh-part="column" unit="minute">
+          <div data-xh-part="item" value="00"></div>
+          <div data-xh-part="item" value="15"></div>
+          <div data-xh-part="item" value="30"></div>
+          <div data-xh-part="item" value="45"></div>
+        </div>
+        <button data-xh-part="confirm-trigger">添加</button>
+      </div>
+    </div>
+  </div>
+</xh-time-picker>
+
+<span aria-live="polite" style="font-size: 13px">
+  当前值：<span id="time-picker-multiple-value">09:00、14:30</span>
+</span>
+
+<script type="module">
+  const picker = document.getElementById("time-picker-multiple");
+  const readout = document.getElementById("time-picker-multiple-value");
+
+  const tagList = picker.querySelector('[data-xh-part="tag-list"]');
+
+  // 标签按 tags 铺：一个选中值一枚，带删除钮；放不下的那些合成一枚 +N，文字由元素填
+  function paintTags() {
+    const overflow = document.createElement("span");
+    overflow.dataset.xhPart = "overflow-tag";
+    tagList.replaceChildren(
+      ...picker.tags.map((tag) => {
+        const node = document.createElement("span");
+        node.dataset.xhPart = "tag";
+        node.setAttribute("value", tag.value);
+        const label = document.createElement("span");
+        label.dataset.xhPart = "tag-label";
+        label.textContent = tag.label;
+        const remove = document.createElement("button");
+        remove.dataset.xhPart = "item-delete-trigger";
+        node.append(label, remove);
+        return node;
+      }),
+      overflow,
+    );
+  }
+
+  // 多选的值是数组，只走 property：设初值、每次变更写回
+  function apply(next) {
+    picker.value = next;
+    readout.textContent = next.join("、") || "（空）";
+    paintTags();
+  }
+
+  apply(["09:00", "14:30"]);
+  picker.addEventListener("value-change", (event) => apply(event.detail.value));
 </script>
 ```
 
@@ -1641,18 +1906,21 @@ const presets = computed(() => [
 
 ### 何时不用
 
-- 任意时间都可以、用户会直接打字：用[时间字段](./time-field)。
+- 任意时间都可以、用户直接键入时，使用[时间字段](./time-field)。
 
 ### 特性
 
-- `step` 分列设定各列的步长。
-- `max` 直接把界外的格从列里裁掉；分列还会随已选的时再裁一遍。
-- `isTimeUnavailable` 逐格判断可选性。
-- 浮层里可以放"此刻"与确认按钮。
+- `timeStep` 按单位设定时、分、秒各列的步长（`{ minute: 15 }`）。
+- `max` 直接把界外的格从列中裁掉；分钟列还会随已选的小时再裁一次。
+- `isTimeUnavailable` 逐格判断可选性：时列按 24 小时制给值，第三个参数带已选的时与分，写得出「9 点只能选 30 分以后」。
+- 浮层内可以放置“当前时刻”与确认按钮。
+- 值恒为 ISO 时间串数组：单选至多一项（还没填全时为空数组），宿主可以写裸串；`onValueChange` 的 `value` 恒为数组。
+- 多选（`selectionMode="multiple"`）时各列拼出的是草稿，按「添加」（`confirm-trigger`）收进值，浮层不收、草稿留着，改一列就能接着添；快捷选项点一下切换选中。草稿没填全、越界、已经选过或到了 `maxSelected` 时「添加」不可按。
+- 多选的选中值在输入行里排成标签（与[选择器](./select)多选同一套库内[标签](./tag)），按时刻升序：段位收起，展开钮常驻并成为键盘入口，在它上面按退格摘掉最后一个，点标签上的叉摘掉那一个；标签按 `locale` 与小时制排出（13:45、下午1:45），不截短、一行放不下就折行，超过 `maxTagCount`（默认 3）的折进 +N；表单一个选中值一份同名隐藏输入。
 - 触发器打开空值时焦点直接落到第一项；从输入段打开时继续保留键入焦点。
-- 快捷选项与时/分/秒列都从当前值恢复持久选中，并在逻辑末端显示对号；时间项同时使用淡强调面和强调文字。
+- 快捷选项与时/分/秒列都从当前值恢复持久选中，并在逻辑末端显示对号。
 - 悬停、键盘高亮与可见焦点使用中性实体底，与选中对号可以同时存在。数字格在左右保留等宽标记轨，选中和 RTL 都不会把数字推离中心。
-- 输入框与浮层都使用实体表面；时分秒与快捷选项各自滚动，共用一个浮层表面和克制的滚动条。
+- 输入框走 Field Chrome 描边式；浮层为 floating 实体面（border-default + floating 海拔）；时分秒与快捷列各自接自绘条。
 - 浮层按实际弹出方向短距离淡入淡出，不缩放文字与数字；减弱动效和增强对比度沿用主题设置。
 - 空值时显示时钟入口；有值且渲染了清空按钮时，由清空按钮原位接替时钟图标。
 - 聚焦边界与当前段位使用短过渡，不以瞬时跳色表达焦点。
@@ -1663,14 +1931,14 @@ const presets = computed(() => [
 
 ### 最佳实践
 
-- 把不可选的时段裁掉而不是置灰，列会短很多、也更快找到。
-- 打开时把浮层滚到当前值那一格。
-- 标准输入行应同时包含清空按钮与时钟图标触发器；二者按值互斥显示。参与表单时同时渲染隐藏输入。
-- 自定义格内文案要保持简短；选中底与对号由皮肤统一绘制，不要在插槽里重复添加。
+- 把不可选的时段裁掉而不是置灰，列更短、查找更快。
+- 打开时把浮层滚动到当前值。
+- 标准输入行应同时包含清空按钮与时钟图标触发器；单选时二者按值互斥显示，多选时都留着。参与表单时同时渲染隐藏输入。
+- 自定义格内文案保持简短；选中对号由皮肤统一绘制，不在插槽内重复添加。
 
 ### 反模式
 
-- 步长设成 1 分钟：一列六十格，滚起来没有尽头。
+- 步长设为 1 分钟：一列六十格，滚动过长。
 
 ## API 参考
 
@@ -1679,7 +1947,7 @@ const presets = computed(() => [
 | 层 | 值 |
 | --- | --- |
 | 自定义元素 | `<xh-time-picker>` |
-| Vue 组件 | `XhTimePickerClearTrigger` `XhTimePickerColumn` `XhTimePickerContent` `XhTimePickerControl` `XhTimePickerHiddenInput` `XhTimePickerItem` `XhTimePickerLabel` `XhTimePickerPositioner` `XhTimePickerPreset` `XhTimePickerPresetGroup` `XhTimePickerRoot` `XhTimePickerSegment` `XhTimePickerSegmentGroup` `XhTimePickerTrigger` |
+| Vue 组件 | `XhTimePickerClearTrigger` `XhTimePickerColumn` `XhTimePickerConfirmTrigger` `XhTimePickerContent` `XhTimePickerControl` `XhTimePickerHiddenInput` `XhTimePickerItem` `XhTimePickerItemDeleteTrigger` `XhTimePickerLabel` `XhTimePickerOverflowTag` `XhTimePickerPositioner` `XhTimePickerPreset` `XhTimePickerPresetGroup` `XhTimePickerRoot` `XhTimePickerSegment` `XhTimePickerSegmentGroup` `XhTimePickerTag` `XhTimePickerTagLabel` `XhTimePickerTagList` `XhTimePickerTrigger` |
 | 组合式函数 | `useTimePicker` |
 | 状态机 | `timePickerMachine` |
 | 皮肤 | `@xihan-ui/styles/time-picker.css` |
@@ -1688,32 +1956,46 @@ const presets = computed(() => [
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `value` | `string` |  | 受控值，ISO 时间串。给定即受控：cell 直读 prop，写只发 onValueChange 不落内部值。 |
-| `defaultValue` | `string` |  |  |
-| `open` | `boolean` |  | 展开态。给定即受控：内部不再自改，只发 onOpenChange。 |
+| `value` | `string \| string[]` |  | 受控值，ISO 时间串数组。提供即受控：cell 直读 prop，写入只发 onValueChange 不落内部值。 单选可写裸串，内部一律归一为数组（空串即空数组）。 |
+| `defaultValue` | `string \| string[]` |  |  |
+| `selectionMode` | `TimePickerSelectionMode` |  | 选择模式，默认 single。 |
+| `maxSelected` | `number` |  | multiple 下最多选几个时刻：选满后「添加」不可按、快捷选项只能点掉已选的。非整数向下取整，小于 1 或不是有限数时不设上限。 |
+| `maxTagCount` | `number` |  | 多选时输入行最多摆几枚标签，其余折进 +N 那一枚；默认 3。 |
+| `open` | `boolean` |  | 展开态。提供即受控：内部不再自行修改，只发 onOpenChange。 |
 | `defaultOpen` | `boolean` |  |  |
-| `min` | `string` |  | 下界（含）。裁掉浮层里落在界外的可选值，并把已填的越界值标注出来（不改写它）。 |
+| `min` | `string` |  | 下界（含）。裁掉浮层中落在界外的可选值，并把已填的越界值标注出来（不改写它）。 |
 | `max` | `string` |  | 上界（含）。同上。 |
-| `locale` | `string` |  | BCP 47 语言标记。决定上午/下午的文字，以及未显式给 hourCycle 时的小时制。 |
-| `hourCycle` | `TimeHourCycle` |  | 小时制。不给则按 locale 推断，locale 也没有时用 24。 |
-| `granularity` | `TimeGranularity` |  | 值精确到哪一段，默认 minute。它同时决定分段输入显示几段、浮层里排几列。 |
-| `step` | `number` |  | 分列的步进（分钟），默认 1。只影响浮层里的可选值，不限制手打进去的分数。 |
-| `presets` | `TimePickerPreset[]` |  | 快捷选项（「此刻」「上午 9 点」这类）。给了就在浮层里多出一列，点一下整份写进值并收起。 时刻要算好再传：连接层每帧求值，把`此刻`放进渲染期会每帧算出一个新答案。 解析不了或落在 min/max 之外的那条自动按不下去；带秒的时刻按 granularity 归一后再比对与写入。 |
-| `disabled` | `boolean` |  | 禁用：分段输入整组退出 Tab 序列、触发器用原生 disabled，隐藏输入不参与提交。 |
-| `readOnly` | `boolean` |  | 只读：浮层照常展开、列表照常浏览，但值改不动也清不掉。 |
+| `locale` | `string` |  | BCP 47 语言标记。决定上午 / 下午的文字，以及未显式提供 hourCycle 时的小时制。 |
+| `hourCycle` | `TimeHourCycle` |  | 小时制。未提供时按 locale 推断，locale 也没有时使用 24。 |
+| `granularity` | `TimeGranularity` |  | 值精确到哪一段，默认 minute。它同时决定分段输入显示几段、浮层中排几列。 |
+| `timeStep` | `TimeStep` |  | 按单位的步进：`{ hour?, minute?, second? }`，各单位缺省 1。时的步进按 24 小时制的真实小时取。 只影响浮层中的可选值，不限制段位上手动输入的数。 |
+| `presets` | `TimePickerPreset[]` |  | 快捷选项（「当前时刻」「上午 9 点」等）。提供后浮层中多出一列，点击即整份写入值并收起。 时刻需计算后传入：连接层每帧求值，把当前时刻放进渲染期会每帧得出一个新结果。 无法解析或落在 min / max 之外的选项自动不可按下；带秒的时刻按 granularity 归一后再比较与写入。 |
+| `disabled` | `boolean` |  | 禁用：分段输入整组退出 Tab 序列、触发器使用原生 disabled，隐藏输入不参与提交。 |
+| `readOnly` | `boolean` |  | 只读：浮层照常展开、列表照常浏览，但值不可修改也不可清空。 |
 | `invalid` | `boolean` |  | 校验失败标注。 |
-| `required` | `boolean` |  | 必填标注（落到每段的 aria-required 上）。 |
-| `name` | `string` |  | 表单字段名；给了隐藏输入才带 name，值随表单一并提交。 |
-| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定输入行的描边与底色怎么用。 |
-| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦与选中强调用哪族颜色。 |
-| `size` | `Size` |  | 尺寸：sm / md / lg，输入行与浮层里的格子一并换档。 |
+| `required` | `boolean` |  | 必填标注（写入每段的 aria-required）。 |
+| `name` | `string` |  | 表单字段名；提供后隐藏输入才带 name，值随表单一并提交。 |
+| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定输入行的描边与底色使用方式。默认 outline。 |
+| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦与选中强调使用哪族颜色。 |
+| `size` | `Size` |  | 尺寸：sm / md / lg，输入行与浮层中的格子一并换档。 |
 | `placement` | `Placement` |  |  |
-| `dir` | `Direction` |  | 文字方向，缺省 ltr。只改写浮层在行内轴上 start 与 end 的落点。 |
+| `dir` | `Direction` |  | 文字方向，默认 ltr。只改写浮层在行内轴上 start 与 end 的落点。 |
 | `offset` | `number` |  |  |
-| `isTimeUnavailable` | `(value: string, unit: TimePickerColumnUnit) => boolean` |  | 逐值可选性。收两位补零的值与它所属的列——同一个 '30' 在分钟列与秒列不是一回事。 与 min/max 裁掉的值同等对待：判真的格子仍可聚焦，只是选不中。 连续区间用 min/max 表达即可，这条留给「每隔 15 分钟才可约」这类离散规则。 |
-| `translations` | `Partial<TimePickerTranslations>` |  | 段位读屏名的覆盖；不给就用内置英文语义名。 |
-| `onValueChange` | `(details: TimePickerValueChangeDetails) => void` |  |  |
+| `isTimeUnavailable` | `TimeUnavailablePredicate` |  | 逐值可选性。value 是两位补零的格值，时列恒按 24 小时制给出（12 小时制下也换算成真实的时）； unit 区分同一个 '30' 属于哪一列；context 带这份值里已选的时（24 小时制）与分， 写得出「9 点只能选 30 分以后」。date 与 index 在本组件恒为 null。 与 min / max 裁掉的值同等处理：判定为真的格子仍可聚焦，只是不可选中。 连续区间用 min / max 表达即可，该项留给每隔 15 分钟才可预约这类离散规则。 |
+| `translations` | `Partial<TimePickerTranslations>` |  | 段位读屏名的覆盖；未提供时使用内置英文语义名。 |
+| `onValueChange` | `(details: TimePickerValueChangeDetails) => void` |  | value 变化意图回调；受控时是唯一出口，非受控时随内部写入一并通知。 |
+| `onClear` | `() => void` |  | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 | `onOpenChange` | `(details: TimePickerOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控时随内部转移一并通知。 |
+
+### TimePickerPreset
+
+`presets` 的元素。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `value` | `string` | 是 |  |
+| `label` | `string` | 是 | 显示文案，同时是该项的可及名。 |
+| `disabled` | `boolean` |  | 禁用该项：方向键仍可停留，但按下不写值。 |
 
 ### 事件
 
@@ -1721,7 +2003,8 @@ const presets = computed(() => [
 
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
-| `value-change` | `TimePickerValueChangeDetails` | 值变化；detail 为 `{ value: string }` |
+| `value-change` | `TimePickerValueChangeDetails` | 选中的时刻变化；detail 为 `{ value: string[] }`，单选至多一项 |
+| `clear` | `` | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 | `open-change` | `TimePickerOpenChangeDetails` | open 状态变化；detail 为 `{ open: boolean }` |
 
 ### 插槽
@@ -1731,9 +2014,25 @@ const presets = computed(() => [
 | Vue 组件 | 插槽 | 载荷 | 说明 |
 | --- | --- | --- | --- |
 | `XhTimePickerColumn` | `default` | `TimePickerColumnSlotProps` |  |
-| `XhTimePickerPreset` | `default` | — | 条目内容；不写就用数据里的 label。 |
-| `XhTimePickerPresetGroup` | `default` | `TimePickerPresetsSlotProps` | 自己铺条目；不写就按 presets 数据自动铺，两者产出的 DOM 一致。 |
+| `XhTimePickerPreset` | `default` | — | 条目内容；未写时使用数据中的 label。 |
+| `XhTimePickerPresetGroup` | `default` | `TimePickerPresetsSlotProps` | 自行铺设条目；未写时按 presets 数据自动铺设，两者产出的 DOM 一致。 |
 | `XhTimePickerRoot` | `default` | `TimePickerRootSlotProps` |  |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhTimePickerColumn` | `unit` | `TimePickerColumnUnit` | 是 |  |
+| `XhTimePickerColumn` | `children` | `SlotChildren<TimePickerColumnSlotProps>` |  |  |
+| `XhTimePickerItem` | `value` | `string` | 是 | 两位补零的显示串（'09' / '30'）；上下午列写 '00' / '01'。 |
+| `XhTimePickerPositioner` | `container` | `() => Element \| null` |  | 浮层挂载的容器；未提供时按全局配置，再未提供时挂载到 body。 |
+| `XhTimePickerPreset` | `value` | `string` | 是 | 该条目的身份，与 presets 数据中的 value 逐字对应。 |
+| `XhTimePickerPresetGroup` | `children` | `SlotChildren<TimePickerPresetsSlotProps>` |  | 自行铺设条目；未写时按 presets 数据自动铺设，两者产出的 DOM 一致。 |
+| `XhTimePickerRoot` | `children` | `SlotChildren<TimePickerRootSlotProps>` |  |  |
+| `XhTimePickerSegment` | `segment` | `TimeSegmentType` | 是 | 段的身份由作者声明。 |
+| `XhTimePickerTag` | `value` | `string` | 是 | 它代表哪个选中值。 |
 
 ### 状态
 
@@ -1754,9 +2053,9 @@ const presets = computed(() => [
 
 **状态**：`open` · `closed`
 
-**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `VALUE.SET` · `VALUE.CLEAR` · `SEGMENT.STEP` · `SEGMENT.DIGIT` · `SEGMENT.CLEAR` · `SEGMENT.PERIOD` · `SEGMENT.FOCUS` · `SEGMENT.BLUR` · `OPTION.FOCUS` · `ITEM.SELECT` · `FORM.RESET`
+**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `VALUE.SET` · `VALUE.ADD` · `VALUE.REMOVE` · `VALUE.TOGGLE` · `TAG_LIST.TRACKED` · `VALUE.CLEAR` · `SEGMENT.STEP` · `SEGMENT.DIGIT` · `SEGMENT.CLEAR` · `SEGMENT.PERIOD` · `SEGMENT.FOCUS` · `SEGMENT.BLUR` · `OPTION.FOCUS` · `ITEM.SELECT` · `FORM.RESET` · `PRESS.START` · `PRESS.END`
 
-**判据**：`isOpenControlled` · `canEdit` · `closesOnPreset`
+**判据**：`isOpenControlled` · `canEdit` · `closesOnPreset` · `canPress`
 
 ### connect API
 
@@ -1765,43 +2064,57 @@ const presets = computed(() => [
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
 | `open` | `boolean` |  |
-| `value` | `string` | ISO 时间串；任一必填段为空时是空串。 |
-| `empty` | `boolean` | 值为空串（还没填全）。 |
-| `outOfRange` | `boolean` | 已填全但落在 min/max 之外。只是标注，不改写值。 |
+| `value` | `string[]` | 选中的时刻，ISO 时间串数组；单选至多一项，任一必填段为空时为空数组。 |
+| `selectionMode` | `TimePickerSelectionMode` |  |
+| `draftValue` | `string` | 多选时浮层里拼着的草稿（填全了才有，否则空串）；单选时就是当前值。 |
+| `empty` | `boolean` | 没有选中值（单选时还没填全也算）。 |
+| `outOfRange` | `boolean` | 已填全但落在 min / max 之外。只是标注，不改写值。 |
 | `disabled` | `boolean` |  |
 | `readOnly` | `boolean` |  |
 | `invalid` | `boolean` |  |
-| `hourCycle` | `TimeHourCycle` | 实际生效的小时制（prop 没给时由 locale 推出来的那个）。 |
+| `hourCycle` | `TimeHourCycle` | 实际生效的小时制（prop 未提供时由 locale 推断的值）。 |
 | `granularity` | `TimeGranularity` |  |
-| `step` | `number` | 实际生效的分列步进。 |
-| `segments` | `TimeSegmentType[]` | 此刻参与显示的段，文档序。未列入的段由 connect 打上 hidden 收起。 |
+| `timeStep` | `ResolvedTimeStep` | 实际生效的按单位步进。 |
+| `segments` | `TimeSegmentType[]` | 当前参与显示的段，文档序。未列入的段由 connect 写上 hidden 收起。 |
 | `focusedSegment` | `TimeSegmentType \| null` | 焦点所在段；焦点在分段输入外时为 null。 |
-| `columns` | `TimePickerColumn[]` | 此刻该排哪几列、每列有哪些可选值（已按 step 与 min/max 裁过）。作者据此渲染浮层。 |
+| `columns` | `TimePickerColumn[]` | 当前应排列的列及每列的可选值（已按 timeStep 取样、按 min / max 裁剪）。作者据此渲染浮层。 |
 | `focusedColumn` | `TimePickerColumnUnit \| null` |  |
 | `focusedItem` | `string \| null` |  |
-| `presets` | `readonly TimePickerPresetState[]` | 快捷选项逐条的样子，数据顺序。没给 presets 时为空数组。 |
-| `canClear` | `boolean` | 清空按钮此刻可不可按。 |
-| `getSegmentText` | `(props: TimePickerSegmentProps) => string` | 某一段该显示的文字（空段是占位串）。两个适配器都拿它填文本，保证同构。 |
-| `getItemText` | `(props: TimePickerItemProps) => string` | 某一格该显示的文字。数字列就是格子自己的值，上下午列按 locale 给出「上午 / 下午」。 两个适配器都拿它填文本，保证同构。 |
+| `presets` | `readonly TimePickerPresetState[]` | 快捷选项逐条的状态，数据顺序。未提供 presets 时为空数组。 |
+| `canClear` | `boolean` | 清空按钮当前是否可按。 |
+| `canAdd` | `boolean` | 多选时「添加」此刻可按：草稿填全、在 min / max 之内、还没选过、也没到 maxSelected。 |
+| `tags` | `TimePickerTagMeta[]` | 多选时可见的标签（受 maxTagCount 截断），与 value 同序；单选恒为空数组。 |
+| `overflowCount` | `number` | 被 maxTagCount 折叠的标签数。 |
+| `overflowText` | `string` | +N 标签显示的文字（由 translations.overflowTag 计算）；没有折叠的标签时为空串。 |
+| `getSegmentText` | `(props: TimePickerSegmentProps) => string` | 某一段应显示的文字（空段是占位串）。各适配器都用它填充文本，保证同构。 |
+| `getItemText` | `(props: TimePickerItemProps) => string` | 某一格应显示的文字。数字列即格子自身的值，上下午列按 locale 给出「上午 / 下午」。 各适配器都用它填充文本，保证同构。 |
 | `isItemSelected` | `(props: TimePickerItemProps) => boolean` |  |
-| `isItemDisabled` | `(props: TimePickerItemProps) => boolean` | 落在 min/max 之外（或整个控件禁用）：仍在列表里，但不可选、方向键跳过。 |
+| `isItemDisabled` | `(props: TimePickerItemProps) => boolean` | 落在 min / max 之外（或整个控件禁用）：仍在列表中，但不可选、方向键跳过。 |
 | `setOpen` | `(next: boolean) => void` |  |
-| `setValue` | `(next: string) => void` |  |
+| `setValue` | `(next: string[]) => void` |  |
 | `clear` | `() => void` |  |
+| `add` | `() => void` | 多选：把草稿收进值（与按「添加」同一条路）。 |
+| `deselect` | `(value: string) => void` | 多选：摘掉一个选中值。 |
 | `getRootProps` | `() => T['element']` |  |
 | `getLabelProps` | `() => T['label']` |  |
 | `getControlProps` | `() => T['element']` |  |
-| `getSegmentGroupProps` | `() => T['element']` | 段位与分隔符的外壳：占满盒里剩下的宽度，把尾部按钮顶到框内末端。 |
+| `getTagListProps` | `() => T['element']` | 标签行：多选时放在盒里，收纳可见标签与 +N 标签；没有选中时整体留空。单选时整体 hidden。 |
+| `getTagProps` | `(props: TimePickerTagProps) => T['element']` | 标签：一个选中值一个，即库内 tag 的 root（data-scope="tag"），另带 data-value。 |
+| `getTagLabelProps` | `() => T['element']` | 标签文字所在的块（tag 的 label）；标签与 +N 共用。 |
+| `getOverflowTagProps` | `() => T['element']` | 被折叠的标签合成的一个：同样是 tag 的 root，显示 overflowText、带 data-count；没有折叠的标签时 hidden。 |
+| `getItemDeleteTriggerProps` | `(props: TimePickerTagProps) => T['button']` | 标签删除按钮：即所在标签那份 tag 的 close-trigger，可及名使用 translations.deleteItem；不占 Tab 位、按下不夺焦。 |
+| `getSegmentGroupProps` | `() => T['element']` | 段位与分隔符的外壳：占满盒内剩余宽度，把尾部按钮推到框内末端；多选时整体 hidden。 |
 | `getSegmentProps` | `(props: TimePickerSegmentProps) => T['element']` | 分段输入：一段一个节点，与 TimeField 的段同构（role=spinbutton + roving tabindex）。 |
 | `getTriggerProps` | `() => T['button']` |  |
 | `getClearTriggerProps` | `() => T['button']` |  |
 | `getPositionerProps` | `() => T['element']` |  |
 | `getContentProps` | `() => T['element']` |  |
-| `getPresetGroupProps` | `() => T['element']` | 快捷选项列（role=listbox）；没给 presets 时带 hidden。 |
-| `getPresetProps` | `(props: TimePickerPresetProps) => T['element']` | 一条快捷选项（role=option）：点按把整份时间写进值并收起浮层。 |
+| `getPresetGroupProps` | `() => T['element']` | 快捷选项列（role=listbox）；未提供 presets 时带 hidden。 |
+| `getPresetProps` | `(props: TimePickerPresetProps) => T['element']` | 一条快捷选项（role=option）：点击把整份时间写入值并收起浮层。 |
 | `getColumnProps` | `(props: TimePickerColumnProps) => T['element']` |  |
 | `getItemProps` | `(props: TimePickerItemProps) => T['element']` |  |
-| `getHiddenInputProps` | `() => T['input']` | 表单出口：一份 type=hidden 的原生输入，随表单提交 ISO 串。 |
+| `getConfirmTriggerProps` | `() => T['button']` | 「添加」：多选时把浮层里拼好的草稿收进值，浮层不收起；单选时 hidden。文字由作者写。 |
+| `getHiddenInputProps` | `(props?: TimePickerHiddenInputProps) => T['input']` | 表单出口：一份 type=hidden 的原生输入，随表单提交 ISO 串。 多选时一个选中值一份同名输入：传 `{ value }` 产出那一份，不传是首个选中值那一份。 |
 
 ## 无障碍
 
@@ -1811,6 +2124,7 @@ const presets = computed(() => [
 
 | 按键 | 生效条件 | 行为 |
 | --- | --- | --- |
+| `Backspace` | focus in trigger, multiple, 有选中值, not disabled/readOnly | 摘掉最后一个选中值（标签行末尾那一枚）；多选时段位不出现，触发钮就是键盘入口 |
 | `ArrowDown` / `ArrowUp` | focus in trigger, closed, not disabled | 展开浮层，焦点落到时列（已选的时仍可选就停在它上面，否则停在首格） |
 | `Enter` / `Space` | focus in trigger, not disabled | 按钮的默认激活即展开/收起（不额外拦键，否则会一开一关） |
 | `ArrowDown` | open, focus in 某一列 | 列内下移一格，到尾回绕；被 min/max 裁掉的格自动跳过 |
@@ -1833,8 +2147,9 @@ const presets = computed(() => [
 | `0-9` | focus in 数字段, not disabled/readOnly | 把数字并进本段；本段再吃不下第二位时自动跳到下一段 |
 | `Backspace` / `Delete` | focus in 某一段, not disabled/readOnly | 清掉本段；小时被清时上下午段仍保留原来的上午/下午 |
 | `a` / `p` | focus in 上下午段, 12 小时制, not disabled/readOnly | a 取上午、p 取下午（不区分大小写） |
-| `Alt+ArrowDown` | focus in 某一段, closed, not disabled | 展开浮层并把焦点送进去；触发钮是可选部件，键盘那条入口不能只挂在它身上 |
+| `Alt+ArrowDown` | focus in 某一段, closed, not disabled | 展开浮层并把焦点移入；触发按钮是可选部件，键盘入口不能只挂在它上面 |
 | `Enter` | focus in 某一段, open | 收起浮层。段位里敲出来的值不触发「选完即收」（那时人还在打字），这是那条路的收口手势 |
+| `Enter` / `Space` | held on trigger（not disabled）、clear-trigger（可清）、preset 或 item（open, not disabled/readOnly, 该条可按） | 按住期间该部件投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下，浮层收起时一并撤下 |
 
 ### ARIA
 
@@ -1911,6 +2226,13 @@ const presets = computed(() => [
 | `control` | `data-invalid` | ''（条件成立时才出现） |
 | `control` | `data-readonly` | ''（条件成立时才出现） |
 | `control` | `data-state` | 'open' \| 'closed' |
+| `control` | `data-variant` | props.variant |
+| `control` | `data-xh-field-chrome` | '' |
+| `control` | `data-xh-field-layout` | 'multi-tag' \| undefined |
+| `control` | `data-xh-field-size` | props.size |
+| `tag-list` | `data-disabled` | ''（条件成立时才出现） |
+| `tag-list` | `data-instant` | ''（条件成立时才出现） |
+| `tag-list` | `data-xh-tag-list` | '' |
 | `segment-group` | `data-disabled` | ''（条件成立时才出现） |
 | `segment-group` | `data-invalid` | ''（条件成立时才出现） |
 | `segment-group` | `data-readonly` | ''（条件成立时才出现） |
@@ -1920,7 +2242,20 @@ const presets = computed(() => [
 | `segment` | `data-placeholder` | ''（条件成立时才出现） |
 | `segment` | `data-readonly` | ''（条件成立时才出现） |
 | `trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `trigger` | `data-pressed` | ''（条件成立时才出现） |
 | `trigger` | `data-state` | 'open' \| 'closed' |
+| `trigger` | `data-xh-action-control` | '' |
+| `trigger` | `data-xh-action-display` | 'always' |
+| `trigger` | `data-xh-action-profile` | 'field-inset' |
+| `trigger` | `data-xh-action-size` | props.size |
+| `trigger` | `data-xh-action-variant` | 'ghost' |
+| `clear-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `clear-trigger` | `data-xh-action-control` | '' |
+| `clear-trigger` | `data-xh-action-display` | 'has-value' |
+| `clear-trigger` | `data-xh-action-has-value` | ''（条件成立时才出现） |
+| `clear-trigger` | `data-xh-action-profile` | 'field-inset' |
+| `clear-trigger` | `data-xh-action-size` | props.size |
+| `clear-trigger` | `data-xh-action-variant` | 'ghost' |
 | `positioner` | `data-hidden` | ''（条件成立时才出现） |
 | `positioner` | `data-placement` | 定位引擎算出的实际落位 |
 | `positioner` | `data-positioned` | ''（条件成立时才出现） |
@@ -1928,109 +2263,140 @@ const presets = computed(() => [
 | `positioner` | `data-state` | 'open' \| 'closed' |
 | `positioner` | `data-tone` | props.tone |
 | `positioner` | `data-variant` | props.variant |
+| `content` | `data-instant` | ''（条件成立时才出现） |
 | `content` | `data-placement` | 定位引擎算出的实际落位 |
 | `content` | `data-state` | 'open' \| 'closed' |
 | `preset` | `data-disabled` | ''（条件成立时才出现） |
+| `preset` | `data-pressed` | ''（条件成立时才出现） |
 | `preset` | `data-state` | 'checked' \| 'unchecked' |
+| `preset` | `data-xh-collection-context` | 'overlay' |
+| `preset` | `data-xh-collection-item` | '' |
+| `preset` | `data-xh-collection-size` | props.size |
 | `column` | `data-disabled` | ''（条件成立时才出现） |
 | `column` | `data-state` | 'open' \| 'closed' |
 | `item` | `data-disabled` | ''（条件成立时才出现） |
 | `item` | `data-highlighted` | ''（条件成立时才出现） |
+| `item` | `data-pressed` | ''（条件成立时才出现） |
 | `item` | `data-state` | 'checked' \| 'unchecked' |
+| `item` | `data-xh-collection-context` | 'overlay' |
+| `item` | `data-xh-collection-item` | '' |
+| `item` | `data-xh-collection-size` | props.size |
+| `confirm-trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `confirm-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `confirm-trigger` | `data-xh-action-control` | '' |
+| `confirm-trigger` | `data-xh-action-display` | 'always' |
+| `confirm-trigger` | `data-xh-action-profile` | 'text' |
+| `confirm-trigger` | `data-xh-action-size` | 'sm' |
+| `confirm-trigger` | `data-xh-action-variant` | 'solid' |
+| `confirm-trigger` | `data-xh-ink-surface` | '' |
+| `overflow-tag` | `data-count` | String(overflowCount) |
+| `tag` | `data-value` | v |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-time-picker-action-bg` | `clear-trigger`<br>`trigger` | `background` | `default`<br>`disabled` | `transparent` | time-picker 的 clear-trigger、trigger 部件 background 覆盖槽。 |
-| `--xh-time-picker-action-bg-active` | `clear-trigger`<br>`trigger` | `background` | `active`<br>`not(:disabled)`<br>`state=open` | `--xh-bg-subtle-active` | time-picker 的 clear-trigger、trigger 部件 background 覆盖槽。 |
-| `--xh-time-picker-action-bg-hover` | `clear-trigger`<br>`trigger` | `background` | `hover`<br>`not(:disabled)` | `--xh-bg-subtle-hover` | time-picker 的 clear-trigger、trigger 部件 background 覆盖槽。 |
+| `--xh-time-picker-action-bg` | `clear-trigger`<br>`trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | time-picker 的 clear-trigger、trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-time-picker-action-bg-active` | `clear-trigger`<br>`trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | time-picker 的 clear-trigger、trigger 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-action-bg-hover` | `clear-trigger`<br>`trigger` | `--xh-ink-surface`<br>`background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=open`<br>`xh-ink-surface` | `--xh-_action-variant-bg-hover` | time-picker 的 clear-trigger、trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
 | `--xh-time-picker-action-fg` | `clear-trigger`<br>`trigger` | `color` | `default` | `--xh-fg-muted` | time-picker 的 clear-trigger、trigger 部件 color 覆盖槽。 |
-| `--xh-time-picker-action-fg-hover` | `clear-trigger`<br>`trigger` | `color` | `hover`<br>`not(:disabled)`<br>`state=open` | `--xh-fg-default` | time-picker 的 clear-trigger、trigger 部件 color 覆盖槽。 |
+| `--xh-time-picker-action-fg-hover` | `clear-trigger`<br>`trigger` | `color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=open` | `--xh-fg-default` | time-picker 的 clear-trigger、trigger 部件 color 覆盖槽。 |
 | `--xh-time-picker-action-font-size` | `clear-trigger`<br>`trigger` | `font-size` | `default` | `--xh-text-secondary-size` | time-picker 的 clear-trigger、trigger 部件 font-size 覆盖槽。 |
-| `--xh-time-picker-action-radius` | `clear-trigger`<br>`trigger` | `border-radius` | `default` | `--xh-shape-control` | time-picker 的 clear-trigger、trigger 部件 border-radius 覆盖槽。 |
-| `--xh-time-picker-action-size` | `clear-trigger`<br>`trigger` | `block-size`<br>`inline-size` | `default` | `--xh-control-action-size` | time-picker 的 clear-trigger、trigger 部件 block-size、inline-size 覆盖槽。 |
-| `--xh-time-picker-column-divider` | `column`<br>`preset-group` | `border-inline-end`<br>`border-inline-start` | `default` | `--xh-material-frosted-separator` | time-picker 的 column、preset-group 部件 border-inline-end、border-inline-start 覆盖槽。 |
+| `--xh-time-picker-action-radius` | `clear-trigger`<br>`trigger` | `border-radius` | `default` | `--xh-shape-inset` | time-picker 的 clear-trigger、trigger 部件 border-radius 覆盖槽。 |
+| `--xh-time-picker-action-size` | `clear-trigger`<br>`trigger` | `block-size`<br>`inline-size`<br>`min-inline-size` | `default`<br>`xh-action-profile=field-inset` | `--xh-_action-profile-visual-size` | time-picker 的 clear-trigger、trigger 部件 block-size、inline-size、min-inline-size 覆盖槽。 |
+| `--xh-time-picker-column-divider` | `column`<br>`preset-group` | `border-inline-end`<br>`border-inline-start` | `default` | `--xh-material-solid-separator` | time-picker 的 column、preset-group 部件 border-inline-end、border-inline-start 覆盖槽。 |
 | `--xh-time-picker-column-gap` | `column` | `gap` | `default` | `0` | time-picker 的 column 部件 gap 覆盖槽。 |
 | `--xh-time-picker-column-h` | `column` | `block-size` | `default` | `--xh-viewport-h-sm` | time-picker 的 column 部件 block-size 覆盖槽。 |
 | `--xh-time-picker-column-min-w` | `column` | `min-inline-size` | `default` | `--xh-overlay-column-min-w` | time-picker 的 column 部件 min-inline-size 覆盖槽。 |
 | `--xh-time-picker-column-px` | `column` | `padding-inline` | `default` | `0` | time-picker 的 column 部件 padding-inline 覆盖槽。 |
-| `--xh-time-picker-content-backdrop` | `content` | `-webkit-backdrop-filter`<br>`backdrop-filter` | `default` | `none` | time-picker 的 content 部件 -webkit-backdrop-filter、backdrop-filter 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-bg` | `confirm-trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | time-picker 的 confirm-trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-bg-active` | `confirm-trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | time-picker 的 confirm-trigger 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-bg-hover` | `confirm-trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | time-picker 的 confirm-trigger 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-fg` | `confirm-trigger` | `color` | `default`<br>`disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-fg-hover`<br>`--xh-_action-variant-fg-pressed`<br>`--xh-_action-variant-fg-rest` | time-picker 的 confirm-trigger 部件 color 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-gap` | `confirm-trigger`<br>`content` | `margin-inline-start` | `default` | `--xh-space-1` | time-picker 的 confirm-trigger、content 部件 margin-inline-start 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-h` | `confirm-trigger` | `block-size`<br>`inline-size` | `default`<br>`xh-action-profile=field-inset` | `--xh-_action-profile-visual-size` | time-picker 的 confirm-trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-px` | `confirm-trigger` | `padding-inline` | `default` | `--xh-_action-profile-padding-inline` | time-picker 的 confirm-trigger 部件 padding-inline 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-radius` | `confirm-trigger` | `border-radius` | `default` | `--xh-shape-control` | time-picker 的 confirm-trigger 部件 border-radius 覆盖槽。 |
+| `--xh-time-picker-confirm-trigger-shadow` | `confirm-trigger` | `box-shadow` | `default`<br>`disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `none` | time-picker 的 confirm-trigger 部件 box-shadow 覆盖槽。 |
 | `--xh-time-picker-content-bg` | `content` | `background` | `default` | `--xh-bg-surface` | time-picker 的 content 部件 background 覆盖槽。 |
-| `--xh-time-picker-content-border` | `content` | `border` | `default` | `--xh-border-subtle` | time-picker 的 content 部件 border 覆盖槽。 |
+| `--xh-time-picker-content-border` | `content` | `border` | `default` | `--xh-border-default` | time-picker 的 content 部件 border 覆盖槽。 |
 | `--xh-time-picker-content-fg` | `content` | `color` | `default` | `--xh-fg-default` | time-picker 的 content 部件 color 覆盖槽。 |
-| `--xh-time-picker-content-highlight` | `content` | `background` | `default` | `transparent` | time-picker 的 content 部件 background 覆盖槽。 |
 | `--xh-time-picker-content-max-h` | `content` | `max-block-size` | `default` | `--xh-viewport-h-lg` | time-picker 的 content 部件 max-block-size 覆盖槽。 |
 | `--xh-time-picker-content-px` | `content` | `padding-inline` | `default` | `--xh-space-1` | time-picker 的 content 部件 padding-inline 覆盖槽。 |
 | `--xh-time-picker-content-py` | `content` | `padding-block` | `default` | `--xh-space-1` | time-picker 的 content 部件 padding-block 覆盖槽。 |
-| `--xh-time-picker-content-radius` | `content` | `border-radius` | `default` | `--xh-shape-surface` | time-picker 的 content 部件 border-radius 覆盖槽。 |
-| `--xh-time-picker-content-shadow` | `content` | `box-shadow` | `default` | `--xh-material-frosted-shadow` | time-picker 的 content 部件 box-shadow 覆盖槽。 |
-| `--xh-time-picker-control-bg` | `control` | `background` | `default` | `--xh-_time-picker-control-bg` | time-picker 的 control 部件 background 覆盖槽。 |
-| `--xh-time-picker-control-bg-disabled` | `control` | `background` | `disabled` | `--xh-bg-subtle` | time-picker 的 control 部件 background 覆盖槽。 |
-| `--xh-time-picker-control-bg-hover` | `control` | `background` | `disabled`<br>`hover`<br>`not([data-disabled], [data-readonly])`<br>`readonly` | `--xh-_time-picker-control-bg-hover` | time-picker 的 control 部件 background 覆盖槽。 |
-| `--xh-time-picker-control-bg-readonly` | `control` | `background` | `readonly` | `--xh-bg-subtle` | time-picker 的 control 部件 background 覆盖槽。 |
-| `--xh-time-picker-control-border` | `control` | `border` | `default` | `--xh-_time-picker-control-border` | time-picker 的 control 部件 border 覆盖槽。 |
-| `--xh-time-picker-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`state=open` | `--xh-_tone` | time-picker 的 control 部件 border-color 覆盖槽。 |
-| `--xh-time-picker-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`not([data-disabled], [data-invalid])` | `--xh-_time-picker-control-border-hover` | time-picker 的 control 部件 border-color 覆盖槽。 |
-| `--xh-time-picker-control-border-invalid` | `control` | `border-color` | `invalid` | `--xh-border-invalid` | time-picker 的 control 部件 border-color 覆盖槽。 |
-| `--xh-time-picker-control-fg` | `control` | `color` | `default` | `--xh-fg-default` | time-picker 的 control 部件 color 覆盖槽。 |
-| `--xh-time-picker-control-gap` | `control` | `gap` | `default` | `--xh-_time-picker-gap` | time-picker 的 control 部件 gap 覆盖槽。 |
-| `--xh-time-picker-control-h` | `control` | `block-size` | `default` | `--xh-_time-picker-control-h` | time-picker 的 control 部件 block-size 覆盖槽。 |
-| `--xh-time-picker-control-min-w` | `control`<br>`root` | `min-inline-size` | `default` | `--xh-control-min-w` | time-picker 的 control、root 部件 min-inline-size 覆盖槽。 |
-| `--xh-time-picker-control-px` | `control` | `padding-inline` | `default` | `--xh-_time-picker-control-px` | time-picker 的 control 部件 padding-inline 覆盖槽。 |
-| `--xh-time-picker-control-radius` | `control` | `border-radius` | `default` | `--xh-shape-surface` | time-picker 的 control 部件 border-radius 覆盖槽。 |
-| `--xh-time-picker-control-shadow` | `control` | `box-shadow` | `default` | `--xh-_time-picker-control-shadow` | time-picker 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-time-picker-content-radius` | `content` | `border-radius` | `default` | `--xh-shape-overlay` | time-picker 的 content 部件 border-radius 覆盖槽。 |
+| `--xh-time-picker-content-shadow` | `content` | `box-shadow` | `default` | `--xh-elevation-floating` | time-picker 的 content 部件 box-shadow 覆盖槽。 |
+| `--xh-time-picker-control-bg` | `control` | `background-color` | `xh-field-chrome` | `--xh-_field-variant-bg-rest` | time-picker 的 control 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-control-bg-disabled` | `control` | `background-color` | `disabled`<br>`xh-field-chrome` | `--xh-_field-variant-bg-disabled` | time-picker 的 control 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-hover` | time-picker 的 control 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-control-bg-readonly` | `control` | `background-color` | `readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-read-only` | time-picker 的 control 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-control-border` | `control` | `border` | `xh-field-chrome` | `--xh-_field-variant-border-rest` | time-picker 的 control 部件 border 覆盖槽。 |
+| `--xh-time-picker-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`xh-field-chrome` | `--xh-_field-variant-border-focus` | time-picker 的 control 部件 border-color 覆盖槽。 |
+| `--xh-time-picker-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-border-hover` | time-picker 的 control 部件 border-color 覆盖槽。 |
+| `--xh-time-picker-control-border-invalid` | `control` | `border-color` | `invalid`<br>`xh-field-chrome` | `--xh-_field-variant-border-invalid` | time-picker 的 control 部件 border-color 覆盖槽。 |
+| `--xh-time-picker-control-fg` | `control` | `color` | `xh-field-chrome` | `--xh-fg-default` | time-picker 的 control 部件 color 覆盖槽。 |
+| `--xh-time-picker-control-gap` | `control` | `gap` | `xh-field-chrome` | `--xh-_time-picker-gap` | time-picker 的 control 部件 gap 覆盖槽。 |
+| `--xh-time-picker-control-h` | `control` | `block-size`<br>`min-block-size` | `has([data-xh-field-input][data-xh-field-layout='multi-tag'])`<br>`has([data-xh-field-input][data-xh-field-layout='single-line'])`<br>`has([data-xh-field-input][data-xh-field-layout='textarea'])`<br>`xh-field-chrome`<br>`xh-field-input`<br>`xh-field-layout=multi-tag`<br>`xh-field-layout=single-line`<br>`xh-field-layout=textarea` | `--xh-_time-picker-control-h` | time-picker 的 control 部件 block-size、min-block-size 覆盖槽。 |
+| `--xh-time-picker-control-max-h` | `control` | `max-block-size` | `xh-field-layout=multi-tag` | `--xh-viewport-h-sm` | time-picker 的 control 部件 max-block-size 覆盖槽。 |
+| `--xh-time-picker-control-min-w` | `control`<br>`root` | `min-inline-size` | `default`<br>`xh-field-chrome` | `--xh-control-min-w` | time-picker 的 control、root 部件 min-inline-size 覆盖槽。 |
+| `--xh-time-picker-control-px` | `control` | `padding-inline` | `xh-field-chrome` | `--xh-_time-picker-control-px` | time-picker 的 control 部件 padding-inline 覆盖槽。 |
+| `--xh-time-picker-control-radius` | `control` | `border-radius` | `xh-field-chrome` | `--xh-shape-control` | time-picker 的 control 部件 border-radius 覆盖槽。 |
+| `--xh-time-picker-control-shadow` | `control` | `box-shadow` | `xh-field-chrome` | `none` | time-picker 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-time-picker-control-w` | `root` | `inline-size`<br>`min-inline-size` | `default` | `--xh-control-w` | time-picker 的 root 部件 inline-size、min-inline-size 覆盖槽。 |
 | `--xh-time-picker-font-size` | `control` | `font-size` | `default` | `--xh-_time-picker-font-size` | time-picker 的 control 部件 font-size 覆盖槽。 |
 | `--xh-time-picker-gap` | `root` | `gap` | `default` | `--xh-space-1` | time-picker 的 root 部件 gap 覆盖槽。 |
-| `--xh-time-picker-icon-size` | `positioner`<br>`root` | `--xh-icon-size` | `default`<br>`is([data-part='root'], [data-part='positioner'])`<br>`size=lg`<br>`size=sm` | `--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | time-picker 的 positioner、root 部件 --xh-icon-size 覆盖槽。 |
-| `--xh-time-picker-item-bg-checked` | `item` | `background` | `state=checked` | `--xh-_time-picker-option-bg-selected` | time-picker 的 item 部件 background 覆盖槽。 |
-| `--xh-time-picker-item-bg-checked-hover` | `item` | `background` | `disabled`<br>`highlighted`<br>`is(:hover, :focus-visible, [data-highlighted])`<br>`not([data-disabled])`<br>`state=checked` | `--xh-_time-picker-option-bg-selected-hover` | time-picker 的 item 部件 background 覆盖槽。 |
-| `--xh-time-picker-item-bg-hover` | `item` | `background` | `disabled`<br>`highlighted`<br>`is(:hover, :focus-visible)`<br>`not([data-disabled])` | `--xh-bg-subtle` | time-picker 的 item 部件 background 覆盖槽。 |
+| `--xh-time-picker-icon-size` | `control`<br>`positioner`<br>`root` | `--xh-icon-size` | `default`<br>`is([data-part='root'], [data-part='positioner'])`<br>`size=lg`<br>`size=sm`<br>`xh-field-chrome` | `--xh-_field-size-glyph-size`<br>`--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | time-picker 的 control、positioner、root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-time-picker-item-bg-hover` | `item` | `background-color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle` | time-picker 的 item 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-item-bg-pressed` | `item` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle-hover` | time-picker 的 item 部件 background-color 覆盖槽。 |
 | `--xh-time-picker-item-check-fg` | `item` | `background-color` | `default` | `--xh-_time-picker-check-fg` | time-picker 的 item 部件 background-color 覆盖槽。 |
-| `--xh-time-picker-item-check-size` | `item` | `block-size`<br>`inline-size`<br>`padding-inline` | `default` | `--xh-glyph-size-sm` | time-picker 的 item 部件 block-size、inline-size、padding-inline 覆盖槽。 |
-| `--xh-time-picker-item-fg` | `item` | `color` | `default` | `--xh-fg-default` | time-picker 的 item 部件 color 覆盖槽。 |
-| `--xh-time-picker-item-fg-checked` | `item` | `color` | `state=checked` | `--xh-_time-picker-option-fg-selected` | time-picker 的 item 部件 color 覆盖槽。 |
+| `--xh-time-picker-item-check-size` | `item` | `block-size`<br>`inline-size`<br>`padding-inline` | `default` | `--xh-control-indicator-size` | time-picker 的 item 部件 block-size、inline-size、padding-inline 覆盖槽。 |
+| `--xh-time-picker-item-fg` | `item` | `color` | `default`<br>`disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-material-frosted-fg` | time-picker 的 item 部件 color 覆盖槽。 |
+| `--xh-time-picker-item-fg-selected` | `item` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-time-picker-item-fg` | time-picker 的 item 部件 color 覆盖槽。 |
 | `--xh-time-picker-item-font-size` | `item` | `font-size` | `default` | `--xh-_time-picker-font-size` | time-picker 的 item 部件 font-size 覆盖槽。 |
-| `--xh-time-picker-item-h` | `item` | `block-size` | `default` | `--xh-overlay-column-item-h` | time-picker 的 item 部件 block-size 覆盖槽。 |
+| `--xh-time-picker-item-font-weight-selected` | `item` | `font-weight` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-font-weight-regular` | time-picker 的 item 部件 font-weight 覆盖槽。 |
+| `--xh-time-picker-item-h` | `item` | `block-size` | `default` | `auto` | time-picker 的 item 部件 block-size 覆盖槽。 |
 | `--xh-time-picker-item-px` | `item` | `padding-inline` | `default` | `--xh-space-0_5` | time-picker 的 item 部件 padding-inline 覆盖槽。 |
-| `--xh-time-picker-item-py` | `item` | `padding-block` | `default` | `0` | time-picker 的 item 部件 padding-block 覆盖槽。 |
-| `--xh-time-picker-item-radius` | `item` | `border-radius` | `default` | `--xh-shape-control` | time-picker 的 item 部件 border-radius 覆盖槽。 |
-| `--xh-time-picker-item-weight-checked` | `item` | `font-weight` | `state=checked` | `--xh-font-weight-medium` | time-picker 的 item 部件 font-weight 覆盖槽。 |
+| `--xh-time-picker-item-py` | `item` | `padding-block` | `default` | `--xh-_time-picker-item-py` | time-picker 的 item 部件 padding-block 覆盖槽。 |
+| `--xh-time-picker-item-radius` | `item` | `border-radius` | `default` | `--xh-shape-inset` | time-picker 的 item 部件 border-radius 覆盖槽。 |
 | `--xh-time-picker-label-fg` | `label` | `color` | `default` | `--xh-fg-default` | time-picker 的 label 部件 color 覆盖槽。 |
 | `--xh-time-picker-label-fg-disabled` | `label` | `color` | `disabled` | `--xh-fg-subtle` | time-picker 的 label 部件 color 覆盖槽。 |
-| `--xh-time-picker-label-font-size` | `label` | `font-size` | `default` | `--xh-_time-picker-label-font-size` | time-picker 的 label 部件 font-size 覆盖槽。 |
+| `--xh-time-picker-label-font-size` | `label` | `font-size` | `default` | `--xh-text-label-size` | time-picker 的 label 部件 font-size 覆盖槽。 |
 | `--xh-time-picker-label-font-weight` | `label` | `font-weight` | `default` | `--xh-text-label-weight` | time-picker 的 label 部件 font-weight 覆盖槽。 |
 | `--xh-time-picker-layer` | `positioner` | `z-index` | `default` | `--xh-_layer` | time-picker 的 positioner 部件 z-index 覆盖槽。 |
 | `--xh-time-picker-literal-fg` | `segment-group` | `color` | `not([data-scope])` | `--xh-fg-subtle` | time-picker 的 segment-group 部件 color 覆盖槽。 |
 | `--xh-time-picker-placeholder-fg` | `segment` | `color` | `placeholder` | `--xh-fg-subtle` | time-picker 的 segment 部件 color 覆盖槽。 |
-| `--xh-time-picker-preset-bg-hover` | `preset` | `background` | `disabled`<br>`is(:hover, :focus-visible)`<br>`not([data-disabled])` | `--xh-bg-subtle` | time-picker 的 preset 部件 background 覆盖槽。 |
+| `--xh-time-picker-preset-bg-hover` | `preset` | `background-color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle` | time-picker 的 preset 部件 background-color 覆盖槽。 |
+| `--xh-time-picker-preset-bg-pressed` | `preset` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle-hover` | time-picker 的 preset 部件 background-color 覆盖槽。 |
 | `--xh-time-picker-preset-check-fg` | `preset` | `background-color` | `default` | `--xh-_time-picker-check-fg` | time-picker 的 preset 部件 background-color 覆盖槽。 |
-| `--xh-time-picker-preset-check-size` | `preset` | `block-size`<br>`inline-size`<br>`padding-inline-end` | `default` | `--xh-glyph-size-sm` | time-picker 的 preset 部件 block-size、inline-size、padding-inline-end 覆盖槽。 |
-| `--xh-time-picker-preset-fg` | `preset` | `color` | `default`<br>`state=checked` | `--xh-fg-default` | time-picker 的 preset 部件 color 覆盖槽。 |
-| `--xh-time-picker-preset-fg-checked` | `preset` | `color` | `state=checked` | `--xh-time-picker-preset-fg` | time-picker 的 preset 部件 color 覆盖槽。 |
-| `--xh-time-picker-preset-fg-disabled` | `preset` | `color` | `disabled` | `--xh-fg-disabled` | time-picker 的 preset 部件 color 覆盖槽。 |
+| `--xh-time-picker-preset-check-size` | `preset` | `block-size`<br>`inline-size`<br>`padding-inline-end` | `default` | `--xh-control-indicator-size` | time-picker 的 preset 部件 block-size、inline-size、padding-inline-end 覆盖槽。 |
+| `--xh-time-picker-preset-fg` | `preset` | `color` | `default`<br>`disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-fg-default` | time-picker 的 preset 部件 color 覆盖槽。 |
+| `--xh-time-picker-preset-fg-checked` | `preset` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-time-picker-preset-fg` | time-picker 的 preset 部件 color 覆盖槽。 |
+| `--xh-time-picker-preset-fg-disabled` | `preset` | `background-color`<br>`color` | `default`<br>`disabled` | `--xh-fg-disabled` | time-picker 的 preset 部件 background-color、color 覆盖槽。 |
 | `--xh-time-picker-preset-group-gap` | `preset-group` | `gap` | `default` | `--xh-list-option-gap` | time-picker 的 preset-group 部件 gap 覆盖槽。 |
 | `--xh-time-picker-preset-group-h` | `preset-group` | `max-block-size` | `default` | `--xh-viewport-h-sm` | time-picker 的 preset-group 部件 max-block-size 覆盖槽。 |
 | `--xh-time-picker-preset-group-px` | `preset-group` | `padding-inline` | `default` | `--xh-space-1` | time-picker 的 preset-group 部件 padding-inline 覆盖槽。 |
-| `--xh-time-picker-preset-px` | `preset` | `inset-inline-end`<br>`padding-inline-end`<br>`padding-inline-start` | `default` | `--xh-space-3` | time-picker 的 preset 部件 inset-inline-end、padding-inline-end、padding-inline-start 覆盖槽。 |
+| `--xh-time-picker-preset-px` | `preset` | `inset-inline-end`<br>`padding-inline`<br>`padding-inline-end` | `default` | `--xh-space-3` | time-picker 的 preset 部件 inset-inline-end、padding-inline、padding-inline-end 覆盖槽。 |
 | `--xh-time-picker-preset-py` | `preset` | `padding-block` | `default` | `--xh-space-1` | time-picker 的 preset 部件 padding-block 覆盖槽。 |
-| `--xh-time-picker-preset-radius` | `preset` | `border-radius` | `default` | `--xh-shape-control` | time-picker 的 preset 部件 border-radius 覆盖槽。 |
+| `--xh-time-picker-preset-radius` | `preset` | `border-radius` | `default` | `--xh-shape-inset` | time-picker 的 preset 部件 border-radius 覆盖槽。 |
 | `--xh-time-picker-segment-bg-focus` | `segment` | `background` | `disabled`<br>`focus`<br>`focus-visible`<br>`not([data-disabled])` | `--xh-_time-picker-segment-bg` | time-picker 的 segment 部件 background 覆盖槽。 |
-| `--xh-time-picker-segment-bg-hover` | `segment` | `background` | `disabled`<br>`focus`<br>`hover`<br>`not([data-focus], [data-disabled])` | `--xh-bg-subtle-hover` | time-picker 的 segment 部件 background 覆盖槽。 |
+| `--xh-time-picker-segment-bg-hover` | `segment` | `background` | `disabled`<br>`focus`<br>`hover`<br>`not([data-focus], [data-disabled])` | `--xh-bg-subtle` | time-picker 的 segment 部件 background 覆盖槽。 |
 | `--xh-time-picker-segment-bg-invalid-focus` | `segment` | `background` | `focus`<br>`invalid`<br>`is([data-focus], :focus-visible)` | `--xh-bg-subtle` | time-picker 的 segment 部件 background 覆盖槽。 |
 | `--xh-time-picker-segment-fg-focus` | `segment` | `color` | `disabled`<br>`focus`<br>`focus-visible`<br>`not([data-disabled])`<br>`placeholder` | `--xh-_time-picker-segment-fg` | time-picker 的 segment 部件 color 覆盖槽。 |
 | `--xh-time-picker-segment-fg-invalid` | `segment` | `color` | `invalid` | `--xh-fg-danger` | time-picker 的 segment 部件 color 覆盖槽。 |
 | `--xh-time-picker-segment-fg-invalid-focus` | `segment` | `color` | `focus`<br>`invalid`<br>`is([data-focus], :focus-visible)` | `--xh-fg-danger` | time-picker 的 segment 部件 color 覆盖槽。 |
 | `--xh-time-picker-segment-px` | `segment` | `padding-inline` | `default` | `--xh-space-0_5` | time-picker 的 segment 部件 padding-inline 覆盖槽。 |
 | `--xh-time-picker-segment-radius` | `segment` | `border-radius` | `default` | `--xh-shape-inset` | time-picker 的 segment 部件 border-radius 覆盖槽。 |
+| `--xh-time-picker-tag-list-gap` | `tag-list` | `gap` | `xh-tag-list` | `--xh-space-1` | time-picker 的 tag-list 部件 gap 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
 
-关键帧 `xh-overlay-slide-in` · `xh-overlay-slide-out` 随皮肤自带，不引用别处文件里的名字；`background` · `border-color` · `color` · `opacity` · `outline-color` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 指示与换位 · 出现（锚定列表） · 出现（无锚定弹出）（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-fade-out` · `xh-overlay-slide-in` · `xh-overlay-slide-out` · `xh-pop-in` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立；`background-color` · `color` · `opacity` · `translate` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 皮肤之外还有一段：退场由适配器的退场闸门把关，动画播完才真收起。
 

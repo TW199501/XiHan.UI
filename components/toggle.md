@@ -236,12 +236,13 @@ const pressed = ref(false);
 
 - 使用 `aria-pressed` 表达当前状态。
 - 支持受控和非受控状态。
-- 支持变体、颜色、尺寸、仅图标和全宽外观。
+- 支持变体、颜色、尺寸、仅图标和全宽外观；缺省变体是中性淡底 `subtle`。
+- 按下态是品牌淡底配淡底前景，悬停与按压在同一淡底上加深；只有 `solid` 变体在按下时才是品牌实心，未按下时按 `ghost` 取面。
 - 禁用后保留当前按下状态。
 
 ### 组合
 
-- 多枚互斥或并列时放进[切换按钮组](./toggle-group)；与普通[按钮](./button)混排在[工具栏](./toolbar)里。
+- 多个互斥或并列时放入[切换按钮组](./toggle-group)；与普通[按钮](./button)混排在[工具栏](./toolbar)内。
 - 仅图标的切换按钮配[文字提示](./tooltip)说明作用。
 
 ### 最佳实践
@@ -274,12 +275,12 @@ const pressed = ref(false);
 | `pressed` | `boolean` |  |  |
 | `defaultPressed` | `boolean` |  |  |
 | `disabled` | `boolean` |  |  |
-| `variant` | `ActionVariant` |  | 变体：solid / subtle / outline / ghost。 |
+| `variant` | `ActionVariant` |  | 变体：solid / subtle / outline / ghost，默认 subtle（缺省中性淡底）。 solid 只在按下（on）时才是品牌实心，未按下时按 ghost 取面；其余三档按下时一律品牌淡底。 |
 | `tone` | `Tone` |  | 颜色：brand / neutral / success / warning / danger / info。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg |
-| `iconOnly` | `boolean` |  | 只有图标：左右内距清零、宽高相等。宽度跟着当前尺寸档的高度走， 不必把档位写进行内样式。图标按钮没有可见文字，作者须自行给可及名。 |
-| `fullWidth` | `boolean` |  | 撑满行宽：工具条里一列开关常用。 |
-| `onPressedChange` | `(details: TogglePressedChangeDetails) => void` |  | pressed 变化意图回调；受控时是唯一出口，非受控随内部转移一并通知。 |
+| `iconOnly` | `boolean` |  | 仅图标：左右内边距清零、宽高相等。宽度跟随当前尺寸档的高度， 不必把档位写进行内样式。图标按钮没有可见文字，作者须自行提供可及名。 |
+| `fullWidth` | `boolean` |  | 撑满行宽：工具条中的一列开关常用。 |
+| `onPressedChange` | `(details: TogglePressedChangeDetails) => void` |  | pressed 变化意图回调；受控时是唯一出口，非受控时随内部转移一并通知。 |
 
 ### 事件
 
@@ -288,6 +289,14 @@ const pressed = ref(false);
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `pressed-change` | `TogglePressedChangeDetails` | pressed 状态变化；detail 为 `{ pressed: boolean }` |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhToggle` | `children` | `ReactNode` |  |  |
 
 ### 状态
 
@@ -301,9 +310,9 @@ const pressed = ref(false);
 
 **状态**：`off` · `on`
 
-**事件**：`TOGGLE` · `CONTROLLED.ON` · `CONTROLLED.OFF`
+**事件**：`TOGGLE` · `CONTROLLED.ON` · `CONTROLLED.OFF` · `PRESS.START` · `PRESS.END`
 
-**判据**：`isPressedControlled`
+**判据**：`isPressedControlled` · `canPress`
 
 ### connect API
 
@@ -324,6 +333,7 @@ const pressed = ref(false);
 | 按键 | 生效条件 | 行为 |
 | --- | --- | --- |
 | `Space` / `Enter` | focus in root, not disabled | 切换 pressed 状态 |
+| `Space` / `Enter` | held in root, not disabled | 按住期间投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下 |
 
 ### ARIA
 
@@ -348,6 +358,7 @@ const pressed = ref(false);
 | `root` | `data-disabled` | ''（条件成立时才出现） |
 | `root` | `data-full-width` | ''（条件成立时才出现） |
 | `root` | `data-icon-only` | ''（条件成立时才出现） |
+| `root` | `data-pressed` | ''（条件成立时才出现） |
 | `root` | `data-size` | props.size |
 | `root` | `data-state` | 'on' \| 'off' |
 | `root` | `data-tone` | props.tone |
@@ -356,35 +367,44 @@ const pressed = ref(false);
 | `root` | `data-xh-action-display` | 'always' |
 | `root` | `data-xh-action-profile` | 'icon' \| 'text' |
 | `root` | `data-xh-action-size` | props.size |
+| `root` | `data-xh-action-variant` | 'solid' \| 'ghost' \| props.variant |
+| `root` | `data-xh-ink-surface` | ''（条件成立时才出现） |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-toggle-bg` | `root` | `background-color` | `default`<br>`disabled`<br>`focus-visible` | `--xh-bg-subtle` | toggle 的 root 部件 background-color 覆盖槽。 |
-| `--xh-toggle-bg-active` | `root` | `background-color` | `active`<br>`disabled`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-bg-subtle-active` | toggle 的 root 部件 background-color 覆盖槽。 |
-| `--xh-toggle-bg-hover` | `root` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-bg-subtle-hover` | toggle 的 root 部件 background-color 覆盖槽。 |
-| `--xh-toggle-bg-on` | `root` | `background-color` | `disabled`<br>`focus-visible`<br>`state=on` | `--xh-_tone-subtle` | toggle 的 root 部件 background-color 覆盖槽。 |
-| `--xh-toggle-bg-on-active` | `root` | `background-color` | `active`<br>`disabled`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=on` | `--xh-_tone-subtle-active` | toggle 的 root 部件 background-color 覆盖槽。 |
-| `--xh-toggle-bg-on-hover` | `root` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=on` | `--xh-_tone-subtle-hover` | toggle 的 root 部件 background-color 覆盖槽。 |
-| `--xh-toggle-border` | `root` | `border`<br>`border-color` | `active`<br>`default`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `transparent` | toggle 的 root 部件 border、border-color 覆盖槽。 |
-| `--xh-toggle-border-on` | `root` | `border`<br>`border-color` | `active`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=on` | `transparent` | toggle 的 root 部件 border、border-color 覆盖槽。 |
-| `--xh-toggle-fg` | `root` | `color` | `active`<br>`default`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-fg-default` | toggle 的 root 部件 color 覆盖槽。 |
-| `--xh-toggle-fg-on` | `root` | `color` | `active`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=on` | `--xh-_tone-fg` | toggle 的 root 部件 color 覆盖槽。 |
+| `--xh-toggle-bg` | `root` | `--xh-ink-surface`<br>`background-color` | `default`<br>`focus-visible`<br>`xh-ink-surface` | `--xh-_action-variant-bg-focus-visible`<br>`--xh-_action-variant-bg-rest` | toggle 的 root 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-toggle-bg-active` | `root` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | toggle 的 root 部件 background-color 覆盖槽。 |
+| `--xh-toggle-bg-disabled` | `root` | `--xh-ink-surface`<br>`background-color` | `disabled`<br>`xh-ink-surface` | `--xh-_action-variant-bg-disabled` | toggle 的 root 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-toggle-bg-hover` | `root` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | toggle 的 root 部件 background-color 覆盖槽。 |
+| `--xh-toggle-bg-on` | `root` | `--xh-ink-surface`<br>`background-color` | `disabled`<br>`focus-visible`<br>`not([data-variant='solid'])`<br>`state=on`<br>`variant=solid`<br>`xh-ink-surface` | `--xh-_tone-subtle` | toggle 的 root 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-toggle-bg-on-active` | `root` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-variant='solid'])`<br>`pressed`<br>`state=on`<br>`variant=solid` | `--xh-_tone-subtle-active` | toggle 的 root 部件 background-color 覆盖槽。 |
+| `--xh-toggle-bg-on-disabled` | `root` | `--xh-ink-surface`<br>`background-color` | `disabled`<br>`not([data-variant='solid'])`<br>`state=on`<br>`variant=solid`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest`<br>`--xh-_toggle-bg-on` | toggle 的 root 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-toggle-bg-on-hover` | `root` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-variant='solid'])`<br>`state=on`<br>`variant=solid` | `--xh-_tone-subtle-hover` | toggle 的 root 部件 background-color 覆盖槽。 |
+| `--xh-toggle-border` | `root` | `border`<br>`border-color` | `default`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-border-focus-visible`<br>`--xh-_action-variant-border-hover`<br>`--xh-_action-variant-border-pressed`<br>`--xh-_action-variant-border-rest` | toggle 的 root 部件 border、border-color 覆盖槽。 |
+| `--xh-toggle-border-disabled` | `root` | `border-color` | `disabled` | `--xh-_action-variant-border-disabled` | toggle 的 root 部件 border-color 覆盖槽。 |
+| `--xh-toggle-border-on` | `root` | `border`<br>`border-color` | `disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-variant='solid'])`<br>`pressed`<br>`state=on`<br>`variant=outline`<br>`variant=solid` | `--xh-_tone-border-control`<br>`transparent` | toggle 的 root 部件 border、border-color 覆盖槽。 |
+| `--xh-toggle-fg` | `root` | `color` | `default`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-fg-focus-visible`<br>`--xh-_action-variant-fg-hover`<br>`--xh-_action-variant-fg-pressed`<br>`--xh-_action-variant-fg-rest` | toggle 的 root 部件 color 覆盖槽。 |
+| `--xh-toggle-fg-disabled` | `root` | `color` | `disabled` | `--xh-_action-variant-fg-disabled` | toggle 的 root 部件 color 覆盖槽。 |
+| `--xh-toggle-fg-on` | `root` | `color` | `disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-variant='solid'])`<br>`pressed`<br>`state=on`<br>`variant=solid` | `--xh-_tone-fg` | toggle 的 root 部件 color 覆盖槽。 |
+| `--xh-toggle-fg-on-disabled` | `root` | `color` | `disabled`<br>`not([data-variant='solid'])`<br>`state=on`<br>`variant=solid` | `--xh-_action-variant-fg-rest`<br>`--xh-_toggle-fg-on` | toggle 的 root 部件 color 覆盖槽。 |
 | `--xh-toggle-font-size` | `root` | `font-size` | `default` | `--xh-_action-profile-font-size` | toggle 的 root 部件 font-size 覆盖槽。 |
 | `--xh-toggle-font-weight` | `root` | `font-weight` | `default` | `--xh-text-label-weight` | toggle 的 root 部件 font-weight 覆盖槽。 |
 | `--xh-toggle-gap` | `root` | `gap` | `default` | `--xh-_action-profile-gap` | toggle 的 root 部件 gap 覆盖槽。 |
 | `--xh-toggle-h` | `root` | `block-size`<br>`inline-size` | `default`<br>`xh-action-profile=icon` | `--xh-_action-profile-visual-size` | toggle 的 root 部件 block-size、inline-size 覆盖槽。 |
 | `--xh-toggle-icon-size` | `*`<br>`root` | `--xh-icon-size`<br>`block-size`<br>`inline-size` | `default` | `--xh-_action-profile-glyph-size` | toggle 的 *、root 部件 --xh-icon-size、block-size、inline-size 覆盖槽。 |
 | `--xh-toggle-px` | `root` | `padding-inline` | `default` | `--xh-_action-profile-padding-inline` | toggle 的 root 部件 padding-inline 覆盖槽。 |
-| `--xh-toggle-radius` | `root` | `border-radius` | `default` | `--xh-shape-pill` | toggle 的 root 部件 border-radius 覆盖槽。 |
-| `--xh-toggle-shadow` | `root` | `box-shadow` | `active`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=on` | `none` | toggle 的 root 部件 box-shadow 覆盖槽。 |
+| `--xh-toggle-radius` | `root` | `border-radius` | `default` | `--xh-shape-control` | toggle 的 root 部件 border-radius 覆盖槽。 |
+| `--xh-toggle-shadow` | `root` | `box-shadow` | `disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed`<br>`state=on` | `none` | toggle 的 root 部件 box-shadow 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
+
+动效角色：按压 · 状态（见[动效规范](../design/motion#角色)）。
 
 本组件皮肤不含过渡与关键帧，也没有脚本驱动的动效：状态一变，外观立即到位。
 

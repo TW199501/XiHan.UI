@@ -1,1 +1,0 @@
-import{j as n,m,r as i}from"./jsx-runtime.Dw0sbWRO.js";import{qt as p}from"./theme.CJjSsKhw.js";function f({from:t,to:r,direction:e,tone:o,children:a,...s}){return n.jsx("span",{...m(p({from:t,to:r,direction:e,tone:o},i).getRootProps(),s),children:a})}export{f as X};

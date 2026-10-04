@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/descriptions
 
-# Descriptions 描述列表 `alpha`
+# Descriptions 描述列表
 
 成对的标签与值，按列排开。
 
@@ -14,7 +14,7 @@
 
 ## 用法
 
-标签与取值的配对靠 dl / dt / dd 表达，组件只给身份与排版；不传 columns 即每行一组
+标签与取值的配对依靠 dl / dt / dd 表达，组件只提供身份与排版；不传 columns 即每行一组
 
 ```vue
 <script setup lang="ts">
@@ -65,13 +65,13 @@ const order = [
 
 加粗的是必需部件。
 
-`data-scope="descriptions"`：**`root`** · `item` · `label` · `value`
+`data-scope="descriptions"`：**`root`** · `header` · `title` · `extra` · `item` · `label` · `value`
 
 ## 示例
 
 ### 列数
 
-columns 决定每行摆几组，一到六列；排版走 CSS Grid，不用表格
+columns 决定每行排几组，一到六列；排版使用 CSS Grid，不使用表格
 
 ```vue
 <script setup lang="ts">
@@ -211,7 +211,7 @@ const placements = [
 
 ### 外框
 
-bordered 画一圈描边，并在格与格之间补上网格线
+variant="outline" 绘制一圈描边，并在格与格之间补上网格线
 
 ```vue
 <script setup lang="ts">
@@ -231,7 +231,7 @@ const rows = [
 </script>
 
 <template>
-  <XhDescriptionsRoot bordered :columns="2" placement="left">
+  <XhDescriptionsRoot variant="outline" :columns="2" placement="left">
     <XhDescriptionsItem v-for="row in rows" :key="row.label">
       <XhDescriptionsLabel>{{ row.label }}</XhDescriptionsLabel>
       <XhDescriptionsValue>{{ row.value }}</XhDescriptionsValue>
@@ -241,7 +241,7 @@ const rows = [
 ```
 
 ```html
-<xh-descriptions bordered columns="2" placement="left">
+<xh-descriptions variant="outline" columns="2" placement="left">
   <dl data-xh-part="root">
     <div data-xh-part="item">
       <dt data-xh-part="label">商品</dt>
@@ -265,7 +265,7 @@ const rows = [
 
 ### 尺寸
 
-size 换的是每格的内边距、组与组的间距与整体字号，不传 size 即默认档
+size 改变每格的内边距、组与组的间距与整体字号，不传 size 即默认档
 
 ```vue
 <script setup lang="ts">
@@ -295,7 +295,7 @@ const sizes = [
       v-for="s in sizes"
       :key="s.label"
       :size="s.size"
-      bordered
+      variant="outline"
       :columns="2"
       placement="left"
     >
@@ -310,7 +310,7 @@ const sizes = [
 
 ```html
 <div style="display: flex; flex-direction: column; gap: 16px">
-  <xh-descriptions size="sm" bordered columns="2" placement="left">
+  <xh-descriptions size="sm" variant="outline" columns="2" placement="left">
     <dl data-xh-part="root">
       <div data-xh-part="item">
         <dt data-xh-part="label">小 · 状态</dt>
@@ -324,7 +324,7 @@ const sizes = [
   </xh-descriptions>
 
   <!-- 中间这一档不写 size -->
-  <xh-descriptions bordered columns="2" placement="left">
+  <xh-descriptions variant="outline" columns="2" placement="left">
     <dl data-xh-part="root">
       <div data-xh-part="item">
         <dt data-xh-part="label">默认 · 状态</dt>
@@ -337,7 +337,7 @@ const sizes = [
     </dl>
   </xh-descriptions>
 
-  <xh-descriptions size="lg" bordered columns="2" placement="left">
+  <xh-descriptions size="lg" variant="outline" columns="2" placement="left">
     <dl data-xh-part="root">
       <div data-xh-part="item">
         <dt data-xh-part="label">大 · 状态</dt>
@@ -367,7 +367,7 @@ import {
 </script>
 
 <template>
-  <XhDescriptionsRoot :columns="3" bordered style="max-inline-size: 720px">
+  <XhDescriptionsRoot :columns="3" variant="outline" style="max-inline-size: 720px">
     <XhDescriptionsItem>
       <XhDescriptionsLabel>订单号</XhDescriptionsLabel>
       <XhDescriptionsValue>XH-20260810-0042</XhDescriptionsValue>
@@ -400,7 +400,7 @@ import {
 ```
 
 ```html
-<xh-descriptions columns="3" bordered>
+<xh-descriptions columns="3" variant="outline">
   <dl data-xh-part="root" style="max-inline-size: 720px">
     <div data-xh-part="item">
       <dt data-xh-part="label">订单号</dt>
@@ -433,6 +433,81 @@ import {
 </xh-descriptions>
 ```
 
+### 标题与附加内容
+
+列表之前的头部放标题与作用于整份描述的操作；它排在 dl 之外，标题标签按页面层级由作者选
+
+```vue
+<script setup lang="ts">
+import {
+  XhButton,
+  XhDescriptionsExtra,
+  XhDescriptionsHeader,
+  XhDescriptionsItem,
+  XhDescriptionsLabel,
+  XhDescriptionsRoot,
+  XhDescriptionsTitle,
+  XhDescriptionsValue,
+} from "@xihan-ui/vue";
+
+const order = [
+  { label: "订单号", value: "XH-20260810-0042" },
+  { label: "下单时间", value: "2026-08-10 09:31" },
+  { label: "支付方式", value: "余额支付" },
+  { label: "收货人", value: "林一" },
+];
+</script>
+
+<template>
+  <XhDescriptionsRoot :columns="2" variant="outline" style="max-inline-size: 560px">
+    <template #header>
+      <XhDescriptionsHeader>
+        <XhDescriptionsTitle as="h3">订单信息</XhDescriptionsTitle>
+        <XhDescriptionsExtra>
+          <XhButton variant="outline" size="sm">编辑</XhButton>
+        </XhDescriptionsExtra>
+      </XhDescriptionsHeader>
+    </template>
+    <XhDescriptionsItem v-for="row in order" :key="row.label">
+      <XhDescriptionsLabel>{{ row.label }}</XhDescriptionsLabel>
+      <XhDescriptionsValue>{{ row.value }}</XhDescriptionsValue>
+    </XhDescriptionsItem>
+  </XhDescriptionsRoot>
+</template>
+```
+
+```html
+<!-- 头部写成 dl 的前一个兄弟：dl 里面只能放成对的 dt / dd -->
+<xh-descriptions columns="2" variant="outline" style="display: block; max-inline-size: 560px">
+  <div data-xh-part="header">
+    <h3 data-xh-part="title">订单信息</h3>
+    <div data-xh-part="extra">
+      <xh-button variant="outline" size="sm">
+        <button data-xh-part="root">编辑</button>
+      </xh-button>
+    </div>
+  </div>
+  <dl data-xh-part="root">
+    <div data-xh-part="item">
+      <dt data-xh-part="label">订单号</dt>
+      <dd data-xh-part="value">XH-20260810-0042</dd>
+    </div>
+    <div data-xh-part="item">
+      <dt data-xh-part="label">下单时间</dt>
+      <dd data-xh-part="value">2026-08-10 09:31</dd>
+    </div>
+    <div data-xh-part="item">
+      <dt data-xh-part="label">支付方式</dt>
+      <dd data-xh-part="value">余额支付</dd>
+    </div>
+    <div data-xh-part="item">
+      <dt data-xh-part="label">收货人</dt>
+      <dd data-xh-part="value">林一</dd>
+    </div>
+  </dl>
+</xh-descriptions>
+```
+
 ## 设计指引
 
 ### 何时使用
@@ -441,30 +516,32 @@ import {
 
 ### 何时不用
 
-- 数据是多行同构的记录：用[表格](./table)。
-- 只有一两对：直接写。
+- 数据是多行同构的记录时，使用[表格](./table)。
+- 只有一两对时，直接书写。
 
 ### 特性
 
-- 语义是 `dt` / `dd`，组件只给身份与排版。
-- `columns` 决定每行几组，不传即每行一组。
-- 标签位置可以在值的上方或左侧；`bordered` 给出外框。
-- 每一格可以写 `span` 横跨几列，上限是当前列数；窄档一行只摆一组时不认这个数。
+- 语义是 `dt` / `dd`，组件只提供身份与排版。
+- `columns` 决定每行几组，不传时每行一组。
+- 标签位置可以在值的上方或左侧；`variant="outline"` 提供外框与网格线。
+- 每一格可以通过 `span` 横跨多列，上限是当前列数；窄档一行只放一组时忽略该值。
 
 ### 组合
 
-- 放进[卡片](./card)或[页头](./page-header)的页脚。
+- 列表之前可放头部：标题与作用于整份描述的操作（编辑、复制）或一枚状态[标签](./tag)。头部排在 `dl` 之外（`dl` 里只能放成对的 `dt` / `dd`）：Vue 写进 `header` 插槽，React 经 `header` 传入，Web Components 写成 `root` 的前一个兄弟。标题缺省是 `div`，按页面层级用 `as` 换成 `h2` / `h3`。
+
+- 放入[卡片](./card)或[页头](./page-header)的页脚。
 
 ### 最佳实践
 
-- 值为空时写"—"，别留空白——用户分不清是没有还是没加载出来。
-- 标签左置时给它们统一宽度，值才对得齐。
-- 长文本字段写 `span` 占满整行，别为它另开一份描述列表。
+- 值为空时写“—”，不留空白，避免用户无法区分没有值与未加载。
+- 标签左置时给它们统一宽度，值才能对齐。
+- 长文本字段用 `span` 占满整行，不为它另开一份描述列表。
 
 ### 反模式
 
-- 用它排版一张表格。
-- 标签写得比值还长。
+- 用它排版表格。
+- 标签比值更长。
 
 ## API 参考
 
@@ -473,7 +550,7 @@ import {
 | 层 | 值 |
 | --- | --- |
 | 自定义元素 | `<xh-descriptions>` |
-| Vue 组件 | `XhDescriptionsItem` `XhDescriptionsLabel` `XhDescriptionsRoot` `XhDescriptionsValue` |
+| Vue 组件 | `XhDescriptionsExtra` `XhDescriptionsHeader` `XhDescriptionsItem` `XhDescriptionsLabel` `XhDescriptionsRoot` `XhDescriptionsTitle` `XhDescriptionsValue` |
 | 状态机 | 无，`connect` 直接由 props 算属性 |
 | 皮肤 | `@xihan-ui/styles/descriptions.css` |
 
@@ -481,10 +558,33 @@ import {
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `bordered` | `boolean` |  | 外框：给整份描述画一圈描边，并在格与格之间画网格线。 |
-| `columns` | `DescriptionsColumns` |  | 每行摆几组，一到六列；不写即每行一组。 |
-| `placement` | `DescriptionsPlacement` |  | 标签的位置：top / left；不写即标签在上。 |
+| `columns` | `DescriptionsColumns` |  | 每行放置几组，一到六列；未提供时每行一组。 |
+| `placement` | `DescriptionsPlacement` |  | 标签的位置：top / left；未提供时标签在上。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg。 |
+| `variant` | `ControlVariant` |  | 形态：ghost 不画壳（默认），outline 绘制外框并在格与格之间补网格线，subtle 淡底。默认 ghost。 |
+
+### 插槽
+
+仅列出带载荷的插槽。
+
+| Vue 组件 | 插槽 | 载荷 | 说明 |
+| --- | --- | --- | --- |
+| `XhDescriptionsRoot` | `default` | — |  |
+| `XhDescriptionsRoot` | `header` | — | 列表之前的头部：放 XhDescriptionsHeader（内含 Title 与 Extra）。 它渲染为根的兄弟排在列表前：根常写成 dl，dl 的子节点只能是成对的 dt / dd。 |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhDescriptionsItem` | `as` | `ElementType` |  | 每一格渲染为哪个标签，默认 div。 |
+| `XhDescriptionsItem` | `span` | `number` |  | 该格横跨几列，未写即占一列；上限是根上的 columns。 |
+| `XhDescriptionsLabel` | `as` | `ElementType` |  | 标签渲染为哪个标签，默认 dt。 |
+| `XhDescriptionsRoot` | `as` | `ElementType` |  | 根渲染为哪个标签，默认 dl。 |
+| `XhDescriptionsRoot` | `header` | `ReactNode` |  | 列表之前的头部：放 XhDescriptionsHeader（内含 Title 与 Extra）。 它渲染为根的兄弟排在列表前：根常写成 dl，dl 的子节点只能是成对的 dt / dd。 |
+| `XhDescriptionsTitle` | `as` | `ElementType` |  | 标题渲染为哪个标签，默认 div：组件不往文档大纲里插标题，作者按页面层级改写成 h2 / h3。 |
+| `XhDescriptionsValue` | `as` | `ElementType` |  | 取值渲染为哪个标签，默认 dd。 |
 
 ### connect API
 
@@ -493,6 +593,9 @@ import {
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
 | `getRootProps` | `() => T['element']` |  |
+| `getHeaderProps` | `() => T['element']` | 列表之前的头部：左侧标题、右侧附加内容（操作、状态）。 它排在根之外：根常写成 dl，dl 的子节点只能是成对的 dt / dd。 |
+| `getTitleProps` | `() => T['element']` | 标题。作者按页面层级选标题标签（h2 / h3…），组件不替作者定层级。 |
+| `getExtraProps` | `() => T['element']` | 附加内容：编辑、复制等作用于整份描述的操作，或一枚状态标签。 |
 | `getItemProps` | `(props?: DescriptionsItemProps) => T['element']` |  |
 | `getLabelProps` | `() => T['element']` |  |
 | `getValueProps` | `() => T['element']` |  |
@@ -511,27 +614,41 @@ import {
 
 `@xihan-ui/styles/descriptions.css` 使用 `[data-scope="descriptions"][data-part="root"]` 部件选择器，位于 `xihan.components` 层。覆盖样式使用 `xihan.overrides`。
 
+### 数据属性
+
+由 `connect` 生成；条件不成立时不输出无值属性。
+
+| 部件 | 属性 | 值 |
+| --- | --- | --- |
+| `header` | `data-size` | props.size |
+
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-descriptions-bg` | `root` | `background` | `bordered` | `--xh-bg-surface` | descriptions 的 root 部件 background 覆盖槽。 |
-| `--xh-descriptions-border` | `root` | `border` | `bordered` | `--xh-border-default` | descriptions 的 root 部件 border 覆盖槽。 |
-| `--xh-descriptions-divider` | `item`<br>`root` | `border-block-start`<br>`border-inline-start` | `bordered` | `--xh-border-subtle` | descriptions 的 item、root 部件 border-block-start、border-inline-start 覆盖槽。 |
+| `--xh-descriptions-bg` | `root` | `background` | `variant=outline`<br>`variant=subtle` | `--xh-bg-subtle`<br>`--xh-bg-surface` | descriptions 的 root 部件 background 覆盖槽。 |
+| `--xh-descriptions-border` | `root` | `border` | `variant=outline` | `--xh-border-default` | descriptions 的 root 部件 border 覆盖槽。 |
+| `--xh-descriptions-divider` | `item`<br>`root` | `border-block-start`<br>`border-inline-start` | `variant=outline` | `--xh-border-subtle` | descriptions 的 item、root 部件 border-block-start、border-inline-start 覆盖槽。 |
+| `--xh-descriptions-extra-gap` | `extra` | `gap` | `default` | `--xh-space-2` | descriptions 的 extra 部件 gap 覆盖槽。 |
 | `--xh-descriptions-fg` | `root` | `color` | `default` | `--xh-fg-default` | descriptions 的 root 部件 color 覆盖槽。 |
 | `--xh-descriptions-font-size` | `root` | `font-size` | `default` | `--xh-_descriptions-font-size` | descriptions 的 root 部件 font-size 覆盖槽。 |
 | `--xh-descriptions-gap` | `root` | `gap` | `default` | `--xh-_descriptions-gap` | descriptions 的 root 部件 gap 覆盖槽。 |
-| `--xh-descriptions-item-px` | `item`<br>`root` | `padding-inline` | `bordered` | `--xh-_descriptions-px` | descriptions 的 item、root 部件 padding-inline 覆盖槽。 |
-| `--xh-descriptions-item-py` | `item`<br>`root` | `padding-block` | `bordered` | `--xh-_descriptions-py` | descriptions 的 item、root 部件 padding-block 覆盖槽。 |
+| `--xh-descriptions-header-gap` | `header` | `gap` | `default` | `--xh-space-3` | descriptions 的 header 部件 gap 覆盖槽。 |
+| `--xh-descriptions-header-mb` | `header` | `margin-block-end` | `default` | `--xh-_descriptions-header-mb` | descriptions 的 header 部件 margin-block-end 覆盖槽。 |
+| `--xh-descriptions-item-px` | `item`<br>`root` | `padding-inline` | `variant=outline` | `--xh-_descriptions-px` | descriptions 的 item、root 部件 padding-inline 覆盖槽。 |
+| `--xh-descriptions-item-py` | `item`<br>`root` | `padding-block` | `variant=outline` | `--xh-_descriptions-py` | descriptions 的 item、root 部件 padding-block 覆盖槽。 |
 | `--xh-descriptions-label-fg` | `label` | `color` | `default` | `--xh-fg-muted` | descriptions 的 label 部件 color 覆盖槽。 |
 | `--xh-descriptions-label-font-weight` | `label` | `font-weight` | `default` | `--xh-text-label-weight` | descriptions 的 label 部件 font-weight 覆盖槽。 |
 | `--xh-descriptions-label-gap` | `item`<br>`root` | `column-gap` | `@media (min-width: 768px)`<br>`placement=left` | `--xh-_descriptions-label-gap` | descriptions 的 item、root 部件 column-gap 覆盖槽。 |
 | `--xh-descriptions-label-w` | `item`<br>`root` | `grid-template-columns` | `@media (min-width: 768px)`<br>`placement=left` | `--xh-_descriptions-label-w` | descriptions 的 item、root 部件 grid-template-columns 覆盖槽。 |
 | `--xh-descriptions-pair-gap` | `item` | `gap` | `default` | `--xh-_descriptions-pair-gap` | descriptions 的 item 部件 gap 覆盖槽。 |
-| `--xh-descriptions-radius` | `root` | `border-radius` | `bordered` | `--xh-shape-surface` | descriptions 的 root 部件 border-radius 覆盖槽。 |
+| `--xh-descriptions-radius` | `root` | `border-radius` | `variant=outline`<br>`variant=subtle` | `--xh-shape-surface` | descriptions 的 root 部件 border-radius 覆盖槽。 |
+| `--xh-descriptions-title-fg` | `title` | `color` | `default` | `--xh-fg-default` | descriptions 的 title 部件 color 覆盖槽。 |
+| `--xh-descriptions-title-font-size` | `title` | `font-size` | `default` | `--xh-text-label-size` | descriptions 的 title 部件 font-size 覆盖槽。 |
+| `--xh-descriptions-title-font-weight` | `title` | `font-weight` | `default` | `--xh-font-weight-semibold` | descriptions 的 title 部件 font-weight 覆盖槽。 |
 | `--xh-descriptions-value-fg` | `value` | `color` | `default` | `--xh-fg-default` | descriptions 的 value 部件 color 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 

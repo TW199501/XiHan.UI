@@ -1,8 +1,8 @@
 来源：https://ui.docs.xihanfun.com/components/tree-select
 
-# TreeSelect 树选择 `alpha`
+# TreeSelect 树选择
 
-浮层里放一棵树的选择器：层级不规整、深浅不一时用它。
+浮层内放一棵树的选择器，适用于层级不规整、深浅不一的数据。
 
 <div class="xh-resource-links">
   <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/engine/headless/src/tree-select" target="_blank" rel="noreferrer">Headless</a>
@@ -14,7 +14,7 @@
 
 ## 用法
 
-收起时整个控件只占触发器一个 Tab 位，展开那一刻焦点真的进树、落在已选中的那行上
+收起时整个控件只占触发器一个 Tab 位，展开时焦点真正进入树、落在已选中的行上
 
 ```vue
 <script setup lang="ts">
@@ -66,7 +66,6 @@ const doc = ref<string[]>([]);
     :collection="files"
     :default-expanded-value="['docs']"
     placeholder="选一个文件"
-    style="max-inline-size: 320px"
   >
     <XhTreeSelectLabel>文档</XhTreeSelectLabel>
     <XhTreeSelectControl>
@@ -122,7 +121,7 @@ const doc = ref<string[]>([]);
 
 ```html
 <xh-tree-select id="tree-select-basic" placeholder="选一个文件">
-  <div data-xh-part="root" style="max-inline-size: 320px">
+  <div data-xh-part="root">
     <span data-xh-part="label">文档</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -212,13 +211,13 @@ const doc = ref<string[]>([]);
 
 加粗的是必需部件。
 
-`data-scope="tree-select"`：`root` · `label` · `control` · **`trigger`** · `value-text` · `indicator` · `clear-trigger` · `positioner` · **`content`** · **`tree`** · `item` · `item-text` · `item-indicator` · `branch` · `branch-control` · `branch-trigger` · `branch-indicator` · `branch-text` · `branch-content` · `branch-loading` · `branch-error` · `branch-retry-trigger` · `branch-empty` · `empty` · `loading` · `footer` · `hidden-input`
+`data-scope="tree-select"`：`root` · `label` · `control` · **`trigger`** · `value-text` · `tag-list` · `indicator` · `clear-trigger` · `positioner` · **`content`** · `input` · **`tree`** · `item` · `item-text` · `item-description` · `item-suffix` · `item-indicator` · `branch` · `branch-control` · `branch-trigger` · `branch-indicator` · `branch-text` · `branch-content` · `branch-loading` · `branch-error` · `branch-retry-trigger` · `branch-empty` · `empty` · `loading` · `footer` · `hidden-input`
 
 ## 示例
 
 ### 选中与展开双受控
 
-两份集合都由宿主持有：组件只发事件，宿主写回它才动，回显的就是写回的那两份
+两份集合都由宿主持有：组件只发事件，宿主写回后才变化，回显的就是写回的两份
 
 ```vue
 <script setup lang="ts">
@@ -274,7 +273,6 @@ const expanded = ref<string[]>(["docs"]);
     v-model:expanded-value="expanded"
     :collection="files"
     placeholder="选一个文件"
-    style="max-inline-size: 320px"
   >
     <XhTreeSelectLabel>文档</XhTreeSelectLabel>
     <XhTreeSelectControl>
@@ -331,7 +329,7 @@ const expanded = ref<string[]>(["docs"]);
 
 ```html
 <xh-tree-select id="tree-select-controlled" value="guide" placeholder="选一个文件">
-  <div data-xh-part="root" style="max-inline-size: 320px">
+  <div data-xh-part="root">
     <span data-xh-part="label">文档</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -422,7 +420,7 @@ const expanded = ref<string[]>(["docs"]);
 
 ### 多选与表单
 
-multiple 下确认键是切换、浮层不收起；写了 hidden-input 才随表单提交，多个值按逗号拼成一串
+multiple 下已选项在触发器里排成标签，确认键是切换、浮层不收起；写了 hidden-input 才随表单提交，每个值一个同名字段
 
 ```vue
 <script setup lang="ts">
@@ -440,8 +438,11 @@ import {
   XhTreeSelectItemIndicator,
   XhTreeSelectItemText,
   XhTreeSelectLabel,
+  XhTreeSelectOverflowTag,
   XhTreeSelectPositioner,
   XhTreeSelectRoot,
+  XhTreeSelectTag,
+  XhTreeSelectTagList,
   XhTreeSelectTree,
   XhTreeSelectTrigger,
   XhTreeSelectValueText,
@@ -465,18 +466,23 @@ const picked = ref<string[]>(["index"]);
 
 <template>
   <XhTreeSelectRoot
+    v-slot="{ tags }"
     v-model:value="picked"
     :collection="files"
     :default-expanded-value="['src']"
     multiple
     name="docs"
     placeholder="可以多选"
-    style="max-inline-size: 320px"
   >
     <XhTreeSelectLabel>提交范围</XhTreeSelectLabel>
     <XhTreeSelectControl>
       <XhTreeSelectTrigger>
+        <!-- 占位文字与标签行同时写着：有选中时标签行露面、占位让位；触发器里的标签只作展示 -->
         <XhTreeSelectValueText />
+        <XhTreeSelectTagList>
+          <XhTreeSelectTag v-for="t in tags" :key="t.value" :value="t.value">{{ t.label }}</XhTreeSelectTag>
+          <XhTreeSelectOverflowTag />
+        </XhTreeSelectTagList>
         <XhTreeSelectIndicator />
       </XhTreeSelectTrigger>
     </XhTreeSelectControl>
@@ -521,11 +527,15 @@ const picked = ref<string[]>(["index"]);
   name="docs"
   placeholder="可以多选"
 >
-  <div data-xh-part="root" style="max-inline-size: 320px">
+  <div data-xh-part="root">
     <span data-xh-part="label">提交范围</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
         <span data-xh-part="value-text"></span>
+        <!-- 标签行：可见的几枚由脚本按 tags 渲染，+N 那一枚常挂、由元素填字；触发器里的标签只作展示 -->
+        <span data-xh-part="tag-list">
+          <span data-xh-part="overflow-tag"></span>
+        </span>
         <span data-xh-part="indicator"></span>
       </button>
     </div>
@@ -581,16 +591,43 @@ const picked = ref<string[]>(["index"]);
   );
 
   const readout = document.getElementById("tree-select-multiple-value");
-  treeSelect.addEventListener("value-change", (event) => {
+  const overflow = treeSelect.querySelector('[data-xh-part="overflow-tag"]');
+
+  // 摆得下几枚由组件按 max-tag-count 算好：按值复用已有的节点，只增删变了的那几枚
+  function renderTags() {
+    const current = new Map(
+      [...treeSelect.querySelectorAll('[data-xh-part="tag-list"] > [data-xh-part="tag"]')].map((el) => [el.getAttribute("value"), el]),
+    );
+    const next = treeSelect.tags.map((tag) => {
+      if (current.has(tag.value))
+        return current.get(tag.value);
+      const el = document.createElement("span");
+      el.setAttribute("data-xh-part", "tag");
+      el.setAttribute("value", tag.value);
+      el.textContent = tag.label;
+      return el;
+    });
+    for (const el of current.values()) {
+      if (!next.includes(el))
+        el.remove();
+    }
+    overflow.before(...next);
+  }
+
+  // 受控：写回选中值，等元素把这一轮更新落定再按 tags 重排标签
+  treeSelect.addEventListener("value-change", async (event) => {
     treeSelect.value = event.detail.value;
     readout.textContent = event.detail.value.join("、") || "（无）";
+    await treeSelect.updateComplete;
+    renderTags();
   });
+  treeSelect.updateComplete.then(renderTags);
 </script>
 ```
 
 ### 变体
 
-variant 只换触发框的描边与底色，浮层与树的长相不跟着变
+variant 只更换触发框的描边与底色，浮层与树的外观不随之变化
 
 ```vue
 <script setup lang="ts">
@@ -638,7 +675,6 @@ const variants = ["outline", "subtle", "ghost"] as const;
       :variant="v"
       :default-expanded-value="['docs']"
       placeholder="选一个文件"
-      style="inline-size: 220px"
     >
       <XhTreeSelectLabel>{{ v }}</XhTreeSelectLabel>
       <XhTreeSelectControl>
@@ -685,7 +721,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
   style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start"
 >
   <xh-tree-select variant="outline" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">outline</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -724,7 +760,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
   </xh-tree-select>
 
   <xh-tree-select variant="subtle" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">subtle</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -763,7 +799,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
   </xh-tree-select>
 
   <xh-tree-select variant="ghost" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">ghost</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -825,7 +861,7 @@ const variants = ["outline", "subtle", "ghost"] as const;
 
 ### 颜色
 
-tone 决定用哪族颜色，与 variant 正交，这里统一用 subtle 形态
+tone 决定使用哪族颜色，与 variant 正交，这里统一使用 subtle 形态
 
 ```vue
 <script setup lang="ts">
@@ -875,7 +911,6 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
       :default-value="['guide']"
       :default-expanded-value="['docs']"
       placeholder="选一个文件"
-      style="inline-size: 220px"
     >
       <XhTreeSelectLabel>{{ t }}</XhTreeSelectLabel>
       <XhTreeSelectControl>
@@ -919,7 +954,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 ```html
 <div id="tree-select-tone" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
   <xh-tree-select variant="subtle" tone="brand" default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">brand</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -958,7 +993,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
   </xh-tree-select>
 
   <xh-tree-select variant="subtle" tone="neutral" default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">neutral</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -997,7 +1032,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
   </xh-tree-select>
 
   <xh-tree-select variant="subtle" tone="success" default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">success</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1036,7 +1071,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
   </xh-tree-select>
 
   <xh-tree-select variant="subtle" tone="warning" default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">warning</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1075,7 +1110,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
   </xh-tree-select>
 
   <xh-tree-select variant="subtle" tone="danger" default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">danger</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1114,7 +1149,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
   </xh-tree-select>
 
   <xh-tree-select variant="subtle" tone="info" default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">info</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1176,7 +1211,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"] as co
 
 ### 尺寸
 
-size 换掉行高、内边距与字号，不写就是缺省档
+size 更换行高、内边距与字号，不写即默认档
 
 ```vue
 <script setup lang="ts">
@@ -1229,7 +1264,6 @@ const sizes = [
       :size="s.size"
       :default-expanded-value="['docs']"
       placeholder="选一个文件"
-      style="inline-size: 220px"
     >
       <XhTreeSelectLabel>{{ s.label }}</XhTreeSelectLabel>
       <XhTreeSelectControl>
@@ -1273,7 +1307,7 @@ const sizes = [
 ```html
 <div id="tree-select-size" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
   <xh-tree-select size="sm" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">sm</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1312,7 +1346,7 @@ const sizes = [
   </xh-tree-select>
 
   <xh-tree-select placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">缺省</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1351,7 +1385,7 @@ const sizes = [
   </xh-tree-select>
 
   <xh-tree-select size="lg" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">lg</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1413,7 +1447,7 @@ const sizes = [
 
 ### 禁用、只读与校验失败
 
-disabled 连键盘入口都没有；readOnly 照常展开浏览但值改不动也清不掉；invalid 只报校验态，交互一切照旧
+disabled 连键盘入口都没有；readOnly 照常展开浏览但值不可修改也不可清空；invalid 只报告校验态，交互一切照常
 
 ```vue
 <script setup lang="ts">
@@ -1468,7 +1502,6 @@ const states = [
       :default-value="['guide']"
       :default-expanded-value="['docs']"
       placeholder="选一个文件"
-      style="inline-size: 220px"
     >
       <XhTreeSelectLabel>{{ s.label }}</XhTreeSelectLabel>
       <XhTreeSelectControl>
@@ -1512,7 +1545,7 @@ const states = [
 ```html
 <div id="tree-select-state" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
   <xh-tree-select disabled default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">禁用</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1551,7 +1584,7 @@ const states = [
   </xh-tree-select>
 
   <xh-tree-select read-only default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">只读</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1590,7 +1623,7 @@ const states = [
   </xh-tree-select>
 
   <xh-tree-select invalid default-value="guide" placeholder="选一个文件">
-    <div data-xh-part="root" style="inline-size: 220px">
+    <div data-xh-part="root">
       <span data-xh-part="label">校验失败</span>
       <div data-xh-part="control">
         <button data-xh-part="trigger">
@@ -1747,7 +1780,6 @@ onBeforeUnmount(() => {
     :expanded-value="expanded"
     :loading="loading"
     placeholder="选一个城市"
-    style="max-inline-size: 320px"
     @expanded-value-change="expanded = $event.value"
     @open-change="onOpenChange"
   >
@@ -1798,7 +1830,7 @@ onBeforeUnmount(() => {
 
 ```html
 <xh-tree-select id="tree-select-async" placeholder="选一个城市">
-  <div data-xh-part="root" style="max-inline-size: 320px">
+  <div data-xh-part="root">
     <span data-xh-part="label">投放城市</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -1931,9 +1963,9 @@ onBeforeUnmount(() => {
 </script>
 ```
 
-### 浮层里的操作区
+### 浮层中的操作区
 
-footer 写在 content 里、tree 的兄弟：它不进 role=tree 的拥有关系，方向键也走不到；在浮层内点按钮不算点在外面，浮层不会因此收起
+footer 写在 content 中、tree 的兄弟：它不进入 role=tree 的拥有关系，方向键也无法到达；在浮层内点击按钮不算点击外部，浮层不会因此收起
 
 ```vue
 <script setup lang="ts">
@@ -1982,7 +2014,6 @@ const files = [
     :collection="files"
     :default-expanded-value="['docs']"
     placeholder="选一个文件"
-    style="max-inline-size: 320px"
   >
     <XhTreeSelectLabel>文档</XhTreeSelectLabel>
     <XhTreeSelectControl>
@@ -2026,7 +2057,7 @@ const files = [
 
 ```html
 <xh-tree-select id="tree-select-action" placeholder="选一个文件">
-  <div data-xh-part="root" style="max-inline-size: 320px">
+  <div data-xh-part="root">
     <span data-xh-part="label">文档</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -2125,7 +2156,7 @@ const files = [
 
 ### 级联勾选与回显策略
 
-multiple 加 cascade 内建父子传导：点分支整枝勾上、子全勾父勾、部分勾中半选；对外值按 checked-strategy 收敛，parent 档整组选满只报组名
+multiple 加 cascade 内建父子传导：点击分支整枝勾选、子全勾则父勾、部分勾选为半选；对外值按 checked-strategy 收敛，parent 档整组选满只报告组名
 
 ```vue
 <script setup lang="ts">
@@ -2181,7 +2212,6 @@ const value = ref<string[]>(["user:view"]);
     multiple
     cascade
     checked-strategy="parent"
-    style="max-inline-size: 340px"
   >
     <XhTreeSelectLabel>权限</XhTreeSelectLabel>
     <XhTreeSelectControl>
@@ -2231,7 +2261,7 @@ const value = ref<string[]>(["user:view"]);
   cascade
   checked-strategy="parent"
 >
-  <div data-xh-part="root" style="max-inline-size: 340px">
+  <div data-xh-part="root">
     <span data-xh-part="label">权限</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -2323,9 +2353,9 @@ const value = ref<string[]>(["user:view"]);
 </script>
 ```
 
-### 浮层内关键词过滤
+### 浮层内搜索
 
-输入框是树的兄弟节点，树的键盘处理器挂在 tree 上，打字不会被连打检索收走；换掉 collection 可见行与方向键顺序跟着重算
+searchable 在浮层顶部放一个搜索框，展开即落焦；输入即把树裁到只剩命中的那几枝，命中节点的祖先自动展开，没命中的节点带 hidden 收起；Escape 先清空检索词
 
 ```vue
 <script setup lang="ts">
@@ -2337,7 +2367,9 @@ import {
   XhTreeSelectBranchTrigger,
   XhTreeSelectContent,
   XhTreeSelectControl,
+  XhTreeSelectEmpty,
   XhTreeSelectIndicator,
+  XhTreeSelectInput,
   XhTreeSelectItem,
   XhTreeSelectItemIndicator,
   XhTreeSelectItemText,
@@ -2348,20 +2380,8 @@ import {
   XhTreeSelectTrigger,
   XhTreeSelectValueText,
 } from "@xihan-ui/vue";
-import { computed, ref, watch } from "vue";
 
-interface City {
-  value: string;
-  label: string;
-}
-
-interface Region {
-  value: string;
-  label: string;
-  children: City[];
-}
-
-const source: Region[] = [
+const regions = [
   {
     value: "east",
     label: "华东",
@@ -2388,47 +2408,10 @@ const source: Region[] = [
     ],
   },
 ];
-
-const keyword = ref("");
-
-// 分区名命中就整枝留下，否则只留命中的城市；一个都不剩的分区整枝去掉
-const collection = computed<Region[]>(() => {
-  const key = keyword.value.trim();
-  if (!key)
-    return source;
-  return source
-    .map(region => ({
-      ...region,
-      children: region.label.includes(key)
-        ? region.children
-        : region.children.filter(city => city.label.includes(key)),
-    }))
-    .filter(region => region.children.length > 0);
-});
-
-const expanded = ref<string[]>([]);
-
-watch(keyword, () => {
-  expanded.value = keyword.value.trim()
-    ? collection.value.map(region => region.value)
-    : [];
-});
-
-// 收起浮层顺手把关键词清掉，下次展开还是整棵树
-function onOpenChange(details: { open: boolean }): void {
-  if (!details.open)
-    keyword.value = "";
-}
 </script>
 
 <template>
-  <XhTreeSelectRoot
-    v-model:expanded-value="expanded"
-    :collection="collection"
-    placeholder="选一个城市"
-    style="max-inline-size: 320px"
-    @open-change="onOpenChange"
-  >
+  <XhTreeSelectRoot :collection="regions" searchable placeholder="选一个城市">
     <XhTreeSelectLabel>投放城市</XhTreeSelectLabel>
     <XhTreeSelectControl>
       <XhTreeSelectTrigger>
@@ -2438,17 +2421,10 @@ function onOpenChange(details: { open: boolean }): void {
     </XhTreeSelectControl>
     <XhTreeSelectPositioner>
       <XhTreeSelectContent>
-        <!-- 浮层里的输入框不算点在外面，浮层不会因此收起 -->
-        <input
-          v-model="keyword"
-          type="search"
-          aria-label="城市关键词"
-          placeholder="输入关键词"
-          style="inline-size: 100%; margin-block-end: 6px"
-        >
+        <XhTreeSelectInput aria-label="搜索城市" placeholder="搜索城市" />
         <XhTreeSelectTree>
           <XhTreeSelectBranch
-            v-for="region in collection"
+            v-for="region in regions"
             :key="region.value"
             :value="region.value"
           >
@@ -2469,9 +2445,8 @@ function onOpenChange(details: { open: boolean }): void {
             </XhTreeSelectBranchContent>
           </XhTreeSelectBranch>
         </XhTreeSelectTree>
-        <p v-if="!collection.length" style="margin: 0; padding: 4px">
-          没有匹配「{{ keyword }}」的城市
-        </p>
+        <!-- 一个都没命中时露面 -->
+        <XhTreeSelectEmpty>没有匹配的城市</XhTreeSelectEmpty>
       </XhTreeSelectContent>
     </XhTreeSelectPositioner>
   </XhTreeSelectRoot>
@@ -2479,8 +2454,8 @@ function onOpenChange(details: { open: boolean }): void {
 ```
 
 ```html
-<xh-tree-select id="tree-select-filter" placeholder="选一个城市">
-  <div data-xh-part="root" style="max-inline-size: 320px">
+<xh-tree-select id="tree-select-search" searchable placeholder="选一个城市">
+  <div data-xh-part="root">
     <span data-xh-part="label">投放城市</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -2490,14 +2465,7 @@ function onOpenChange(details: { open: boolean }): void {
     </div>
     <div data-xh-part="positioner">
       <div data-xh-part="content">
-        <!-- 浮层里的输入框不算点在外面，浮层不会因此收起 -->
-        <input
-          id="tree-select-filter-keyword"
-          type="search"
-          aria-label="城市关键词"
-          placeholder="输入关键词"
-          style="inline-size: 100%; margin-block-end: 6px"
-        />
+        <input data-xh-part="input" aria-label="搜索城市" placeholder="搜索城市" />
         <div data-xh-part="tree">
           <div data-xh-part="branch" value="east">
             <div data-xh-part="branch-control">
@@ -2555,19 +2523,17 @@ function onOpenChange(details: { open: boolean }): void {
             </div>
           </div>
         </div>
-        <p id="tree-select-filter-empty" style="margin: 0; padding: 4px; display: none"></p>
+        <!-- 一个都没命中时露面 -->
+        <div data-xh-part="empty">没有匹配的城市</div>
       </div>
     </div>
   </div>
 </xh-tree-select>
 
 <script type="module">
-  const treeSelect = document.getElementById("tree-select-filter");
-  const keyword = document.getElementById("tree-select-filter-keyword");
-  const empty = document.getElementById("tree-select-filter-empty");
-  const tree = treeSelect.querySelector('[data-xh-part="tree"]');
-
-  const source = [
+  // 搜索按这份树数据的 label 匹配，标记只管长相
+  const treeSelect = document.getElementById("tree-select-search");
+  treeSelect.collection = [
     {
       value: "east",
       label: "华东",
@@ -2594,86 +2560,12 @@ function onOpenChange(details: { open: boolean }): void {
       ],
     },
   ];
-
-  treeSelect.collection = source;
-  treeSelect.expandedValue = [];
-  treeSelect.addEventListener(
-    "expanded-value-change",
-    (event) => (treeSelect.expandedValue = event.detail.value),
-  );
-
-  function part(tag, name, text) {
-    const node = document.createElement(tag);
-    node.dataset.xhPart = name;
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
-
-  // 树数据换了，标记跟着重铺
-  function renderTree(regions) {
-    tree.replaceChildren(
-      ...regions.map((region) => {
-        const branch = part("div", "branch");
-        branch.setAttribute("value", region.value);
-        const control = part("div", "branch-control");
-        control.append(
-          part("span", "branch-trigger"),
-          part("span", "branch-text", region.label),
-          part("span", "item-indicator"),
-        );
-        const content = part("div", "branch-content");
-        content.append(
-          ...region.children.map((city) => {
-            const item = part("div", "item");
-            item.setAttribute("value", city.value);
-            item.append(part("span", "item-indicator"), part("span", "item-text", city.label));
-            return item;
-          }),
-        );
-        branch.append(control, content);
-        return branch;
-      }),
-    );
-  }
-
-  // 分区名命中就整枝留下，否则只留命中的城市；一个都不剩的分区整枝去掉
-  function filter(key) {
-    if (!key) return source;
-    return source
-      .map((region) => ({
-        ...region,
-        children: region.label.includes(key)
-          ? region.children
-          : region.children.filter((city) => city.label.includes(key)),
-      }))
-      .filter((region) => region.children.length > 0);
-  }
-
-  keyword.addEventListener("input", () => {
-    const key = keyword.value.trim();
-    const regions = filter(key);
-    treeSelect.collection = regions;
-    renderTree(regions);
-    treeSelect.expandedValue = key ? regions.map((region) => region.value) : [];
-    empty.textContent = `没有匹配「${key}」的城市`;
-    empty.style.display = regions.length ? "none" : "block";
-  });
-
-  // 收起浮层顺手把关键词清掉，下次展开还是整棵树
-  treeSelect.addEventListener("open-change", (event) => {
-    if (event.detail.open) return;
-    keyword.value = "";
-    treeSelect.collection = source;
-    renderTree(source);
-    treeSelect.expandedValue = [];
-    empty.style.display = "none";
-  });
 </script>
 ```
 
-### 只挑文件不挑目录
+### 只选文件不选目录
 
-选中值与展开态双受控：目录的值不写回，紧跟着那一次收起意图也一并吞掉，点目录就只剩展开收起
+选中值与展开态双受控：目录的值不写回，紧随其后的收起意图也一并忽略，点击目录只剩展开收起
 
 ```vue
 <script setup lang="ts">
@@ -2769,7 +2661,6 @@ function onOpenChange(details: { open: boolean }): void {
     :open="open"
     :default-expanded-value="['docs']"
     placeholder="选一个文件"
-    style="max-inline-size: 320px"
     @value-change="onValueChange"
     @open-change="onOpenChange"
   >
@@ -2842,7 +2733,7 @@ function onOpenChange(details: { open: boolean }): void {
 
 ```html
 <xh-tree-select id="tree-select-file-picker" open="false" placeholder="选一个文件">
-  <div data-xh-part="root" style="max-inline-size: 320px">
+  <div data-xh-part="root">
     <span data-xh-part="label">附件</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -2977,9 +2868,9 @@ function onOpenChange(details: { open: boolean }): void {
 </script>
 ```
 
-### 只交数据自动渲染
+### 只提供数据自动渲染
 
-Vue 不写默认插槽时按 collection 铺开整套部件：带 children 的节点落成 branch、其余落成 item，文本与禁用都查数据；label 给标题，clearable 带上清空钮（手写部件不看它），产出的 DOM 与手写全套部件完全一致；Web Components 没有自动铺树，节点部件照常手写、只报 value
+Vue 未写默认插槽时按 collection 铺开整套部件：带 children 的节点渲染为 branch、其余渲染为 item，文本与禁用都查询数据；label 提供标题，clearable 带上清空按钮（手写部件不使用它），产出的 DOM 与手写全套部件完全一致；Web Components 没有自动铺树，节点部件照常手写、只报告 value
 
 ```vue
 <script setup lang="ts">
@@ -3015,7 +2906,6 @@ const doc = ref<string[]>(["guide"]);
     label="文档"
     placeholder="选一个文件"
     clearable
-    style="max-inline-size: 320px"
   />
   <p>已选：{{ doc.length ? doc.join("、") : "（无）" }}</p>
 </template>
@@ -3027,7 +2917,7 @@ const doc = ref<string[]>(["guide"]);
   default-value="guide"
   placeholder="选一个文件"
 >
-  <div data-xh-part="root" style="max-inline-size: 320px">
+  <div data-xh-part="root">
     <span data-xh-part="label">文档</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -3115,50 +3005,272 @@ const doc = ref<string[]>(["guide"]);
 </script>
 ```
 
+### 大树虚拟化
+
+完整树数据负责层级、选中与键盘语义，窗口只挂载可见行；Virtualizer 的 count 取展开后的可见行数，窗口里的行平铺渲染，缩进按层级由作者给
+
+```vue
+<script setup lang="ts">
+import { flattenTree } from "@xihan-ui/headless";
+import {
+  XhTreeSelectBranch,
+  XhTreeSelectBranchControl,
+  XhTreeSelectBranchText,
+  XhTreeSelectBranchTrigger,
+  XhTreeSelectContent,
+  XhTreeSelectControl,
+  XhTreeSelectIndicator,
+  XhTreeSelectItem,
+  XhTreeSelectItemIndicator,
+  XhTreeSelectItemText,
+  XhTreeSelectLabel,
+  XhTreeSelectPositioner,
+  XhTreeSelectRoot,
+  XhTreeSelectTree,
+  XhTreeSelectTrigger,
+  XhTreeSelectValueText,
+  XhVirtualizerContent,
+  XhVirtualizerItem,
+  XhVirtualizerRoot,
+  XhVirtualizerViewport,
+} from "@xihan-ui/vue";
+import { computed, ref } from "vue";
+
+// 二十个部门，每个部门五十位成员
+const departments = Array.from({ length: 20 }, (_, d) => ({
+  value: `dept-${d + 1}`,
+  label: `部门 ${d + 1}`,
+  children: Array.from({ length: 50 }, (_, m) => ({
+    value: `dept-${d + 1}-${m + 1}`,
+    label: `成员 ${d + 1}-${m + 1}`,
+  })),
+}));
+
+const expanded = ref<string[]>(["dept-1"]);
+// 可见行随展开集合现算：count 与窗口里渲染哪一行都按它
+const rows = computed(() => flattenTree(departments, expanded.value));
+
+// 平铺的行没有子层容器顶出缩进，按层级补上
+function indent(level: number): Record<string, string> {
+  return { marginInlineStart: `calc(var(--xh-tree-select-indent, var(--xh-space-4)) * ${level - 1})` };
+}
+</script>
+
+<template>
+  <XhVirtualizerRoot
+    v-slot="{ virtualItems, collectionVirtualizer }"
+    :count="rows.length"
+    :estimate-size="36"
+    :viewport-tab-index="-1"
+  >
+    <XhTreeSelectRoot
+      v-model:expanded-value="expanded"
+      :collection="departments"
+      :virtualizer="collectionVirtualizer"
+      placeholder="选一位成员"
+    >
+      <XhTreeSelectLabel>负责人</XhTreeSelectLabel>
+      <XhTreeSelectControl>
+        <XhTreeSelectTrigger>
+          <XhTreeSelectValueText />
+          <XhTreeSelectIndicator />
+        </XhTreeSelectTrigger>
+      </XhTreeSelectControl>
+      <XhTreeSelectPositioner>
+        <XhTreeSelectContent>
+          <XhTreeSelectTree style="overflow: visible">
+            <XhVirtualizerViewport style="block-size: 240px">
+              <XhVirtualizerContent>
+                <XhVirtualizerItem
+                  v-for="virtualItem in virtualItems"
+                  :key="virtualItem.key"
+                  :value="virtualItem.index"
+                  style="block-size: 36px"
+                >
+                  <XhTreeSelectBranch
+                    v-if="rows[virtualItem.index].branch"
+                    :value="rows[virtualItem.index].value"
+                    :style="indent(rows[virtualItem.index].level)"
+                  >
+                    <XhTreeSelectBranchControl>
+                      <XhTreeSelectBranchTrigger />
+                      <XhTreeSelectBranchText>{{ rows[virtualItem.index].label }}</XhTreeSelectBranchText>
+                      <XhTreeSelectItemIndicator />
+                    </XhTreeSelectBranchControl>
+                  </XhTreeSelectBranch>
+                  <XhTreeSelectItem
+                    v-else
+                    :value="rows[virtualItem.index].value"
+                    :style="indent(rows[virtualItem.index].level)"
+                  >
+                    <XhTreeSelectItemIndicator />
+                    <XhTreeSelectItemText>{{ rows[virtualItem.index].label }}</XhTreeSelectItemText>
+                  </XhTreeSelectItem>
+                </XhVirtualizerItem>
+              </XhVirtualizerContent>
+            </XhVirtualizerViewport>
+          </XhTreeSelectTree>
+        </XhTreeSelectContent>
+      </XhTreeSelectPositioner>
+    </XhTreeSelectRoot>
+  </XhVirtualizerRoot>
+</template>
+```
+
+```html
+<xh-tree-select id="tree-select-virtualized" placeholder="选一位成员">
+  <div data-xh-part="root">
+    <span data-xh-part="label">负责人</span>
+    <div data-xh-part="control">
+      <button data-xh-part="trigger">
+        <span data-xh-part="value-text"></span>
+        <span data-xh-part="indicator"></span>
+      </button>
+    </div>
+    <div data-xh-part="positioner">
+      <div data-xh-part="content">
+        <div data-xh-part="tree" style="overflow: visible">
+          <xh-virtualizer id="tree-select-virtualizer" estimate-size="36" viewport-tab-index="-1">
+            <div data-xh-part="root">
+              <div data-xh-part="viewport" style="block-size: 240px">
+                <div data-xh-part="content"></div>
+              </div>
+            </div>
+          </xh-virtualizer>
+        </div>
+      </div>
+    </div>
+  </div>
+</xh-tree-select>
+
+<script type="module">
+  const treeSelect = document.getElementById("tree-select-virtualized");
+  const virtualizer = document.getElementById("tree-select-virtualizer");
+  const content = virtualizer.querySelector('[data-xh-part="content"]');
+
+  // 二十个部门，每个部门五十位成员
+  const departments = Array.from({ length: 20 }, (_, d) => ({
+    value: `dept-${d + 1}`,
+    label: `部门 ${d + 1}`,
+    children: Array.from({ length: 50 }, (_, m) => ({
+      value: `dept-${d + 1}-${m + 1}`,
+      label: `成员 ${d + 1}-${m + 1}`,
+    })),
+  }));
+
+  // 可见行随展开集合现算：count 与窗口里渲染哪一行都按它
+  function flatten(nodes, expanded, level = 1, out = []) {
+    for (const node of nodes) {
+      out.push({ value: node.value, label: node.label, branch: Array.isArray(node.children), level });
+      if (node.children && expanded.includes(node.value)) flatten(node.children, expanded, level + 1, out);
+    }
+    return out;
+  }
+
+  let rows = flatten(departments, ["dept-1"]);
+  treeSelect.collection = departments;
+  treeSelect.expandedValue = ["dept-1"];
+  virtualizer.count = rows.length;
+
+  function part(tag, name, text) {
+    const node = document.createElement(tag);
+    node.dataset.xhPart = name;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // 平铺的行没有子层容器顶出缩进，按层级补上
+  function renderRow(row) {
+    const node = part("div", row.branch ? "branch" : "item");
+    node.dataset.xhPartOwner = "tree-select";
+    node.setAttribute("value", row.value);
+    node.style.marginInlineStart = `calc(var(--xh-tree-select-indent, var(--xh-space-4)) * ${row.level - 1})`;
+    if (row.branch) {
+      const control = part("div", "branch-control");
+      control.append(
+        part("span", "branch-trigger"),
+        part("span", "branch-text", row.label),
+        part("span", "item-indicator"),
+      );
+      node.append(control);
+    } else {
+      node.append(part("span", "item-indicator"), part("span", "item-text", row.label));
+    }
+    return node;
+  }
+
+  function render(virtualItems) {
+    content.replaceChildren(...virtualItems.map((virtualItem) => {
+      const shell = part("div", "item");
+      shell.setAttribute("value", virtualItem.index);
+      shell.style.blockSize = "36px";
+      shell.append(renderRow(rows[virtualItem.index]));
+      return shell;
+    }));
+    virtualizer.requestUpdate();
+    treeSelect.virtualizer = virtualizer.collectionVirtualizer;
+    treeSelect.requestUpdate();
+  }
+
+  virtualizer.addEventListener("range-change", event => render(event.detail.virtualItems));
+  // 展开收起：先换可见行与 count，再把展开集合写回元素
+  treeSelect.addEventListener("expanded-value-change", (event) => {
+    rows = flatten(departments, event.detail.value);
+    virtualizer.count = rows.length;
+    treeSelect.expandedValue = event.detail.value;
+    virtualizer.updateComplete.then(() => render(virtualizer.virtualItems));
+  });
+  virtualizer.updateComplete.then(() => render(virtualizer.virtualItems));
+</script>
+```
+
 ## 设计指引
 
 ### 何时使用
 
 - 选项是任意形状的树（组织架构、目录、权限节点）。
-- 需要在浮层里展开、勾选，并把选中项回显在触发器上。
+- 需要在浮层内展开、勾选，并把选中项回显在触发器上。
 
 ### 何时不用
 
-- 层级规整、层数固定：[级联选择](./cascader)的分列展开更快。
-- 树本身就是页面主体：用[树](./tree)。
+- 层级规整、层数固定时，[级联选择](./cascader)的分列展开更快。
+- 树本身是页面主体时，使用[树](./tree)。
 
 ### 特性
 
 - 选中与展开两套值各自可受控。
+- 多选的已选项在触发器里排成标签，与[选择器](./select)同一套呈现：超出 `maxTagCount`（默认 3）合并为 `+N`，标签文字取 collection 的 label（收起子树里的选中值同样报得出名字）；Vue / React 的自动结构在多选时直接铺出标签行。
 - 原生表单按每个选中值生成一个同名隐藏字段；`['a,b', 'c']` 用 `FormData.getAll(name)` 读取为两个原值，不使用逗号拼接。零选中没有提交项，禁用不提交，只读仍提交。
 - 声明 `HiddenInput` 部件才参与原生表单。`form` 可指定外部表单 ID，提交与重置使用同一所有者；显式 ID 不存在时不回退祖先表单。非受控 reset 恢复 `defaultValue`，受控值由业务响应重置请求。
-- 单选、多选、分支与叶子统一用末端对号表示选中，级联半选使用横线；正文保持正常颜色和字重，
-  中性底只用于悬停和键盘高亮。展开箭头位于行首，与选择标记分开。
+- 单选、多选、分支与叶子统一用末端对号表示选中，级联半选使用横线；正文保持正常颜色和字重，中性底只用于悬停和键盘高亮。展开箭头位于行首，与选择标记分开。
 - `cascade` 与 `checkedStrategy` 决定勾选是否带子级、回显给哪一层。
-- 支持只挑叶子不挑分支、浮层内关键词过滤、子节点异步加载：节点用 `hasChildren: true` 声明懒分支，首次展开由 `loadChildren({ node, signal })` 取直接子项；失败保留 cause，默认 `branch-error` 与 `branch-retry-trigger` 直接可用。
+- 节点可逐条声明语气，不向下传导；叶子行与分支行同样表达。
+- 节点可写副文本，第 2 行放一句解释，不进连打检索串。
+- 节点行尾留一格给作者（计数、徽标）；行首那一格归勾选框与展开箭头。
+- `searchable` 在浮层顶部放一个搜索框（`input` 部件，排在 `tree` 之前），展开时焦点先落在框上。输入即按 `filter`（缺省为标签大小写不敏感包含）裁树：命中节点连同整棵子树留下，祖先保留并自动展开；搜索里的展开单独记，不改写 `expandedValue`。手写的整棵树里没命中的节点由连接层带 `hidden` 收起，没有命中时空态改说 `translations.noMatch`。搜索框与命令面板、级联选择、穿梭框的搜索框同一种写法：控件高与字号随尺寸档，只画一道面内分隔的下划线，聚焦不画环（插入符就是焦点指示），占位文字与其它字段同一支前景。树里打可打印字符会接到检索词末尾并把焦点交回搜索框，下方向键从框进树，Escape 先清空检索词；收起浮层即清空。
+- 大树接 [虚拟列表](./virtualizer)：把展开后的可见行数（`flattenTree(collection, expandedValue)` 的长度）交给它的 `count`，再把它的 `collectionVirtualizer` 回传给 `virtualizer`，展开收起后同步更新 `count`。键盘、连打检索与展开时的锚点都按完整可见行的数据算，焦点由桥把目标行滚进窗口再交接。窗口里的行平铺渲染，层级缩进按行的 `level` 由作者补上；`virtualizer` 与 `searchable` 不能同开。
+- 支持只选叶子不选分支、子节点异步加载：节点用 `hasChildren: true` 声明懒分支，首次展开由 `loadChildren({ node, signal })` 获取直接子项；失败保留 cause，默认 `branch-error` 与 `branch-retry-trigger` 直接可用。
 - 整树空（`empty`）与在途（`loading`）默认自动渲染；collection 看有效树长度，手写节点由适配器只上报挂载事实、Headless 统一判空。`loading` 为真时树报 `aria-busy`，空态让位；作者写同名部件时保留作者结构与文案。
-- 输入框保持实体；浮层使用 M2 磨砂材质、内侧顶光和四向短位移，不缩放树中文字。
-  树、空态与加载态共用一个外壳，底部操作使用同材质分隔线；增强对比度时材质自动实体化。
-  面板宽度受定位后的可用空间约束，即使触发器更宽也不会强行撑大面板。
+- 输入框保持实体；浮层使用 M2 磨砂材质、内侧顶光和四向短位移，不缩放树中文字。树、空态与加载态共用一个外壳，底部操作使用同材质分隔线；滚动归树，搜索框与底部操作区钉在树的上下沿不随行滚走；增强对比度时材质自动实体化。面板与字段盒等宽，长节点在行里截断、不撑宽面板；字段盒比可用区还宽时收成可用宽度。
 - 仅 `{ hasChildren: true, children: undefined }` 触发 `loadChildren({ node, signal })`；`children: []` 是已知为空目录，永不请求。成功子项、可见行、键盘导航与级联选择由 headless 的同一有效树计算，三端不各自缓存结果。
 - 分支状态不互相降级：`api.branchLoadState(value)` 公开 `idle` / `loading` / `loaded` / `error`；`loaded` 的 `empty` 明确区分成功空数组，`error` 保留原始 cause。默认结构提供 `branch-loading`、`branch-error`、`branch-retry-trigger`、`branch-empty`，也可用同名部件替换文案；错误分支行上的 Enter/Space 是不破坏 tree roving 的正式键盘重试入口。
 - `onBranchLoadStart`、`onBranchLoad`、`onBranchLoadError`（三端事件为 `branch-load-start` / `branch-load` / `branch-load-error`）公开有效请求生命周期。分支或整浮层收起、重试、节点移除/同 value 换代、组件卸载都会中止并作废旧请求；迟到兑现或拒绝不能写回当前树，也不发成功/失败事件。
+- 占位态：首次加载时在途占位在文案前转一枚加载环；已有选项时后台刷新保留上一帧、列表按 micro 淡下，在途占位让位；空态与加载文字取次要文字、上下内距一档。分支首次展开取子项时同样在子层的位置画这一副：在途一枚加载环 + 文案，失败一枚警示字形 + 说明与重试钮，成功为空一句文案。
 
 ### 组合
 
-- 外面套[表单字段](./field)。
+- 外层放[表单字段](./field)。
 
 ### 最佳实践
 
-- 大树一定要开浮层内过滤，逐级展开找一个节点非常慢。
+- 大树开启 `searchable` 或接虚拟列表（两者择一），逐级展开查找节点很慢。
 - 无头用法需要按 `api.value` 遍历，为每个值调用 `api.getHiddenInputProps({ value })` 并渲染原生 input；旧的无参调用与 CSV 提交合同已删除。Vue/React 的 `HiddenInput` 部件自动铺开，Web Components 仍只需声明一个原生 `input[data-xh-part="hidden-input"]`，额外字段由宿主管理。
-- 明确"只能选叶子"还是"分支也能选"，并在界面上让分支看起来点得动或点不动。
-- 自定义 `branch-control` 与 `item` 均应包含 `item-indicator`，分支标记直接读取所属分支的选择与半选状态，
-  不另写一套状态判定或自绘复选框。Vue / React 自动结构已提供此部件。
+- 明确只能选叶子还是分支也可选，并在界面上让分支的可点性可见。
+- 自定义 `branch-control` 与 `item` 都应包含 `item-indicator`，分支标记直接读取所属分支的选择与半选状态，不另写状态判定或自绘复选框。Vue / React 自动结构已提供此部件。
 
 ### 反模式
 
-- 一次把整棵大树塞进浮层：首屏就卡住。
+- 一次把整棵大树放进浮层，首屏即卡顿。
 - 勾选策略与后端理解不一致。
 
 ## API 参考
@@ -3168,7 +3280,7 @@ const doc = ref<string[]>(["guide"]);
 | 层 | 值 |
 | --- | --- |
 | 自定义元素 | `<xh-tree-select>` |
-| Vue 组件 | `XhTreeSelectBranch` `XhTreeSelectBranchContent` `XhTreeSelectBranchControl` `XhTreeSelectBranchEmpty` `XhTreeSelectBranchError` `XhTreeSelectBranchIndicator` `XhTreeSelectBranchLoading` `XhTreeSelectBranchRetryTrigger` `XhTreeSelectBranchText` `XhTreeSelectBranchTrigger` `XhTreeSelectClearTrigger` `XhTreeSelectContent` `XhTreeSelectControl` `XhTreeSelectEmpty` `XhTreeSelectFooter` `XhTreeSelectHiddenInput` `XhTreeSelectIndicator` `XhTreeSelectItem` `XhTreeSelectItemIndicator` `XhTreeSelectItemText` `XhTreeSelectLabel` `XhTreeSelectLoading` `XhTreeSelectPositioner` `XhTreeSelectRoot` `XhTreeSelectTree` `XhTreeSelectTrigger` `XhTreeSelectValueText` |
+| Vue 组件 | `XhTreeSelectBranch` `XhTreeSelectBranchContent` `XhTreeSelectBranchControl` `XhTreeSelectBranchEmpty` `XhTreeSelectBranchError` `XhTreeSelectBranchIndicator` `XhTreeSelectBranchLoading` `XhTreeSelectBranchRetryTrigger` `XhTreeSelectBranchText` `XhTreeSelectBranchTrigger` `XhTreeSelectClearTrigger` `XhTreeSelectContent` `XhTreeSelectControl` `XhTreeSelectEmpty` `XhTreeSelectFooter` `XhTreeSelectHiddenInput` `XhTreeSelectIndicator` `XhTreeSelectInput` `XhTreeSelectItem` `XhTreeSelectItemDeleteTrigger` `XhTreeSelectItemDescription` `XhTreeSelectItemIndicator` `XhTreeSelectItemSuffix` `XhTreeSelectItemText` `XhTreeSelectLabel` `XhTreeSelectLoading` `XhTreeSelectOverflowTag` `XhTreeSelectPositioner` `XhTreeSelectRoot` `XhTreeSelectTag` `XhTreeSelectTagLabel` `XhTreeSelectTagList` `XhTreeSelectTree` `XhTreeSelectTrigger` `XhTreeSelectValueText` |
 | 组合式函数 | `useTreeSelect` |
 | 状态机 | `treeSelectMachine` |
 | 皮肤 | `@xihan-ui/styles/tree-select.css` |
@@ -3177,38 +3289,58 @@ const doc = ref<string[]>(["guide"]);
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `collection` | `TreeSelectNode[]` |  | 树数据，层级元信息与显示文本的唯一事实源。`hasChildren` 且未给 children 是懒分支；已给 children 时它优先。缺省为空树。 |
+| `collection` | `TreeSelectNode[]` |  | 树数据，层级元信息与显示文本的唯一事实源。`hasChildren` 且未提供 children 是懒分支；已提供 children 时它优先。默认为空树。 |
+| `virtualizer` | `CollectionVirtualizer` |  | 完整 collection 与 Virtualizer 的焦点桥：键盘、检索与展开时的锚点按可见行的数据算，DOM 只承载窗口里那几行。 count 必须等于当前 visibleNodes.length（展开收起后同步更新）；与 searchable 不能同开。 |
 | `loadChildren` | `(request: TreeSelectLoadChildrenRequest) => Promise<TreeSelectNode[] \| undefined \| void> \| TreeSelectNode[] \| undefined \| void` |  | 取回 `hasChildren: true` 分支的直接子项。首次展开自动调用，失败后用 api.retryBranch 显式重试。旧请求的兑现或拒绝不会覆盖更新的一轮，也不会写回已移除的分支。 |
-| `value` | `string \| string[]` |  | 选中值。给定即受控：cell 直读 prop，写只发 onValueChange 不落内部值。 单选写成裸串是简写，内部一律归一成数组。 |
+| `value` | `string \| string[]` |  | 选中值。提供即受控：cell 直读 prop，写入只发 onValueChange 不落内部值。 单选写为裸串是简写，内部一律归一为数组。 |
 | `defaultValue` | `string \| string[]` |  |  |
-| `expandedValue` | `string[]` |  | 展开集合。给定即受控，语义同上。 |
+| `expandedValue` | `string[]` |  | 展开集合。提供即受控，语义同上。 |
 | `defaultExpandedValue` | `string[]` |  |  |
-| `open` | `boolean` |  | 展开态。给定即受控：内部不再自改，只发 onOpenChange。 |
+| `open` | `boolean` |  | 展开态。提供即受控：内部不再自行修改，只发 onOpenChange。 |
 | `defaultOpen` | `boolean` |  |  |
-| `multiple` | `boolean` |  | 多选：选中是集合，选中后浮层不收起、焦点留在树里以便接着挑。 |
-| `cascade` | `boolean` |  | 多选下父子级联勾选：点分支整枝传导、子全勾父勾、部分勾中半选， 禁用子树整棵冻结。默认 false（朴素切换）；单选下无效。 |
-| `checkedStrategy` | `CascadeStrategy` |  | 级联下对外值的收敛策略，默认 child（只收叶）；parent = 最高整枝，all = 全部勾中节点。 |
-| `disabled` | `boolean` |  | 整个控件禁用：trigger 用原生 disabled，表单出口不参与提交。 |
-| `readOnly` | `boolean` |  | 只读：浮层照常展开、树照常浏览与展开收起，但选中值改不动、也清不掉。 disabled 则连键盘入口都没有。 |
-| `invalid` | `boolean` |  | 校验失败：trigger 报 aria-invalid，各角色节点带 data-invalid。 |
-| `loading` | `boolean` |  | 节点还在取：树报 aria-busy，在途占位顶上来、空态占位让位。 |
-| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定触发框的描边与底色怎么用。 |
-| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦与选中用哪族颜色。 |
+| `multiple` | `boolean` |  | 多选：选中为集合，选中后浮层不收起、焦点留在树中以便继续选择；已选项在触发器里排成标签。 |
+| `maxTagCount` | `number` |  | 多选标签最多显示的数量，其余折叠进 overflowCount、合成 +N 标签；默认 3。 |
+| `searchable` | `boolean` |  | 浮层内搜索：input 部件可用，展开时焦点先落在搜索框上，输入即按 filter 把树裁到只剩命中的那几枝， 命中节点的祖先自动展开。关闭时搜索框仍在 DOM 中但带 hidden。收起浮层即清空检索词。 |
+| `filter` | `TreeSelectFilter` |  | 自定义匹配规则；缺省为标签大小写不敏感包含。 |
+| `cascade` | `boolean` |  | 多选下父子级联勾选：点击分支整枝传导、子全勾父勾、部分勾选半选， 禁用子树整棵冻结。默认 false（朴素切换）；单选下无效。 |
+| `checkedStrategy` | `CascadeStrategy` |  | 级联下对外值的收敛策略，默认 child（只收叶）；parent = 最高整枝，all = 全部勾选节点。 |
+| `disabled` | `boolean` |  | 整个控件禁用：trigger 使用原生 disabled，表单出口不参与提交。 |
+| `readOnly` | `boolean` |  | 只读：浮层照常展开、树照常浏览与展开收起，但选中值不可修改、也不可清空。 disabled 则连键盘入口都没有。 |
+| `invalid` | `boolean` |  | 校验失败：trigger 报告 aria-invalid，各角色节点带 data-invalid。 |
+| `loading` | `boolean` |  | 节点加载中：树报告 aria-busy，显示在途占位、隐藏空态占位。 |
+| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定触发框的描边与底色使用方式。默认 outline。 |
+| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦与选中使用哪族颜色。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg，决定触发框与树节点行的几何档位。 |
 | `placeholder` | `string` |  | 无选中时 value-text 显示的占位文字。 |
-| `translations` | `Partial<TreeSelectTranslations>` |  | 读屏用的文案，默认英文。 |
+| `translations` | `Partial<TreeSelectTranslations>` |  | 读屏文案，默认英文。 |
 | `placement` | `Placement` |  |  |
 | `offset` | `number` |  |  |
-| `loop` | `boolean` |  | 上下键走到首尾是否回绕，默认 false。 |
-| `dir` | `Direction` |  | 文字方向，默认 ltr；只对调左右方向键的「展开/收起」语义。 |
-| `name` | `string` |  | 表单字段名。给定后表单出口才带 name，选中值随表单一并提交。 |
+| `loop` | `boolean` |  | 上下键到达首尾是否回绕，默认 false。 |
+| `dir` | `Direction` |  | 文字方向，默认 ltr；只对调左右方向键的展开 / 收起语义。 |
+| `name` | `string` |  | 表单字段名。提供后表单出口才带 name，选中值随表单一并提交。 |
 | `form` | `string` |  | 原生表单 ID；显式关联外部表单，提交与 reset 使用同一所有者。 |
-| `onValueChange` | `(details: TreeSelectValueChangeDetails) => void` |  | value 变化意图回调；受控时是唯一出口，非受控随内部写入一并通知。 |
+| `onValueChange` | `(details: TreeSelectValueChangeDetails) => void` |  | value 变化意图回调；受控时是唯一出口，非受控时随内部写入一并通知。 |
+| `onClear` | `() => void` |  | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 | `onExpandedValueChange` | `(details: TreeSelectExpandedValueChangeDetails) => void` |  | 展开集合变化意图回调；语义同上。 |
 | `onOpenChange` | `(details: TreeSelectOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控时随内部转移一并通知。 |
 | `onBranchLoadStart` | `(details: TreeSelectBranchLoadStartDetails) => void` |  | 一轮有效分支请求开始；retry 与首次展开由 reason 区分。 |
-| `onBranchLoad` | `(details: TreeSelectBranchLoadDetails) => void` |  | 一轮有效分支请求成功；children 为空仍是成功，不转换成错误或全局空态。 |
+| `onBranchLoad` | `(details: TreeSelectBranchLoadDetails) => void` |  | 一轮有效分支请求成功；children 为空仍是成功，不转换为错误或全局空态。 |
 | `onBranchLoadError` | `(details: TreeSelectBranchLoadErrorDetails) => void` |  | 一轮有效分支请求失败；保留 loader 给出的原始 error。 |
+
+### TreeSelectNode
+
+`collection` 的元素。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `children` | `TreeSelectNode[]` |  |  |
+| `hasChildren` | `boolean` |  |  |
+| `value` | `string` | 是 |  |
+| `label` | `string` |  | 展示名，也是连打检索与分支可及名的取字来源；默认回退为 value。 |
+| `disabled` | `boolean` |  | 节点禁用：方向键与连打检索跳过它，但它仍可聚焦、仍是导航起点。不向下传导给子节点。 |
+| `tone` | `Tone` |  | 该节点自身的性质：已失效的写 danger、需要留意的写 warning。不写即与其余节点同档， 也不向下传导给子节点——每一层各自声明。只换字色与悬停 / 按下的面，不改字重与缩进， 也不表达选中或校验；选中的标记与禁用都压过它。彩字不是唯一通道，要紧的差别仍要配图标。 |
+| `description` | `string` |  | 副文本，写入 item-description 部件；未提供时本条不铺该部件。 它是第 2 行的说明，跟着条目走 muted 档，不跟语气；放不下一行的解释才用它， 一句话能说清的写进 label。 |
+| `childrenOrientation` | `Orientation` |  | 该层子节点的排布方式，由作者在数据上标注。提供后以它为准，`vertical` 也优先于树级的 `leafOrientation`；未提供时才回退为 `leafOrientation` 加子节点全是叶子的结构判据。 标注在哪一层，横向排布就只落在哪一层：菜单授权中标注在按钮的父菜单上，其他目录不受影响， 也不随子节点增减漂移。只影响排布，不改变键盘。 |
 
 ### 事件
 
@@ -3217,6 +3349,7 @@ const doc = ref<string[]>(["guide"]);
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `value-change` | `TreeSelectValueChangeDetails` | 选中集合变化；detail 为 `{ value: string[] }` |
+| `clear` | `` | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 | `expanded-value-change` | `TreeSelectExpandedValueChangeDetails` | 展开集合变化；detail 为 `{ value: string[] }` |
 | `open-change` | `TreeSelectOpenChangeDetails` | open 状态变化；detail 为 `{ open: boolean }` |
 | `branch-load-start` | `TreeSelectBranchLoadStartDetails` | 分支请求开始；detail 为 `{ value, node, reason }` |
@@ -3232,6 +3365,20 @@ const doc = ref<string[]>(["guide"]);
 | `XhTreeSelectRoot` | `default` | `TreeSelectRootSlotProps` |  |
 | `XhTreeSelectRoot` | `label` | — |  |
 
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhTreeSelectBranch` | `value` | `string` | 是 |  |
+| `XhTreeSelectItem` | `value` | `string` | 是 |  |
+| `XhTreeSelectPositioner` | `container` | `() => Element \| null` |  | 浮层挂载的容器；未提供时按全局配置，再未提供时挂载到 body。 |
+| `XhTreeSelectRoot` | `label` | `ReactNode` |  | 标题文字。提供后不必再写 label 部件。 |
+| `XhTreeSelectRoot` | `clearable` | `boolean` |  | 自动渲染树中是否带清空按钮；手写部件不使用它，写了节点即可清空。 |
+| `XhTreeSelectRoot` | `children` | `SlotChildren<TreeSelectRootSlotProps>` |  |  |
+| `XhTreeSelectTag` | `value` | `string` | 是 | 它代表哪个选中值。 |
+
 ### 状态
 
 公开状态写入 `data-state`。
@@ -3245,6 +3392,16 @@ const doc = ref<string[]>(["guide"]);
 | `positioner` | 'open' \| 'closed' |
 | `content` | 'open' \| 'closed' |
 | `tree` | 'open' \| 'closed' |
+| `branch` | 'open' \| 'closed' |
+| `branch-control` | 'open' \| 'closed' |
+| `branch-trigger` | 'open' \| 'closed' |
+| `branch-indicator` | 'open' \| 'closed' |
+| `branch-text` | 'open' \| 'closed' |
+| `branch-content` | 'open' \| 'closed' |
+| `branch-loading` | 'open' \| 'closed' |
+| `branch-error` | 'open' \| 'closed' |
+| `branch-retry-trigger` | 'open' \| 'closed' |
+| `branch-empty` | 'open' \| 'closed' |
 | `empty` | 'open' \| 'closed' |
 | `loading` | 'open' \| 'closed' |
 | `footer` | 'open' \| 'closed' |
@@ -3253,9 +3410,9 @@ const doc = ref<string[]>(["guide"]);
 
 **状态**：`open` · `closed`
 
-**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `NODE.FOCUS` · `NODE.LOST` · `NODE.SELECT` · `VALUE.SET` · `VALUE.CLEAR` · `EXPANDED.SET` · `BRANCH.EXPAND` · `BRANCH.COLLAPSE` · `BRANCH.TOGGLE` · `BRANCH.RETRY` · `NODE.MOUNT` · `NODE.UNMOUNT` · `NODES.SYNC` · `FORM.RESET`
+**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `NODE.FOCUS` · `NODE.LOST` · `NODE.SELECT` · `VALUE.SET` · `VALUE.CLEAR` · `EXPANDED.SET` · `BRANCH.EXPAND` · `BRANCH.COLLAPSE` · `BRANCH.TOGGLE` · `BRANCH.RETRY` · `NODE.MOUNT` · `NODE.UNMOUNT` · `NODES.SYNC` · `INPUT.CHANGE` · `FORM.RESET` · `PRESS.START` · `PRESS.END` · `TAG_LIST.TRACKED`
 
-**判据**：`isOpenControlled` · `isMultiple`
+**判据**：`isOpenControlled` · `isMultiple` · `canPress`
 
 ### connect API
 
@@ -3265,44 +3422,59 @@ const doc = ref<string[]>(["guide"]);
 | --- | --- | --- |
 | `open` | `boolean` |  |
 | `collection` | `readonly TreeSelectNode[]` | 当前有效树：含 headless 已成功取回的懒分支子项。 |
-| `visibleNodes` | `readonly TreeVisibleNode[]` | 当前可见行序列（收起分支的子树不在其中）。 方向键、Home/End 与连打检索都在它上面走，不是在原始树上走。 |
-| `value` | `string[]` | 选中集合；单选下长度 ≤ 1，形状不随模式变。 |
+| `visibleNodes` | `readonly TreeVisibleNode[]` | 当前可见行序列（收起分支的子树不在其中）。 方向键、Home/End 与连打检索都在它上面移动，不在原始树上移动。 |
+| `value` | `string[]` | 选中集合；单选下长度 ≤ 1，形状不随模式变化。 |
 | `expandedValue` | `string[]` |  |
 | `valueText` | `string \| null` | 选中项的显示文本（多选用逗号加空格连接）；无选中时为 null。取自 collection 的 label。 |
-| `displayText` | `string` | value-text 实际显示的文字：有选中取其文本，否则取 placeholder。 |
+| `displayText` | `string` | value-text 实际显示的文字：有选中时取其文本，否则取 placeholder。 |
 | `focusedValue` | `string \| null` | 焦点锚点；收起、或它已被收起而不可见时为 null。 |
 | `empty` | `boolean` | 整树当前是否没有任何节点；collection 与手写节点统一由 Headless 判定。 |
 | `loading` | `boolean` | 外部整树 loading 状态。懒分支 loading 由 branchLoadState 单独表达。 |
+| `searching` | `boolean` | 正处于搜索视图（开启 searchable 且检索词非空）：collection 与 visibleNodes 都是裁剪后的树。 |
+| `inputValue` | `string` | 搜索框中的原始串。 |
 | `translations` | `TreeSelectTranslations` |  |
 | `multiple` | `boolean` |  |
 | `disabled` | `boolean` |  |
 | `readOnly` | `boolean` |  |
 | `invalid` | `boolean` |  |
-| `canClear` | `boolean` | 清空按钮此刻可不可按。 |
+| `canClear` | `boolean` | 清空按钮当前是否可按。 |
+| `tags` | `TreeSelectTagMeta[]` | 可见标签（受 maxTagCount 截断），与 value 同序；文字取自 collection 的 label。 |
+| `overflowCount` | `number` | 被 maxTagCount 折叠的标签数。 |
+| `overflowText` | `string` | +N 标签显示的文字（由 translations.overflowTag 计算）；没有折叠的标签时为空串。 |
 | `isSelected` | `(value: string) => boolean` |  |
-| `isIndeterminate` | `(value: string) => boolean` | 级联模式下该分支是否半选（有效叶后代有勾有不勾）；非级联恒 false。 |
+| `isIndeterminate` | `(value: string) => boolean` | 级联模式下该分支是否半选（有效叶后代部分勾选）；非级联恒为 false。 |
 | `isExpanded` | `(value: string) => boolean` |  |
 | `branchLoadState` | `(value: string) => TreeSelectBranchLoadSnapshot \| null` | 非懒分支返回 null；懒分支即使尚未请求也返回 idle。 |
 | `setOpen` | `(next: boolean) => void` |  |
 | `setValue` | `(next: string[]) => void` |  |
 | `setExpandedValue` | `(next: string[]) => void` |  |
+| `setInputValue` | `(next: string) => void` | 改写检索词，与在搜索框里输入同一语义。 |
 | `expand` | `(value: string) => void` |  |
 | `collapse` | `(value: string) => void` |  |
 | `retryBranch` | `(value: string) => void` | 失败后重新取该分支；非懒分支与未知 value 不产生副作用。 |
-| `select` | `(value: string) => void` | 单选替换、多选切换，与点节点同一语义。 |
+| `select` | `(value: string) => void` | 单选替换、多选切换，与点击节点同一语义。 |
 | `clear` | `() => void` |  |
+| `deselect` | `(value: string) => void` | 移除一个选中值。 |
 | `getRootProps` | `() => T['element']` |  |
 | `getLabelProps` | `() => T['element']` |  |
 | `getControlProps` | `() => T['element']` |  |
 | `getTriggerProps` | `() => T['button']` |  |
 | `getValueTextProps` | `() => T['element']` |  |
+| `getTagListProps` | `() => T['element']` | 标签行：收纳可见标签与 +N 标签，放在触发器中；无选中时整体 hidden。 |
+| `getTagProps` | `(props: TreeSelectTagProps) => T['element']` | 标签：一个选中值一个，即库内 tag 的 root（data-scope="tag"）：语气、尺寸与禁用从本控件传下，形态按控件的面派生，另带 data-value 记录代表的值。放在触发器中即纯展示，放在外部配删除按钮可删除。 |
+| `getTagLabelProps` | `() => T['element']` | 标签文字所在的块（tag 的 label）：截断落在这一层；标签与 +N 共用。 |
+| `getOverflowTagProps` | `() => T['element']` | 被折叠的标签合成的一个：同样是 tag 的 root，显示 overflowText、带 data-count；没有折叠的标签时 hidden。 |
+| `getItemDeleteTriggerProps` | `(props: TreeSelectTagProps) => T['button']` | 标签删除按钮：即所在标签那份 tag 的 close-trigger（data-scope="tag"），可及名使用 translations.deleteItem，禁用时保留位置、原生 disabled；点击移除所在标签的选中值；须放在触发器外的标签中。 |
 | `getIndicatorProps` | `() => T['element']` |  |
 | `getClearTriggerProps` | `() => T['button']` |  |
 | `getPositionerProps` | `() => T['element']` |  |
 | `getContentProps` | `() => T['element']` |  |
+| `getInputProps` | `() => T['input']` | 搜索框：放在 content 中、tree 之前；没开 searchable 时带 hidden。输入即过滤， 下方向键或 Enter 把焦点交给树，Escape 先清空检索词，Tab 收起浮层。 |
 | `getTreeProps` | `() => T['element']` |  |
 | `getItemProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
 | `getItemTextProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
+| `getItemDescriptionProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
+| `getItemSuffixProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
 | `getItemIndicatorProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
 | `getBranchProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
 | `getBranchControlProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
@@ -3314,9 +3486,9 @@ const doc = ref<string[]>(["guide"]);
 | `getBranchErrorProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
 | `getBranchRetryTriggerProps` | `(props: TreeSelectNodeProps) => T['button']` |  |
 | `getBranchEmptyProps` | `(props: TreeSelectNodeProps) => T['element']` |  |
-| `getEmptyProps` | `() => T['element']` | 空态占位：放在 content 里、tree 的兄弟。 collection 与手写节点都由连接层按 Headless 空态收放；作者可换内容，不必自己重算。 |
-| `getLoadingProps` | `() => T['element']` | 在途占位：与空态占位同一个位置，两者不同屏——取数期间它顶上来，空态让位。 collection 与手写节点都由连接层按 Headless 空态收放。 |
-| `getFooterProps` | `() => T['element']` | 浮层底部的操作区：放在 content 里、tree 的兄弟，不入树的拥有关系，方向键也走不到。 |
+| `getEmptyProps` | `() => T['element']` | 空态占位：放在 content 中、tree 的兄弟。 collection 与手写节点都由连接层按 Headless 空态收放；作者可更换内容，不必自行重新计算。 |
+| `getLoadingProps` | `() => T['element']` | 在途占位：与空态占位同一位置，两者不同时显示：加载期间显示它，空态让位。 collection 与手写节点都由连接层按 Headless 空态收放。 |
+| `getFooterProps` | `() => T['element']` | 浮层底部的操作区：放在 content 中、tree 的兄弟，不进入树的拥有关系，方向键也无法到达。 |
 | `getHiddenInputProps` | `(props: { value: string }) => T['input']` | 单值表单出口；按 api.value 逐个调用并生成同名 input，零选中不生成提交项。 |
 
 ## 无障碍
@@ -3339,9 +3511,14 @@ const doc = ref<string[]>(["guide"]);
 | `ArrowRight` | open, focus on branch（dir=rtl 时改由 ArrowLeft 承担） | 收起的分支就地展开；已展开则把焦点移到首个子节点；叶子上什么都不做且不吞键 |
 | `ArrowLeft` | open, focus in content（dir=rtl 时改由 ArrowRight 承担） | 展开的分支就地收起；收起的分支与叶子则把焦点移到父节点；根层的行什么都不做 |
 | `Enter` / `Space` | open, 焦点节点未禁用且不是错误分支 | 选中焦点节点：单选替换并收起浮层、焦点归还 trigger；多选切换且浮层不收起 |
+| `Enter` / `Space` | held in item / branch / clear-trigger, 未禁用、未只读、未加载 | 按住期间叶子行、分支行（branch-control）或清空按钮投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下，节点随浮层收起一并撤下；没有值可清时清空按钮不进 |
 | `Enter` / `Space` | open, focus on branch, 分支加载失败 | 重试该分支，焦点留在分支行；不改变选中值与展开集合 |
 | `*` | open, focus in content | 展开与焦点行同一父级的全部分支（已展开与禁用的不动）；同级没有可展开的分支时不吞这个键 |
-| `单个可打印字符` | open, focus in content | 连打检索在可见行上按 label 首字母搬焦点，不改选中值，也不展开任何分支 |
+| `单个可打印字符` | open, focus in content, 未开 searchable | 连打检索在可见行上按 label 首字母搬焦点，不改选中值，也不展开任何分支 |
+| `单个可打印字符` | open, searchable, focus in tree | 字符接到检索词末尾、焦点回到搜索框；开了搜索就不做连打检索 |
+| `可打印字符` | open, searchable, focus in input | 改写检索词：树裁到只剩命中的那几枝，命中节点的祖先自动展开；展开浮层时焦点先落在这里 |
+| `ArrowDown` / `Enter` | open, searchable, focus in input | 焦点交给树：落在锚点行，没有锚点就落首个可用行 |
+| `Escape` | open, searchable, focus in input, 检索词非空 | 先清空检索词回到整棵树与原来的展开态，浮层不收起；检索词已空再按才收起 |
 | `Escape` | open | 收起浮层并把焦点归还 trigger，选中值与展开集合都不变 |
 | `Tab` / `Shift+Tab` | open | 收起浮层，焦点不归还 trigger，按 Tab 序列自然离开 |
 
@@ -3361,16 +3538,32 @@ const doc = ref<string[]>(["guide"]);
 | `indicator` | `aria-hidden` | 'true' |
 | `clear-trigger` | `aria-label` | translations.clearTrigger |
 | `content` | `aria-hidden` | !open \|\| undefined |
+| `input` | `aria-controls` | `tree` 部件的 id |
+| `input` | `aria-label` | translations.searchInput |
 | `tree` | `aria-busy` | 'true' \| undefined |
 | `tree` | `aria-disabled` | 'true' \| 'false' |
 | `tree` | `aria-label` | translations.tree |
 | `tree` | `aria-labelledby` | `label` 部件的 id `value-text` 部件的 id |
 | `tree` | `aria-multiselectable` | 'true' \| 'false' |
 | `tree` | `role` | 'tree' |
+| `item` | `aria-checked` | 'true' \| 'mixed' \| 'false' \| undefined |
+| `item` | `aria-disabled` | 'true' \| 'false' |
+| `item` | `aria-level` | meta?.level |
+| `item` | `aria-posinset` | meta?.posInSet |
+| `item` | `aria-selected` | 'true' \| 'false' |
+| `item` | `aria-setsize` | meta?.setSize |
+| `item` | `role` | 'treeitem' |
 | `item-indicator` | `aria-hidden` | 'true' |
 | `branch` | `aria-busy` | 'true' \| undefined |
+| `branch` | `aria-checked` | 'true' \| 'mixed' \| 'false' \| undefined |
+| `branch` | `aria-disabled` | 'true' \| 'false' |
 | `branch` | `aria-expanded` | 'true' \| 'false' |
 | `branch` | `aria-label` | metaOf(node.value)?.label |
+| `branch` | `aria-level` | meta?.level |
+| `branch` | `aria-posinset` | meta?.posInSet |
+| `branch` | `aria-selected` | 'true' \| 'false' |
+| `branch` | `aria-setsize` | meta?.setSize |
+| `branch` | `role` | 'treeitem' |
 | `branch-trigger` | `aria-hidden` | 'true' |
 | `branch-indicator` | `aria-hidden` | 'true' |
 | `branch-content` | `role` | 'group' |
@@ -3385,7 +3578,9 @@ const doc = ref<string[]>(["guide"]);
 
 ### 皮肤
 
-`@xihan-ui/styles/tree-select.css` 使用 `[data-scope="tree-select"][data-part="root"]` 部件选择器，位于 `xihan.components` 与 `xihan.motion` 层。覆盖样式使用 `xihan.overrides`。
+`@xihan-ui/styles/tree-select.css` 使用 `[data-scope="tree-select"][data-part="root"]` 部件选择器，位于 `xihan.components` 层。覆盖样式使用 `xihan.overrides`。
+
+`forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
 
 ### 数据属性
 
@@ -3406,6 +3601,9 @@ const doc = ref<string[]>(["guide"]);
 | `control` | `data-invalid` | ''（条件成立时才出现） |
 | `control` | `data-readonly` | ''（条件成立时才出现） |
 | `control` | `data-state` | 'open' \| 'closed' |
+| `control` | `data-variant` | props.variant |
+| `control` | `data-xh-field-chrome` | '' |
+| `control` | `data-xh-field-size` | props.size |
 | `trigger` | `data-disabled` | ''（条件成立时才出现） |
 | `trigger` | `data-invalid` | ''（条件成立时才出现） |
 | `trigger` | `data-placeholder` | ''（条件成立时才出现） |
@@ -3413,9 +3611,19 @@ const doc = ref<string[]>(["guide"]);
 | `trigger` | `data-state` | 'open' \| 'closed' |
 | `value-text` | `data-disabled` | ''（条件成立时才出现） |
 | `value-text` | `data-placeholder` | ''（条件成立时才出现） |
+| `tag-list` | `data-disabled` | ''（条件成立时才出现） |
+| `tag-list` | `data-instant` | ''（条件成立时才出现） |
+| `tag-list` | `data-xh-tag-list` | '' |
 | `indicator` | `data-clearable` | ''（条件成立时才出现） |
 | `indicator` | `data-disabled` | ''（条件成立时才出现） |
 | `indicator` | `data-state` | 'open' \| 'closed' |
+| `clear-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `clear-trigger` | `data-xh-action-control` | '' |
+| `clear-trigger` | `data-xh-action-display` | 'has-value' |
+| `clear-trigger` | `data-xh-action-has-value` | ''（条件成立时才出现） |
+| `clear-trigger` | `data-xh-action-profile` | 'field-inset' |
+| `clear-trigger` | `data-xh-action-size` | props.size |
+| `clear-trigger` | `data-xh-action-variant` | 'ghost' |
 | `positioner` | `data-hidden` | ''（条件成立时才出现） |
 | `positioner` | `data-placement` | 定位引擎算出的实际落位 |
 | `positioner` | `data-positioned` | ''（条件成立时才出现） |
@@ -3423,61 +3631,202 @@ const doc = ref<string[]>(["guide"]);
 | `positioner` | `data-state` | 'open' \| 'closed' |
 | `positioner` | `data-tone` | props.tone |
 | `positioner` | `data-variant` | props.variant |
+| `content` | `data-instant` | ''（条件成立时才出现） |
 | `content` | `data-placement` | 定位引擎算出的实际落位 |
 | `content` | `data-state` | 'open' \| 'closed' |
+| `content` | `data-xh-material` | 'frosted' |
+| `input` | `data-xh-field-input` | '' |
 | `tree` | `data-disabled` | ''（条件成立时才出现） |
 | `tree` | `data-empty` | ''（条件成立时才出现） |
 | `tree` | `data-state` | 'open' \| 'closed' |
+| `item` | `data-disabled` | ''（条件成立时才出现） |
+| `item` | `data-highlighted` | ''（条件成立时才出现） |
+| `item` | `data-indeterminate` | ''（条件成立时才出现） |
+| `item` | `data-pressed` | ''（条件成立时才出现） |
+| `item` | `data-selected` | ''（条件成立时才出现） |
+| `item` | `data-tone` | metaOf(v)?.tone |
+| `item` | `data-xh-collection-context` | 'overlay' |
+| `item` | `data-xh-collection-item` | '' |
+| `item` | `data-xh-collection-size` | props.size |
+| `item-text` | `data-disabled` | ''（条件成立时才出现） |
+| `item-text` | `data-highlighted` | ''（条件成立时才出现） |
+| `item-text` | `data-indeterminate` | ''（条件成立时才出现） |
+| `item-text` | `data-selected` | ''（条件成立时才出现） |
+| `item-text` | `data-xh-collection-slot` | 'text' |
+| `item-description` | `data-disabled` | ''（条件成立时才出现） |
+| `item-description` | `data-highlighted` | ''（条件成立时才出现） |
+| `item-description` | `data-indeterminate` | ''（条件成立时才出现） |
+| `item-description` | `data-selected` | ''（条件成立时才出现） |
+| `item-description` | `data-xh-collection-slot` | 'description' |
+| `item-suffix` | `data-disabled` | ''（条件成立时才出现） |
+| `item-suffix` | `data-highlighted` | ''（条件成立时才出现） |
+| `item-suffix` | `data-indeterminate` | ''（条件成立时才出现） |
+| `item-suffix` | `data-selected` | ''（条件成立时才出现） |
+| `item-suffix` | `data-xh-collection-slot` | 'suffix' |
+| `item-indicator` | `data-disabled` | ''（条件成立时才出现） |
+| `item-indicator` | `data-highlighted` | ''（条件成立时才出现） |
+| `item-indicator` | `data-indeterminate` | ''（条件成立时才出现） |
+| `item-indicator` | `data-selected` | ''（条件成立时才出现） |
+| `item-indicator` | `data-xh-collection-slot` | 'indicator' |
+| `branch` | `data-disabled` | ''（条件成立时才出现） |
+| `branch` | `data-empty` | ''（条件成立时才出现） |
+| `branch` | `data-error` | ''（条件成立时才出现） |
+| `branch` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch` | `data-load-state` | branchLoadState(v)?.status |
+| `branch` | `data-loading` | ''（条件成立时才出现） |
+| `branch` | `data-selected` | ''（条件成立时才出现） |
+| `branch` | `data-state` | 'open' \| 'closed' |
+| `branch-control` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-control` | `data-empty` | ''（条件成立时才出现） |
+| `branch-control` | `data-error` | ''（条件成立时才出现） |
+| `branch-control` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-control` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-control` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-control` | `data-loading` | ''（条件成立时才出现） |
+| `branch-control` | `data-pressed` | ''（条件成立时才出现） |
+| `branch-control` | `data-selected` | ''（条件成立时才出现） |
+| `branch-control` | `data-state` | 'open' \| 'closed' |
+| `branch-control` | `data-tone` | metaOf(v)?.tone |
+| `branch-control` | `data-xh-collection-context` | 'overlay' |
+| `branch-control` | `data-xh-collection-item` | '' |
+| `branch-control` | `data-xh-collection-size` | props.size |
+| `branch-trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-empty` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-error` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-trigger` | `data-loading` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-selected` | ''（条件成立时才出现） |
+| `branch-trigger` | `data-state` | 'open' \| 'closed' |
+| `branch-trigger` | `data-xh-collection-slot` | 'prefix' |
+| `branch-indicator` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-indicator` | `data-empty` | ''（条件成立时才出现） |
+| `branch-indicator` | `data-error` | ''（条件成立时才出现） |
+| `branch-indicator` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-indicator` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-indicator` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-indicator` | `data-loading` | ''（条件成立时才出现） |
+| `branch-indicator` | `data-selected` | ''（条件成立时才出现） |
+| `branch-indicator` | `data-state` | 'open' \| 'closed' |
+| `branch-indicator` | `data-xh-collection-slot` | 'prefix' |
+| `branch-text` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-text` | `data-empty` | ''（条件成立时才出现） |
+| `branch-text` | `data-error` | ''（条件成立时才出现） |
+| `branch-text` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-text` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-text` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-text` | `data-loading` | ''（条件成立时才出现） |
+| `branch-text` | `data-selected` | ''（条件成立时才出现） |
+| `branch-text` | `data-state` | 'open' \| 'closed' |
+| `branch-text` | `data-xh-collection-slot` | 'text' |
+| `branch-content` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-content` | `data-empty` | ''（条件成立时才出现） |
+| `branch-content` | `data-error` | ''（条件成立时才出现） |
+| `branch-content` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-content` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-content` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-content` | `data-loading` | ''（条件成立时才出现） |
+| `branch-content` | `data-selected` | ''（条件成立时才出现） |
+| `branch-content` | `data-state` | 'open' \| 'closed' |
+| `branch-loading` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-loading` | `data-empty` | ''（条件成立时才出现） |
+| `branch-loading` | `data-error` | ''（条件成立时才出现） |
+| `branch-loading` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-loading` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-loading` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-loading` | `data-loading` | ''（条件成立时才出现） |
+| `branch-loading` | `data-selected` | ''（条件成立时才出现） |
+| `branch-loading` | `data-state` | 'open' \| 'closed' |
+| `branch-loading` | `data-xh-loading-ring` | '' |
+| `branch-error` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-error` | `data-empty` | ''（条件成立时才出现） |
+| `branch-error` | `data-error` | ''（条件成立时才出现） |
+| `branch-error` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-error` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-error` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-error` | `data-loading` | ''（条件成立时才出现） |
+| `branch-error` | `data-selected` | ''（条件成立时才出现） |
+| `branch-error` | `data-state` | 'open' \| 'closed' |
+| `branch-retry-trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-retry-trigger` | `data-empty` | ''（条件成立时才出现） |
+| `branch-retry-trigger` | `data-error` | ''（条件成立时才出现） |
+| `branch-retry-trigger` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-retry-trigger` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-retry-trigger` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-retry-trigger` | `data-loading` | ''（条件成立时才出现） |
+| `branch-retry-trigger` | `data-selected` | ''（条件成立时才出现） |
+| `branch-retry-trigger` | `data-state` | 'open' \| 'closed' |
+| `branch-empty` | `data-disabled` | ''（条件成立时才出现） |
+| `branch-empty` | `data-empty` | ''（条件成立时才出现） |
+| `branch-empty` | `data-error` | ''（条件成立时才出现） |
+| `branch-empty` | `data-highlighted` | ''（条件成立时才出现） |
+| `branch-empty` | `data-indeterminate` | ''（条件成立时才出现） |
+| `branch-empty` | `data-load-state` | branchLoadState(v)?.status |
+| `branch-empty` | `data-loading` | ''（条件成立时才出现） |
+| `branch-empty` | `data-selected` | ''（条件成立时才出现） |
+| `branch-empty` | `data-state` | 'open' \| 'closed' |
 | `empty` | `data-state` | 'open' \| 'closed' |
+| `loading` | `data-loading` | ''（条件成立时才出现） |
 | `loading` | `data-state` | 'open' \| 'closed' |
+| `loading` | `data-xh-loading-ring` | '' |
 | `footer` | `data-state` | 'open' \| 'closed' |
+| `overflow-tag` | `data-count` | String(overflowCount) |
+| `tag` | `data-value` | itemValue(el) |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-tree-select-action-bg` | `clear-trigger` | `background` | `default` | `transparent` | tree-select 的 clear-trigger 部件 background 覆盖槽。 |
-| `--xh-tree-select-action-bg-active` | `clear-trigger` | `background` | `active` | `--xh-bg-subtle-active` | tree-select 的 clear-trigger 部件 background 覆盖槽。 |
-| `--xh-tree-select-action-bg-hover` | `clear-trigger` | `background` | `hover` | `--xh-bg-subtle-hover` | tree-select 的 clear-trigger 部件 background 覆盖槽。 |
+| `--xh-tree-select-action-bg` | `clear-trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | tree-select 的 clear-trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-tree-select-action-bg-active` | `clear-trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | tree-select 的 clear-trigger 部件 background-color 覆盖槽。 |
+| `--xh-tree-select-action-bg-hover` | `clear-trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | tree-select 的 clear-trigger 部件 background-color 覆盖槽。 |
 | `--xh-tree-select-action-fg` | `clear-trigger` | `color` | `default` | `--xh-fg-muted` | tree-select 的 clear-trigger 部件 color 覆盖槽。 |
-| `--xh-tree-select-action-fg-hover` | `clear-trigger` | `color` | `hover` | `--xh-fg-default` | tree-select 的 clear-trigger 部件 color 覆盖槽。 |
+| `--xh-tree-select-action-fg-hover` | `clear-trigger` | `color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-fg-default` | tree-select 的 clear-trigger 部件 color 覆盖槽。 |
 | `--xh-tree-select-action-font-size` | `clear-trigger` | `font-size` | `default` | `--xh-text-secondary-size` | tree-select 的 clear-trigger 部件 font-size 覆盖槽。 |
-| `--xh-tree-select-action-radius` | `clear-trigger` | `border-radius` | `default` | `--xh-shape-control` | tree-select 的 clear-trigger 部件 border-radius 覆盖槽。 |
-| `--xh-tree-select-action-size` | `clear-trigger` | `block-size`<br>`inline-size` | `default` | `--xh-control-action-size` | tree-select 的 clear-trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-tree-select-action-radius` | `clear-trigger` | `border-radius` | `default` | `--xh-shape-inset` | tree-select 的 clear-trigger 部件 border-radius 覆盖槽。 |
+| `--xh-tree-select-action-size` | `clear-trigger` | `block-size`<br>`inline-size`<br>`min-inline-size` | `default`<br>`xh-action-profile=field-inset` | `--xh-_action-profile-visual-size` | tree-select 的 clear-trigger 部件 block-size、inline-size、min-inline-size 覆盖槽。 |
 | `--xh-tree-select-branch-content-gap` | `branch-content` | `gap` | `default` | `--xh-list-option-gap` | tree-select 的 branch-content 部件 gap 覆盖槽。 |
+| `--xh-tree-select-branch-error-fg` | `branch-error` | `background-color` | `default` | `--xh-fg-danger` | tree-select 的 branch-error 部件 background-color 覆盖槽。 |
 | `--xh-tree-select-branch-gap` | `branch` | `gap` | `default` | `--xh-list-option-gap` | tree-select 的 branch 部件 gap 覆盖槽。 |
 | `--xh-tree-select-branch-indicator-fg` | `branch-indicator`<br>`branch-trigger` | `color` | `default` | `--xh-fg-subtle` | tree-select 的 branch-indicator、branch-trigger 部件 color 覆盖槽。 |
-| `--xh-tree-select-branch-indicator-size` | `branch-indicator`<br>`branch-trigger`<br>`item` | `inline-size`<br>`padding-inline-start` | `default` | `--xh-control-indicator-size` | tree-select 的 branch-indicator、branch-trigger、item 部件 inline-size、padding-inline-start 覆盖槽。 |
-| `--xh-tree-select-content-backdrop` | `content` | `-webkit-backdrop-filter`<br>`backdrop-filter` | `default` | `--xh-material-frosted-backdrop` | tree-select 的 content 部件 -webkit-backdrop-filter、backdrop-filter 覆盖槽。 |
-| `--xh-tree-select-content-bg` | `content` | `background` | `default` | `--xh-material-frosted-bg` | tree-select 的 content 部件 background 覆盖槽。 |
-| `--xh-tree-select-content-border` | `content` | `border` | `default` | `--xh-material-frosted-border` | tree-select 的 content 部件 border 覆盖槽。 |
-| `--xh-tree-select-content-fg` | `content` | `color` | `default` | `--xh-material-frosted-fg` | tree-select 的 content 部件 color 覆盖槽。 |
-| `--xh-tree-select-content-highlight` | `content` | `background` | `default` | `--xh-material-frosted-highlight` | tree-select 的 content 部件 background 覆盖槽。 |
-| `--xh-tree-select-content-max-h` | `content` | `max-block-size` | `default` | `--xh-overlay-max-h` | tree-select 的 content 部件 max-block-size 覆盖槽。 |
-| `--xh-tree-select-content-max-w` | `content` | `max-inline-size` | `default` | `--xh-overlay-max-w` | tree-select 的 content 部件 max-inline-size 覆盖槽。 |
-| `--xh-tree-select-content-min-w` | `content` | `min-inline-size` | `default` | `--xh-overlay-min-w` | tree-select 的 content 部件 min-inline-size 覆盖槽。 |
+| `--xh-tree-select-branch-indicator-size` | `branch-indicator`<br>`branch-trigger`<br>`item` | `--xh-icon-size`<br>`inline-size` | `default` | `--xh-control-indicator-size` | tree-select 的 branch-indicator、branch-trigger、item 部件 --xh-icon-size、inline-size 覆盖槽。 |
+| `--xh-tree-select-branch-retry-fg` | `branch-retry-trigger` | `color` | `default` | `--xh-fg-brand` | tree-select 的 branch-retry-trigger 部件 color 覆盖槽。 |
+| `--xh-tree-select-branch-status-fg` | `branch-empty`<br>`branch-error`<br>`branch-loading` | `color` | `is([data-part='branch-loading'], [data-part='branch-empty'], [data-part='branch-error'])` | `--xh-material-frosted-fg-muted` | tree-select 的 branch-empty、branch-error、branch-loading 部件 color 覆盖槽。 |
+| `--xh-tree-select-branch-status-font-size` | `branch-empty`<br>`branch-error`<br>`branch-loading`<br>`branch-retry-trigger` | `font-size` | `default`<br>`is([data-part='branch-loading'], [data-part='branch-empty'], [data-part='branch-error'])` | `--xh-_tree-select-font-size` | tree-select 的 branch-empty、branch-error、branch-loading、branch-retry-trigger 部件 font-size 覆盖槽。 |
+| `--xh-tree-select-branch-status-py` | `branch-empty`<br>`branch-error`<br>`branch-loading` | `padding-block` | `is([data-part='branch-loading'], [data-part='branch-empty'], [data-part='branch-error'])` | `--xh-_tree-select-row-py` | tree-select 的 branch-empty、branch-error、branch-loading 部件 padding-block 覆盖槽。 |
+| `--xh-tree-select-content-backdrop` | `content` | `-webkit-backdrop-filter`<br>`backdrop-filter` | `xh-material=frosted` | `--xh-_material-backdrop` | tree-select 的 content 部件 -webkit-backdrop-filter、backdrop-filter 覆盖槽。 |
+| `--xh-tree-select-content-bg` | `content` | `background` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-bg` | tree-select 的 content 部件 background 覆盖槽。 |
+| `--xh-tree-select-content-border` | `content` | `border` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-border` | tree-select 的 content 部件 border 覆盖槽。 |
+| `--xh-tree-select-content-fg` | `content` | `color` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-fg` | tree-select 的 content 部件 color 覆盖槽。 |
+| `--xh-tree-select-content-highlight` | `content` | `background` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-highlight` | tree-select 的 content 部件 background 覆盖槽。 |
+| `--xh-tree-select-content-max-h` | `content` | `max-block-size` | `default` | `--xh-overlay-menu-max-h` | tree-select 的 content 部件 max-block-size 覆盖槽。 |
+| `--xh-tree-select-content-max-w` | `content` | `max-inline-size` | `default` | `none` | tree-select 的 content 部件 max-inline-size 覆盖槽。 |
+| `--xh-tree-select-content-min-w` | `content` | `inline-size` | `default` | `--xh-overlay-menu-min-w` | tree-select 的 content 部件 inline-size 覆盖槽。 |
 | `--xh-tree-select-content-px` | `content` | `padding-inline` | `default` | `--xh-space-1` | tree-select 的 content 部件 padding-inline 覆盖槽。 |
 | `--xh-tree-select-content-py` | `content` | `padding-block` | `default` | `--xh-space-1` | tree-select 的 content 部件 padding-block 覆盖槽。 |
-| `--xh-tree-select-content-radius` | `content` | `border-radius` | `default` | `--xh-shape-surface` | tree-select 的 content 部件 border-radius 覆盖槽。 |
-| `--xh-tree-select-content-shadow` | `content` | `box-shadow` | `default` | `--xh-material-frosted-shadow` | tree-select 的 content 部件 box-shadow 覆盖槽。 |
-| `--xh-tree-select-control-bg` | `control` | `background` | `default` | `--xh-_tree-select-bg` | tree-select 的 control 部件 background 覆盖槽。 |
-| `--xh-tree-select-control-bg-disabled` | `control` | `background` | `disabled` | `--xh-bg-subtle` | tree-select 的 control 部件 background 覆盖槽。 |
-| `--xh-tree-select-control-bg-hover` | `control` | `background` | `disabled`<br>`hover`<br>`not([data-disabled], [data-readonly])`<br>`readonly` | `--xh-_tree-select-bg-hover` | tree-select 的 control 部件 background 覆盖槽。 |
-| `--xh-tree-select-control-bg-readonly` | `control` | `background` | `readonly` | `--xh-bg-subtle` | tree-select 的 control 部件 background 覆盖槽。 |
-| `--xh-tree-select-control-border` | `control` | `border` | `default` | `--xh-_tree-select-border` | tree-select 的 control 部件 border 覆盖槽。 |
-| `--xh-tree-select-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])` | `--xh-_tone` | tree-select 的 control 部件 border-color 覆盖槽。 |
-| `--xh-tree-select-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`not([data-disabled], [data-invalid])` | `--xh-_tree-select-border-hover` | tree-select 的 control 部件 border-color 覆盖槽。 |
-| `--xh-tree-select-control-border-invalid` | `control` | `border-color` | `invalid` | `--xh-border-invalid` | tree-select 的 control 部件 border-color 覆盖槽。 |
-| `--xh-tree-select-control-fg` | `control` | `color` | `default` | `--xh-fg-default` | tree-select 的 control 部件 color 覆盖槽。 |
-| `--xh-tree-select-control-gap` | `control` | `gap` | `default` | `--xh-_tree-select-gap` | tree-select 的 control 部件 gap 覆盖槽。 |
-| `--xh-tree-select-control-h` | `control` | `block-size` | `default` | `--xh-_tree-select-h` | tree-select 的 control 部件 block-size 覆盖槽。 |
-| `--xh-tree-select-control-min-w` | `control`<br>`root` | `min-inline-size` | `default` | `--xh-control-min-w` | tree-select 的 control、root 部件 min-inline-size 覆盖槽。 |
-| `--xh-tree-select-control-px` | `control` | `padding-inline` | `default` | `--xh-_tree-select-px` | tree-select 的 control 部件 padding-inline 覆盖槽。 |
-| `--xh-tree-select-control-radius` | `control` | `border-radius` | `default` | `--xh-shape-control` | tree-select 的 control 部件 border-radius 覆盖槽。 |
-| `--xh-tree-select-control-shadow` | `control` | `box-shadow` | `default` | `--xh-_tree-select-shadow` | tree-select 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-tree-select-content-radius` | `content` | `border-radius` | `default` | `--xh-shape-overlay` | tree-select 的 content 部件 border-radius 覆盖槽。 |
+| `--xh-tree-select-content-shadow` | `content` | `box-shadow` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-shadow` | tree-select 的 content 部件 box-shadow 覆盖槽。 |
+| `--xh-tree-select-control-bg` | `control` | `background-color` | `xh-field-chrome` | `--xh-_field-variant-bg-rest` | tree-select 的 control 部件 background-color 覆盖槽。 |
+| `--xh-tree-select-control-bg-disabled` | `control` | `background-color` | `disabled`<br>`xh-field-chrome` | `--xh-_field-variant-bg-disabled` | tree-select 的 control 部件 background-color 覆盖槽。 |
+| `--xh-tree-select-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-hover` | tree-select 的 control 部件 background-color 覆盖槽。 |
+| `--xh-tree-select-control-bg-readonly` | `control` | `background-color` | `readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-read-only` | tree-select 的 control 部件 background-color 覆盖槽。 |
+| `--xh-tree-select-control-border` | `control` | `border` | `xh-field-chrome` | `--xh-_field-variant-border-rest` | tree-select 的 control 部件 border 覆盖槽。 |
+| `--xh-tree-select-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`xh-field-chrome` | `--xh-_field-variant-border-focus` | tree-select 的 control 部件 border-color 覆盖槽。 |
+| `--xh-tree-select-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-border-hover` | tree-select 的 control 部件 border-color 覆盖槽。 |
+| `--xh-tree-select-control-border-invalid` | `control` | `border-color` | `invalid`<br>`xh-field-chrome` | `--xh-_field-variant-border-invalid` | tree-select 的 control 部件 border-color 覆盖槽。 |
+| `--xh-tree-select-control-fg` | `control` | `color` | `xh-field-chrome` | `--xh-fg-default` | tree-select 的 control 部件 color 覆盖槽。 |
+| `--xh-tree-select-control-gap` | `control` | `gap` | `xh-field-chrome` | `--xh-_tree-select-gap` | tree-select 的 control 部件 gap 覆盖槽。 |
+| `--xh-tree-select-control-h` | `control` | `block-size`<br>`min-block-size` | `has([data-xh-field-input][data-xh-field-layout='multi-tag'])`<br>`has([data-xh-field-input][data-xh-field-layout='single-line'])`<br>`has([data-xh-field-input][data-xh-field-layout='textarea'])`<br>`xh-field-chrome`<br>`xh-field-input`<br>`xh-field-layout=multi-tag`<br>`xh-field-layout=single-line`<br>`xh-field-layout=textarea` | `--xh-_tree-select-h` | tree-select 的 control 部件 block-size、min-block-size 覆盖槽。 |
+| `--xh-tree-select-control-min-w` | `control`<br>`root` | `min-inline-size` | `default`<br>`xh-field-chrome` | `--xh-control-min-w` | tree-select 的 control、root 部件 min-inline-size 覆盖槽。 |
+| `--xh-tree-select-control-px` | `control` | `padding-inline` | `xh-field-chrome` | `--xh-_tree-select-px` | tree-select 的 control 部件 padding-inline 覆盖槽。 |
+| `--xh-tree-select-control-radius` | `control` | `border-radius` | `xh-field-chrome` | `--xh-shape-control` | tree-select 的 control 部件 border-radius 覆盖槽。 |
+| `--xh-tree-select-control-shadow` | `control` | `box-shadow` | `xh-field-chrome` | `none` | tree-select 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-tree-select-control-w` | `root` | `inline-size`<br>`min-inline-size` | `default` | `--xh-control-w` | tree-select 的 root 部件 inline-size、min-inline-size 覆盖槽。 |
 | `--xh-tree-select-empty-fg` | `empty` | `color` | `default` | `--xh-material-frosted-fg-muted` | tree-select 的 empty 部件 color 覆盖槽。 |
 | `--xh-tree-select-empty-font-size` | `empty` | `font-size` | `default` | `--xh-_tree-select-font-size` | tree-select 的 empty 部件 font-size 覆盖槽。 |
 | `--xh-tree-select-empty-px` | `empty` | `padding-inline` | `default` | `--xh-_tree-select-row-px` | tree-select 的 empty 部件 padding-inline 覆盖槽。 |
@@ -3489,30 +3838,40 @@ const doc = ref<string[]>(["guide"]);
 | `--xh-tree-select-footer-px` | `footer` | `padding-inline` | `default` | `--xh-space-2` | tree-select 的 footer 部件 padding-inline 覆盖槽。 |
 | `--xh-tree-select-footer-py` | `footer` | `padding-block` | `default` | `--xh-space-2` | tree-select 的 footer 部件 padding-block 覆盖槽。 |
 | `--xh-tree-select-gap` | `root` | `gap` | `default` | `--xh-space-1` | tree-select 的 root 部件 gap 覆盖槽。 |
-| `--xh-tree-select-icon-size` | `positioner`<br>`root` | `--xh-icon-size` | `is([data-part='root'], [data-part='positioner'])`<br>`size=lg`<br>`size=sm` | `--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | tree-select 的 positioner、root 部件 --xh-icon-size 覆盖槽。 |
-| `--xh-tree-select-indent` | `branch-content` | `padding-inline-start` | `default` | `--xh-space-4` | tree-select 的 branch-content 部件 padding-inline-start 覆盖槽。 |
+| `--xh-tree-select-icon-size` | `branch-control`<br>`control`<br>`item`<br>`positioner`<br>`root` | `--xh-icon-size` | `default`<br>`is([data-part='root'], [data-part='positioner'])`<br>`size=lg`<br>`size=sm`<br>`xh-field-chrome` | `--xh-_collection-glyph-size`<br>`--xh-_field-size-glyph-size`<br>`--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | tree-select 的 branch-control、control、item、positioner、root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-tree-select-indent` | `branch-content`<br>`branch-empty`<br>`branch-error`<br>`branch-loading`<br>`branch-retry-trigger` | `margin-inline-start`<br>`padding-inline`<br>`padding-inline-start` | `default`<br>`is([data-part='branch-loading'], [data-part='branch-empty'], [data-part='branch-error'])` | `--xh-space-4` | tree-select 的 branch-content、branch-empty、branch-error、branch-loading、branch-retry-trigger 部件 margin-inline-start、padding-inline、padding-inline-start 覆盖槽。 |
 | `--xh-tree-select-indicator-fg` | `indicator` | `color` | `default` | `--xh-fg-muted` | tree-select 的 indicator 部件 color 覆盖槽。 |
-| `--xh-tree-select-item-bg-hover` | `branch`<br>`branch-control`<br>`item` | `background` | `disabled`<br>`focus-visible`<br>`highlighted`<br>`is(:hover, [data-highlighted])`<br>`is(:hover, [data-highlighted], :focus-visible)`<br>`not([data-disabled])` | `--xh-bg-subtle` | tree-select 的 branch、branch-control、item 部件 background 覆盖槽。 |
-| `--xh-tree-select-item-fg` | `branch-control`<br>`item` | `color` | `default`<br>`selected` | `--xh-material-frosted-fg` | tree-select 的 branch-control、item 部件 color 覆盖槽。 |
-| `--xh-tree-select-item-fg-selected` | `branch-control`<br>`item` | `color` | `selected` | `--xh-tree-select-item-fg` | tree-select 的 branch-control、item 部件 color 覆盖槽。 |
+| `--xh-tree-select-input-autofill-bg` | `input` | `box-shadow` | `-webkit-autofill`<br>`autofill` | `--xh-bg-surface` | tree-select 的 input 部件 box-shadow 覆盖槽。 |
+| `--xh-tree-select-input-autofill-fg` | `input` | `-webkit-text-fill-color` | `-webkit-autofill`<br>`autofill` | `--xh-fg-default` | tree-select 的 input 部件 -webkit-text-fill-color 覆盖槽。 |
+| `--xh-tree-select-input-font-size` | `input` | `font-size` | `default` | `--xh-_tree-select-font-size` | tree-select 的 input 部件 font-size 覆盖槽。 |
+| `--xh-tree-select-input-gap` | `input` | `margin-block-end` | `default` | `--xh-space-1` | tree-select 的 input 部件 margin-block-end 覆盖槽。 |
+| `--xh-tree-select-input-h` | `input` | `block-size` | `default` | `--xh-_tree-select-h` | tree-select 的 input 部件 block-size 覆盖槽。 |
+| `--xh-tree-select-input-px` | `input` | `padding-inline` | `default` | `--xh-_tree-select-px` | tree-select 的 input 部件 padding-inline 覆盖槽。 |
+| `--xh-tree-select-item-bg-hover` | `branch`<br>`branch-control`<br>`item` | `background-color` | `disabled`<br>`error`<br>`focus-visible`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`is(:hover, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`not([data-disabled])`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle` | tree-select 的 branch、branch-control、item 部件 background-color 覆盖槽。 |
+| `--xh-tree-select-item-bg-pressed` | `branch-control`<br>`item` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`not([data-disabled])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle-hover` | tree-select 的 branch-control、item 部件 background-color 覆盖槽。 |
+| `--xh-tree-select-item-check-fg` | `branch-control`<br>`item` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`state=checked`<br>`xh-collection-context=overlay`<br>`xh-collection-slot=indicator` | `--xh-tree-select-item-indicator-fg` | tree-select 的 branch-control、item 部件 color 覆盖槽。 |
+| `--xh-tree-select-item-fg` | `branch-control`<br>`item` | `color` | `default`<br>`disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-material-frosted-fg` | tree-select 的 branch-control、item 部件 color 覆盖槽。 |
+| `--xh-tree-select-item-fg-selected` | `branch-control`<br>`item` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-tree-select-item-fg` | tree-select 的 branch-control、item 部件 color 覆盖槽。 |
 | `--xh-tree-select-item-font-size` | `branch-control`<br>`item` | `font-size` | `default` | `--xh-_tree-select-font-size` | tree-select 的 branch-control、item 部件 font-size 覆盖槽。 |
-| `--xh-tree-select-item-gap` | `branch-control`<br>`item` | `gap`<br>`padding-inline-start` | `default` | `--xh-_tree-select-gap` | tree-select 的 branch-control、item 部件 gap、padding-inline-start 覆盖槽。 |
-| `--xh-tree-select-item-indicator-fg` | `item-indicator` | `color` | `default` | `--xh-_tree-select-accent` | tree-select 的 item-indicator 部件 color 覆盖槽。 |
-| `--xh-tree-select-item-indicator-size` | `item-indicator` | `block-size`<br>`inline-size` | `default` | `--xh-control-indicator-size` | tree-select 的 item-indicator 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-tree-select-item-font-weight-selected` | `branch-control`<br>`item` | `font-weight` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-font-weight-regular` | tree-select 的 branch-control、item 部件 font-weight 覆盖槽。 |
+| `--xh-tree-select-item-gap` | `branch-control`<br>`item` | `margin-inline-end`<br>`margin-inline-start` | `default`<br>`xh-collection-slot=indicator`<br>`xh-collection-slot=prefix`<br>`xh-collection-slot=shortcut`<br>`xh-collection-slot=suffix` | `--xh-_tree-select-gap` | tree-select 的 branch-control、item 部件 margin-inline-end、margin-inline-start 覆盖槽。 |
+| `--xh-tree-select-item-indicator-fg` | `branch-control`<br>`item` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`state=checked`<br>`xh-collection-context=overlay`<br>`xh-collection-slot=indicator` | `--xh-_tree-select-accent` | tree-select 的 branch-control、item 部件 color 覆盖槽。 |
+| `--xh-tree-select-item-indicator-size` | `item-indicator` | `--xh-icon-size`<br>`block-size`<br>`inline-size` | `default` | `--xh-control-indicator-size` | tree-select 的 item-indicator 部件 --xh-icon-size、block-size、inline-size 覆盖槽。 |
 | `--xh-tree-select-item-leading` | `branch-control`<br>`item` | `line-height` | `default` | `--xh-leading-normal` | tree-select 的 branch-control、item 部件 line-height 覆盖槽。 |
-| `--xh-tree-select-item-px` | `branch-control`<br>`item` | `padding-inline`<br>`padding-inline-start` | `default` | `--xh-_tree-select-row-px` | tree-select 的 branch-control、item 部件 padding-inline、padding-inline-start 覆盖槽。 |
+| `--xh-tree-select-item-px` | `branch-control`<br>`item` | `padding-inline` | `default` | `--xh-_tree-select-row-px` | tree-select 的 branch-control、item 部件 padding-inline 覆盖槽。 |
 | `--xh-tree-select-item-py` | `branch-control`<br>`item` | `padding-block` | `default` | `--xh-_tree-select-row-py` | tree-select 的 branch-control、item 部件 padding-block 覆盖槽。 |
-| `--xh-tree-select-item-radius` | `branch-control`<br>`item` | `border-radius` | `default` | `--xh-shape-control` | tree-select 的 branch-control、item 部件 border-radius 覆盖槽。 |
-| `--xh-tree-select-item-selected-font-weight` | `branch-control`<br>`item` | `font-weight` | `selected` | `--xh-font-weight-regular` | tree-select 的 branch-control、item 部件 font-weight 覆盖槽。 |
+| `--xh-tree-select-item-radius` | `branch-control`<br>`item` | `border-radius` | `default` | `--xh-shape-inset` | tree-select 的 branch-control、item 部件 border-radius 覆盖槽。 |
 | `--xh-tree-select-label-fg` | `label` | `color` | `default` | `--xh-fg-default` | tree-select 的 label 部件 color 覆盖槽。 |
-| `--xh-tree-select-label-font-size` | `label` | `font-size` | `default` | `--xh-_tree-select-label-font-size` | tree-select 的 label 部件 font-size 覆盖槽。 |
+| `--xh-tree-select-label-font-size` | `label` | `font-size` | `default` | `--xh-text-label-size` | tree-select 的 label 部件 font-size 覆盖槽。 |
 | `--xh-tree-select-label-font-weight` | `label` | `font-weight` | `default` | `--xh-text-label-weight` | tree-select 的 label 部件 font-weight 覆盖槽。 |
 | `--xh-tree-select-layer` | `positioner` | `z-index` | `default` | `--xh-_layer` | tree-select 的 positioner 部件 z-index 覆盖槽。 |
 | `--xh-tree-select-loading-fg` | `loading` | `color` | `default` | `--xh-material-frosted-fg-muted` | tree-select 的 loading 部件 color 覆盖槽。 |
 | `--xh-tree-select-loading-font-size` | `loading` | `font-size` | `default` | `--xh-_tree-select-font-size` | tree-select 的 loading 部件 font-size 覆盖槽。 |
 | `--xh-tree-select-loading-px` | `loading` | `padding-inline` | `default` | `--xh-_tree-select-row-px` | tree-select 的 loading 部件 padding-inline 覆盖槽。 |
 | `--xh-tree-select-loading-py` | `loading` | `padding-block` | `default` | `--xh-space-3` | tree-select 的 loading 部件 padding-block 覆盖槽。 |
-| `--xh-tree-select-placeholder-fg` | `value-text` | `color` | `placeholder` | `--xh-fg-subtle` | tree-select 的 value-text 部件 color 覆盖槽。 |
+| `--xh-tree-select-placeholder-fg` | `input`<br>`value-text` | `color` | `placeholder`<br>`xh-field-input` | `--xh-fg-subtle` | tree-select 的 input、value-text 部件 color 覆盖槽。 |
+| `--xh-tree-select-search-divider` | `input` | `border-block-end` | `default` | `--xh-material-frosted-separator` | tree-select 的 input 部件 border-block-end 覆盖槽。 |
+| `--xh-tree-select-tag-list-gap` | `tag-list` | `gap` | `xh-tag-list` | `--xh-space-1` | tree-select 的 tag-list 部件 gap 覆盖槽。 |
 | `--xh-tree-select-tree-gap` | `tree` | `gap` | `default` | `--xh-list-option-gap` | tree-select 的 tree 部件 gap 覆盖槽。 |
 | `--xh-tree-select-trigger-fg` | `trigger` | `color` | `default` | `--xh-fg-default` | tree-select 的 trigger 部件 color 覆盖槽。 |
 | `--xh-tree-select-trigger-font-size` | `trigger` | `font-size` | `default` | `--xh-_tree-select-font-size` | tree-select 的 trigger 部件 font-size 覆盖槽。 |
@@ -3522,7 +3881,9 @@ const doc = ref<string[]>(["guide"]);
 
 ### 动效
 
-关键帧 `xh-overlay-slide-in` · `xh-overlay-slide-out` 随皮肤自带，不引用别处文件里的名字；`background` · `border-color` · `color` · `rotate` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 切换 · 指示与换位 · 出现（锚定列表） · 出现（无锚定弹出）（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-fade-out` · `xh-overlay-slide-in` · `xh-overlay-slide-out` · `xh-pop-in` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立；`-webkit-mask-size` · `mask-size` · `opacity` · `rotate` · `text-decoration-color` · `translate` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 皮肤之外还有一段：退场由适配器的退场闸门把关，动画播完才真收起。
 
@@ -3530,4 +3891,4 @@ const doc = ref<string[]>(["guide"]);
 
 ### RTL
 
-皮肤用逻辑属性排布（`inline-start` 一族），`dir="rtl"` 下自动镜像；另有按 `dir` 分支的规则。
+皮肤用逻辑属性排布（`inline-start` 一族），`dir="rtl"` 下自动镜像；只认物理方向的量乘 `--xh-direction-sign` 换向，按就近的 `dir` 走。

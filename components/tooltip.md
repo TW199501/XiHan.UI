@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/tooltip
 
-# Tooltip 文字提示 `alpha`
+# Tooltip 文字提示
 
 悬停或聚焦时出现的一句纯文字说明。
 
@@ -14,7 +14,7 @@
 
 ## 用法
 
-悬停或聚焦触发器即出；指针停在提示上也不收起
+悬停或聚焦触发器即显示；指针停在提示上也不收起
 
 ```vue
 <script setup lang="ts">
@@ -62,7 +62,7 @@ import {
 
 ### 朝向
 
-placement 是请求值，空间不够时由定位引擎避让；箭头跟着最终落定的那一面走
+placement 是请求值，空间不足时由定位引擎避让；箭头跟随最终落定的一面
 
 ```vue
 <script setup lang="ts">
@@ -148,7 +148,7 @@ const placements = [
 
 ### 延时
 
-openDelay 默认 700ms 用来防误触，closeDelay 默认 300ms 留出指针走位的余地；聚焦不走这两段等待
+openDelay 默认 700ms 用于防误触，closeDelay 默认 300ms 留出指针移动的余地；聚焦不经这两段等待
 
 ```vue
 <script setup lang="ts">
@@ -213,7 +213,7 @@ import {
 
 ### 禁用
 
-disabled 只关掉提示本身，被包裹的触发器照样可点、可聚焦
+disabled 只关闭提示本身，被包裹的触发器照常可点击、可聚焦
 
 ```vue
 <script setup lang="ts">
@@ -267,7 +267,7 @@ const clicks = ref(0);
 
 ### 颜色
 
-六种语气换的是浮层实心底与其上的文字色，箭头一并跟着走；把指针停在触发器上（或用 Tab 聚焦）看差别
+六种语气更换浮层实心底与其上的文字色，箭头一并随之变化；把指针停在触发器上（或用 Tab 聚焦）查看差别
 
 ```vue
 <script setup lang="ts">
@@ -376,7 +376,7 @@ const tones = [
 
 ### 尺寸
 
-三档换的是浮层的内边距与字号，不写 size 即缺省档；把指针停在触发器上（或用 Tab 聚焦）看差别
+三档改变浮层的内边距与字号，不写 size 即默认档；把指针停在触发器上（或用 Tab 聚焦）查看差别
 
 ```vue
 <script setup lang="ts">
@@ -452,7 +452,7 @@ const sizes = [
 
 ### 受控
 
-传了 open 就由宿主说了算；悬停、聚焦、Escape 都只发意图，最终写不写由外面这份状态决定
+传入 open 后由宿主决定；悬停、聚焦、Escape 都只发意图，最终是否写回由外部的这份状态决定
 
 ```vue
 <script setup lang="ts">
@@ -542,7 +542,7 @@ function onOpenChange(details: { open: boolean }) {
 
 ### 长文案
 
-提示到了宽度上限就换行，不会拉成一条横线；上限是 content 上的 --xh-tooltip-max-w 槽位
+提示到达宽度上限后换行，不会拉成一条横线；上限是 content 上的 --xh-tooltip-max-w 槽位
 
 ```vue
 <script setup lang="ts">
@@ -606,26 +606,129 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 </div>
 ```
 
+### 提示组
+
+XhTooltipProvider 把一排提示放进同一组：没写延时的取组的缺省，组里另一个开着时指向下一个直接接替，同一时刻只开一个
+
+```vue
+<script setup lang="ts">
+import {
+  XhTooltipContent,
+  XhTooltipPositioner,
+  XhTooltipProvider,
+  XhTooltipRoot,
+  XhTooltipTrigger,
+} from "@xihan-ui/vue";
+
+const tools = [
+  { label: "加粗", tip: "加粗（Ctrl+B）" },
+  { label: "斜体", tip: "斜体（Ctrl+I）" },
+  { label: "下划线", tip: "下划线（Ctrl+U）" },
+];
+</script>
+
+<template>
+  <XhTooltipProvider :open-delay="400" :skip-delay-duration="500">
+    <div style="display: flex; gap: 8px">
+      <XhTooltipRoot v-for="tool in tools" :key="tool.label">
+        <XhTooltipTrigger>{{ tool.label }}</XhTooltipTrigger>
+        <XhTooltipPositioner>
+          <XhTooltipContent>{{ tool.tip }}</XhTooltipContent>
+        </XhTooltipPositioner>
+      </XhTooltipRoot>
+    </div>
+  </XhTooltipProvider>
+</template>
+```
+
+```html
+<xh-tooltip-provider open-delay="400" skip-delay-duration="500">
+  <div style="display: flex; gap: 8px">
+    <xh-tooltip>
+      <button data-xh-part="trigger">加粗</button>
+      <div data-xh-part="positioner">
+        <div data-xh-part="content">加粗（Ctrl+B）</div>
+      </div>
+    </xh-tooltip>
+    <xh-tooltip>
+      <button data-xh-part="trigger">斜体</button>
+      <div data-xh-part="positioner">
+        <div data-xh-part="content">斜体（Ctrl+I）</div>
+      </div>
+    </xh-tooltip>
+    <xh-tooltip>
+      <button data-xh-part="trigger">下划线</button>
+      <div data-xh-part="positioner">
+        <div data-xh-part="content">下划线（Ctrl+U）</div>
+      </div>
+    </xh-tooltip>
+  </div>
+</xh-tooltip-provider>
+```
+
+### 跟随鼠标
+
+followCursor 让提示锚在指针落点上并随移动更新；触屏与键盘聚焦时仍锚在触发器上
+
+```vue
+<script setup lang="ts">
+import {
+  XhTooltipArrow,
+  XhTooltipContent,
+  XhTooltipPositioner,
+  XhTooltipRoot,
+  XhTooltipTrigger,
+} from "@xihan-ui/vue";
+</script>
+
+<template>
+  <XhTooltipRoot follow-cursor :open-delay="0">
+    <XhTooltipTrigger style="inline-size: 100%; block-size: 96px">在这块区域里移动指针</XhTooltipTrigger>
+    <XhTooltipPositioner>
+      <XhTooltipContent>
+        提示跟着指针走
+        <XhTooltipArrow />
+      </XhTooltipContent>
+    </XhTooltipPositioner>
+  </XhTooltipRoot>
+</template>
+```
+
+```html
+<xh-tooltip follow-cursor open-delay="0">
+  <button data-xh-part="trigger" style="inline-size: 100%; block-size: 96px">在这块区域里移动指针</button>
+  <div data-xh-part="positioner">
+    <div data-xh-part="content">
+      提示跟着指针走
+      <div data-xh-part="arrow"></div>
+    </div>
+  </div>
+</xh-tooltip>
+```
+
 ## 设计指引
 
 ### 何时使用
 
-- 补充说明一个图标按钮是什么、一个截断的文字全文是什么。
+- 补充说明图标按钮的含义，或截断文字的全文。
 - 内容是纯文字，且没有任何可交互元素。
 
 ### 何时不用
 
-- 内容里有按钮或链接：用[气泡卡片](./popover)——提示是够不着的。
-- 信息重要到不能错过：写在界面上，别藏进悬停。
-- 触摸设备是主要场景：那里没有悬停。
+- 内容中有按钮或链接时，使用[气泡卡片](./popover)，提示无法交互。
+- 信息重要到不能错过时，写在界面上，不放进悬停。
+- 触摸设备是主要场景时，没有悬停。
 
 ### 特性
 
-- `openDelay` / `closeDelay` 防止指针路过时一路闪。
-- 聚焦也能触发，键盘用户拿得到。
+- `openDelay` / `closeDelay` 防止指针经过时连续闪烁。
+- 同页的提示共用一个接替窗口（`skipDelayDuration`，默认 300ms）：另一个提示还开着、或刚收起一个不到这么久时，指向下一个不再等 `openDelay`、也不播进场，直接接替，上一个随之收起。横扫一排工具栏钮时提示一个个跟上。
+- `XhTooltipProvider`（Web Components 为 `<xh-tooltip-provider>` 容器元素）把子树里的提示放进同一组：组内共用接替窗口、同一时刻只开一个，不同组之间互不接替、互不收起；组上的 `openDelay` / `closeDelay` / `skipDelayDuration` 是组内提示的缺省，提示自己写了就以提示为准。没放进 Provider 的提示同属页面级的那一组。Provider 自身不渲染节点，Web Components 那个元素是 `display: contents`。
+- `followCursor` 让由指针打开的提示锚在指针落点上，指针在触发器上挪动时跟过去；触屏没有悬停落点、键盘聚焦没有指针，这两种情形仍锚在触发器上。跟随中的浮层不接指针，免得挡住触发器上的移动；位置跟手，不做过渡。
+- 聚焦也能触发，键盘用户可以访问。
 - 语气与尺寸两轴。
-- 默认保持反白的小型 M2 表面，与承载操作的 Popover 分开；六种语气都使用高遮蔽 tint 与不透明文字，箭头和气泡同色同边。
-- 进退场只做侧向短移与透明度，120ms 内完成，不缩放文字和箭头。
+- 默认保持反白的小型 M2 表面（compact 档 frosted），与承载操作的 Popover 分开；六种语气都使用高遮蔽 tint 与不透明文字，箭头和气泡同色同边。边界由 on 色 20% 的拼色描边承担（frosted 的透明深边压在反白底上看不见），不画顶部高光；圆角取 4px 控件档。
+- 进退场只做侧向短移与透明度，不缩放文字和箭头：入场 `--xh-motion-duration-enter`（200ms），退场 `--xh-motion-duration-exit`（120ms），与其他锚定列表浮层同一节奏。
 
 ### 组合
 
@@ -633,19 +736,19 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 
 ### 最佳实践
 
-- 一句话讲完，超过一行就该换别的形式。
+- 一句话说完，超过一行应换其他形式。
 - 必须显示较长的单句时让它在最大宽度内换行；连续长词也会断行，不会把浮层撑出窄屏。
-- 图标按钮的可及名字要写在按钮上（`aria-label`），提示只是视觉补充。
+- 图标按钮的可访问名称写在按钮上（`aria-label`），提示只是视觉补充。
 
 ### 当前边界
 
-- 当前尚无 TooltipProvider，多个目标间的统一 delay、skip-delay、同组互斥与触发器滚动关闭仍是后续独立行为功能；本次不以样式模拟这些时序。
+- 触发器滚动关闭仍是后续独立行为功能。
 - 共享浮层位移原语当前最小档是 4px；Tooltip 先与 Menu 使用同一 `xh-overlay-slide-in/out` 定义。规格中的 2px 需要新增公共 motion distance 档后统一接入，不能局部改写现有语义令牌。
 
 ### 反模式
 
-- 把唯一的操作说明放进提示：触摸用户永远看不到。
-- 提示里放链接。
+- 把唯一的操作说明放进提示，触摸用户无法看到。
+- 提示内放链接。
 
 ## API 参考
 
@@ -654,7 +757,7 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 | 层 | 值 |
 | --- | --- |
 | 自定义元素 | `<xh-tooltip>` |
-| Vue 组件 | `XhTooltipArrow` `XhTooltipContent` `XhTooltipPositioner` `XhTooltipRoot` `XhTooltipTrigger` |
+| Vue 组件 | `XhTooltipArrow` `XhTooltipContent` `XhTooltipPositioner` `XhTooltipProvider` `XhTooltipRoot` `XhTooltipTrigger` |
 | 组合式函数 | `useTooltip` |
 | 状态机 | `tooltipMachine` |
 | 皮肤 | `@xihan-ui/styles/tooltip.css` |
@@ -666,14 +769,16 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 | `open` | `boolean` |  |  |
 | `defaultOpen` | `boolean` |  |  |
 | `placement` | `Placement` |  | 请求的浮层朝向，默认 bottom；空间不足时由定位引擎避让。 |
-| `dir` | `Direction` |  | 文字方向，缺省 ltr。只改写浮层在行内轴上 start 与 end 的落点。 |
+| `dir` | `Direction` |  | 文字方向，默认 ltr。只改写浮层在行内轴上 start 与 end 的落点。 |
 | `offset` | `number` |  | 浮层与锚点的间距（px）。 |
 | `openDelay` | `number` |  | 悬停进入到展开的等待毫秒，默认 700。 |
 | `closeDelay` | `number` |  | 悬停移出到收起的等待毫秒，默认 300。 |
+| `skipDelayDuration` | `number` |  | 跳过等待的窗口毫秒，默认 300：另一个提示还开着，或刚收起一个不到这么久时，指向这一个不等 openDelay、 也不播进场，直接接替（上一个随之收起）。0 或负数表示不参与接替，每次都等 openDelay。 |
 | `disabled` | `boolean` |  | 只关闭提示本身，不影响被包裹控件的可用性。 |
+| `followCursor` | `boolean` |  | 跟随鼠标：由指针打开的提示锚在指针落点上，随指针在 trigger 上移动而更新，默认 false。 触屏没有悬停落点、聚焦打开没有指针，这两种情形退回锚定到 trigger。 |
 | `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定提示的底色与其上的文字色。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg，决定内边距与字号档位。 |
-| `onOpenChange` | `(details: TooltipOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控随内部转移一并通知。 |
+| `onOpenChange` | `(details: TooltipOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控时随内部转移一并通知。 |
 
 ### 事件
 
@@ -691,6 +796,19 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 | --- | --- | --- | --- |
 | `XhTooltipRoot` | `default` | `TooltipRootSlotProps` |  |
 
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhTooltipPositioner` | `container` | `() => Element \| null` |  | 浮层挂载的容器；未提供时按全局配置，再未提供时挂载到 body。 |
+| `XhTooltipProvider` | `openDelay` | `number` |  | 组内提示悬停进入到展开的缺省等待毫秒；提示自己写了就以提示为准。 |
+| `XhTooltipProvider` | `closeDelay` | `number` |  | 组内提示悬停移出到收起的缺省等待毫秒。 |
+| `XhTooltipProvider` | `skipDelayDuration` | `number` |  | 组内提示的缺省接替窗口毫秒；0 表示组内不接替。 |
+| `XhTooltipProvider` | `children` | `ReactNode` |  |  |
+| `XhTooltipRoot` | `children` | `SlotChildren<TooltipRootSlotProps>` |  |  |
+
 ### 状态
 
 公开状态写入 `data-state`。
@@ -705,7 +823,7 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 
 **状态**：`closed` · `opening` · `visible` · `visible.open` · `visible.closing`
 
-**事件**：`POINTER.ENTER` · `POINTER.LEAVE` · `POINTER.DOWN` · `FOCUS` · `BLUR` · `ESCAPE` · `OPEN` · `CLOSE` · `after.openDelay` · `after.closeDelay` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE`
+**事件**：`POINTER.ENTER` · `POINTER.MOVE` · `POINTER.LEAVE` · `POINTER.DOWN` · `FOCUS` · `BLUR` · `ESCAPE` · `OPEN` · `CLOSE` · `after.openDelay` · `after.closeDelay` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE`
 
 **判据**：`isOpenControlled` · `isDisabled` · `isFocusOpened`
 
@@ -748,7 +866,7 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 
 ### 皮肤
 
-`@xihan-ui/styles/tooltip.css` 使用 `[data-scope="tooltip"][data-part="trigger"]` 部件选择器，位于 `xihan.components` 与 `xihan.motion` 层。覆盖样式使用 `xihan.overrides`。
+`@xihan-ui/styles/tooltip.css` 使用 `[data-scope="tooltip"][data-part="trigger"]` 部件选择器，位于 `xihan.components` 层。覆盖样式使用 `xihan.overrides`。
 
 `forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
 
@@ -760,29 +878,32 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 | --- | --- | --- |
 | `trigger` | `data-disabled` | ''（条件成立时才出现） |
 | `trigger` | `data-state` | 'open' \| 'closed' |
+| `positioner` | `data-follow-cursor` | ''（条件成立时才出现） |
 | `positioner` | `data-hidden` | ''（条件成立时才出现） |
 | `positioner` | `data-placement` | 定位引擎算出的实际落位 |
 | `positioner` | `data-positioned` | ''（条件成立时才出现） |
 | `positioner` | `data-state` | 'open' \| 'closed' |
+| `content` | `data-instant` | ''（条件成立时才出现） |
 | `content` | `data-size` | props.size |
 | `content` | `data-state` | 'open' \| 'closed' |
 | `content` | `data-tone` | props.tone |
+| `content` | `data-xh-ink-surface` | '' |
 | `arrow` | `data-placement` | 定位引擎算出的实际落位 |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
 | `--xh-tooltip-arrow-size` | `arrow` | `--xh-_overlay-arrow-size` | `default` | `--xh-overlay-arrow-size` | tooltip 的 arrow 部件 --xh-_overlay-arrow-size 覆盖槽。 |
 | `--xh-tooltip-backdrop` | `content` | `-webkit-backdrop-filter`<br>`backdrop-filter` | `default` | `--xh-material-frosted-compact-backdrop` | tooltip 的 content 部件 -webkit-backdrop-filter、backdrop-filter 覆盖槽。 |
-| `--xh-tooltip-bg` | `arrow`<br>`content` | `background` | `default` | `--xh-_tooltip-solid` | tooltip 的 arrow、content 部件 background 覆盖槽。 |
+| `--xh-tooltip-bg` | `arrow`<br>`content` | `--xh-ink-surface`<br>`background` | `default`<br>`xh-ink-surface` | `--xh-_tooltip-solid` | tooltip 的 arrow、content 部件 --xh-ink-surface、background 覆盖槽。 |
 | `--xh-tooltip-border` | `arrow`<br>`content` | `border` | `default` | `--xh-_tooltip-border` | tooltip 的 arrow、content 部件 border 覆盖槽。 |
 | `--xh-tooltip-fg` | `content` | `color` | `default` | `--xh-_tooltip-on` | tooltip 的 content 部件 color 覆盖槽。 |
 | `--xh-tooltip-font-size` | `content` | `font-size` | `default` | `--xh-_tooltip-font-size` | tooltip 的 content 部件 font-size 覆盖槽。 |
-| `--xh-tooltip-highlight` | `content` | `box-shadow` | `default` | `--xh-_tooltip-highlight` | tooltip 的 content 部件 box-shadow 覆盖槽。 |
+| `--xh-tooltip-highlight` | `content` | `box-shadow` | `default` | `transparent` | tooltip 的 content 部件 box-shadow 覆盖槽。 |
 | `--xh-tooltip-layer` | `positioner` | `z-index` | `default` | `--xh-_layer` | tooltip 的 positioner 部件 z-index 覆盖槽。 |
 | `--xh-tooltip-max-w` | `content` | `max-inline-size` | `default` | `--xh-overlay-max-w` | tooltip 的 content 部件 max-inline-size 覆盖槽。 |
 | `--xh-tooltip-px` | `content` | `padding-inline` | `default` | `--xh-_tooltip-px` | tooltip 的 content 部件 padding-inline 覆盖槽。 |
@@ -794,7 +915,9 @@ const text = "导出会把当前筛选条件下的全部行写进文件，行数
 
 ### 动效
 
-关键帧 `xh-overlay-slide-in` · `xh-overlay-slide-out` 随皮肤自带，不引用别处文件里的名字。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：出现（锚定列表）（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-overlay-slide-in` · `xh-overlay-slide-out` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 皮肤之外还有一段：退场由适配器的退场闸门把关，动画播完才真收起。
 

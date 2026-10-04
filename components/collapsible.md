@@ -1,8 +1,8 @@
 来源：https://ui.docs.xihanfun.com/components/collapsible
 
-# Collapsible 折叠区域 `alpha`
+# Collapsible 折叠区域
 
-一块可以展开收起的内容，只有一块。
+一块可以展开与收起的单块内容。
 
 <div class="xh-resource-links">
   <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/engine/headless/src/collapsible" target="_blank" rel="noreferrer">Headless</a>
@@ -14,7 +14,7 @@
 
 ## 用法
 
-不传 open 即为非受控，defaultOpen 只给初始值，之后由组件自己维护开合
+不传 open 即为非受控，defaultOpen 只提供初始值，之后由组件自行维护开合
 
 ```vue
 <script setup lang="ts">
@@ -87,7 +87,7 @@ import {
 
 ### 受控
 
-传了 open 就由宿主说了算，组件自己不再改状态，只发 open-change 报告意图
+传入 open 后由宿主决定，组件自身不再修改状态，只发 open-change 报告意图
 
 ```vue
 <script setup lang="ts">
@@ -158,7 +158,7 @@ const open = ref(false);
 
 ### 禁用
 
-disabled 把触发器整个关停，点击与键盘都不再改开合，已展开的内容维持原样
+disabled 把触发器整个关停，点击与键盘都不再改变开合，已展开的内容维持原样
 
 ```vue
 <script setup lang="ts">
@@ -204,7 +204,7 @@ import {
 
 ### 尺寸
 
-size 换的是触发按钮的高度、内边距与字号，三档并排对照
+size 改变触发按钮的高度、内边距与字号，三档并排对照
 
 ```vue
 <script setup lang="ts">
@@ -276,7 +276,7 @@ import {
 
 ### 自定义展开标记
 
-往指示符部件里塞自己的图形，转向仍由皮肤按 open 接管
+在指示符部件中放置自己的图形，转向仍由皮肤按 open 接管
 
 ```vue
 <script setup lang="ts">
@@ -345,7 +345,7 @@ const open = ref(false);
 
 ### 展开动画
 
-收起时节点不卸载，作者接管内容区的 display，用一条行高过渡就能平滑展开
+收起时节点不卸载，作者接管内容区的 display，用一条行高过渡即可平滑展开
 
 ```vue
 <script setup lang="ts">
@@ -508,35 +508,136 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"];
 </div>
 ```
 
+### 内容懒挂载
+
+lazyMount 让内容第一次展开时才挂载，之后收起只隐藏；再加 unmountOnExit 即只在展开期间存在，收起动画播完就卸载，里面输入的内容再展开时已清空
+
+```vue
+<script setup lang="ts">
+import {
+  XhCollapsibleContent,
+  XhCollapsibleIndicator,
+  XhCollapsibleRoot,
+  XhCollapsibleTrigger,
+  XhTextFieldControl,
+  XhTextFieldInput,
+  XhTextFieldLabel,
+  XhTextFieldRoot,
+} from "@xihan-ui/vue";
+</script>
+
+<template>
+  <div style="width: 100%; max-width: 420px; display: grid; gap: 12px">
+    <XhCollapsibleRoot lazy-mount>
+      <XhCollapsibleTrigger>
+        第一次展开才挂载
+        <XhCollapsibleIndicator />
+      </XhCollapsibleTrigger>
+      <XhCollapsibleContent>
+        <XhTextFieldRoot placeholder="输入后收起再展开，内容还在">
+          <XhTextFieldLabel>备注</XhTextFieldLabel>
+          <XhTextFieldControl>
+            <XhTextFieldInput />
+          </XhTextFieldControl>
+        </XhTextFieldRoot>
+      </XhCollapsibleContent>
+    </XhCollapsibleRoot>
+
+    <XhCollapsibleRoot lazy-mount unmount-on-exit>
+      <XhCollapsibleTrigger>
+        只在展开期间存在
+        <XhCollapsibleIndicator />
+      </XhCollapsibleTrigger>
+      <XhCollapsibleContent>
+        <XhTextFieldRoot placeholder="输入后收起再展开，内容已清空">
+          <XhTextFieldLabel>草稿</XhTextFieldLabel>
+          <XhTextFieldControl>
+            <XhTextFieldInput />
+          </XhTextFieldControl>
+        </XhTextFieldRoot>
+      </XhCollapsibleContent>
+    </XhCollapsibleRoot>
+  </div>
+</template>
+```
+
+```html
+<!-- 自定义元素的内容写在 content 里的 <template> 中：解析时不实例化，第一次展开才克隆出来，卸载后再展开重新克隆 -->
+<div style="width: 100%; max-width: 420px; display: grid; gap: 12px">
+  <xh-collapsible lazy-mount>
+    <div data-xh-part="root">
+      <button data-xh-part="trigger">
+        第一次展开才挂载
+        <span data-xh-part="indicator"></span>
+      </button>
+      <div data-xh-part="content">
+        <template>
+          <xh-text-field placeholder="输入后收起再展开，内容还在">
+            <div data-xh-part="root">
+              <label data-xh-part="label">备注</label>
+              <div data-xh-part="control">
+                <input data-xh-part="input" />
+              </div>
+            </div>
+          </xh-text-field>
+        </template>
+      </div>
+    </div>
+  </xh-collapsible>
+
+  <xh-collapsible lazy-mount unmount-on-exit>
+    <div data-xh-part="root">
+      <button data-xh-part="trigger">
+        只在展开期间存在
+        <span data-xh-part="indicator"></span>
+      </button>
+      <div data-xh-part="content">
+        <template>
+          <xh-text-field placeholder="输入后收起再展开，内容已清空">
+            <div data-xh-part="root">
+              <label data-xh-part="label">草稿</label>
+              <div data-xh-part="control">
+                <input data-xh-part="input" />
+              </div>
+            </div>
+          </xh-text-field>
+        </template>
+      </div>
+    </div>
+  </xh-collapsible>
+</div>
+```
+
 ## 设计指引
 
 ### 何时使用
 
-- 高级选项、补充说明这类默认不需要看见的单块内容。
+- 高级选项、补充说明等默认不需要显示的单块内容。
 
 ### 何时不用
 
-- 有好几块并列的可折叠内容：用[手风琴](./accordion)，它管互斥与整组语义。
-- 内容需要浮在页面之上：用[气泡卡片](./popover)。
+- 有多块并列的可折叠内容时，使用[手风琴](./accordion)，它负责互斥与整组语义。
+- 内容需要浮在页面之上时，使用[气泡卡片](./popover)。
 
 ### 特性
 
 - 触发器与内容通过 `aria-controls` 与 `aria-expanded` 关联。
-- 展开动画由皮肤给，内容高度由组件量出来。
-- 指示符部件空着由皮肤画一枚箭头，塞进图形即以作者的为准，转向两种情形都由皮肤打。
+- 展开动画由皮肤提供，内容高度由组件测量。
+- 指示符部件留空时由皮肤绘制箭头，放入图形时以作者提供的为准，两种情形的转向都由皮肤处理。
+- 内容缺省随组件一起挂载、收起只隐藏；`lazyMount` 让它第一次展开才挂载，`unmountOnExit` 让它在收起动画播完后卸载、再展开时重新挂载。content 节点本身始终在场，`aria-controls` 不会指空。Web Components 里把内容写进 content 里的一个 `<template>`，解析时不实例化，挂载时克隆、卸载时丢弃；没写模板时卸载只是把节点暂时摘下、挂载时原样放回。
 
 ### 组合
 
-- 放进[卡片](./card)、[表单](./form)的高级选项区。
+- 放入[卡片](./card)、[表单](./form)的高级选项区。
 
 ### 最佳实践
 
-- 触发器文字说明里面是什么，别只写"展开"。
-- 收起时内容退出 Tab 序列，别让焦点落到看不见的地方。
+- 触发器文字说明内容是什么，不只写“展开”。
+- 收起时内容退出 Tab 序列，焦点不落到不可见的位置。
 
 ### 反模式
 
-- 把必填字段藏进折叠区：用户提交失败也不知道错在哪。
+- 把必填字段放进折叠区，用户提交失败时无法定位错误。
 
 ## API 参考
 
@@ -559,8 +660,10 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"];
 | `disabled` | `boolean` |  |  |
 | `tone` | `Tone` |  | 颜色：brand / neutral / success / warning / danger / info，决定使用哪组状态色。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg。 |
-| `dir` | `Direction` |  | 文字方向，只作用于排版；作者没给就不写。 |
-| `onOpenChange` | `(details: CollapsibleOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控随内部转移一并通知。 |
+| `dir` | `Direction` |  | 文字方向，只作用于排版；作者未提供时不写入。 |
+| `lazyMount` | `boolean` |  | 内容第一次展开时才挂载，默认 false（随组件一起挂载、收起时只隐藏）。 收起的内容很重（图表、长列表、iframe）且多数用户不会展开时打开它。 |
+| `unmountOnExit` | `boolean` |  | 收起动画播完后卸载内容，再展开时重新挂载，默认 false。 内容里的输入与滚动位置随之丢失；与 lazyMount 一起用即「只在展开期间存在」。 |
+| `onOpenChange` | `(details: CollapsibleOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控时随内部转移一并通知。 |
 
 ### 事件
 
@@ -569,6 +672,14 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"];
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `open-change` | `CollapsibleOpenChangeDetails` | open 状态变化；detail 为 `{ open: boolean }` |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhCollapsibleRoot` | `children` | `ReactNode` |  |  |
 
 ### 状态
 
@@ -586,9 +697,9 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"];
 
 **状态**：`open` · `closed`
 
-**事件**：`OPEN` · `CLOSE` · `TOGGLE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE`
+**事件**：`OPEN` · `CLOSE` · `TOGGLE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `PRESS.START` · `PRESS.END`
 
-**判据**：`isOpenControlled`
+**判据**：`isOpenControlled` · `canPress`
 
 ### connect API
 
@@ -603,6 +714,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"];
 | `getTriggerProps` | `() => T['button']` |  |
 | `getContentProps` | `() => T['element']` |  |
 | `getIndicatorProps` | `() => T['element']` |  |
+| `isContentMounted` | `(present: boolean) => boolean` | content 里的内容此刻该不该挂载。`present` 是适配器的退场闸门：展开中或收起动画还没播完为真。 未打开 lazyMount / unmountOnExit 时恒为真；content 节点本身始终在场，只有它的内容按此挂卸。 |
 
 ## 无障碍
 
@@ -613,6 +725,7 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"];
 | 按键 | 生效条件 | 行为 |
 | --- | --- | --- |
 | `Space` / `Enter` | focus in trigger, not disabled | 展开/收起 content |
+| `Enter` / `Space` | held in trigger, not disabled | 按住期间 trigger 投影 data-pressed，与指针 :active 同一副按压面（disclosure trigger 只换面不缩放）；抬起、失焦或转禁用撤下 |
 
 ### ARIA
 
@@ -630,6 +743,8 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"];
 
 `@xihan-ui/styles/collapsible.css` 使用 `[data-scope="collapsible"][data-part="root"]` 部件选择器，位于 `xihan.components` 与 `xihan.motion` 层。覆盖样式使用 `xihan.overrides`。
 
+`forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
+
 ### 数据属性
 
 由 `connect` 生成；条件不成立时不输出无值属性。
@@ -643,41 +758,52 @@ const tones = ["brand", "neutral", "success", "warning", "danger", "info"];
 | `header` | `data-disabled` | ''（条件成立时才出现） |
 | `header` | `data-state` | 'open' \| 'closed' |
 | `trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `trigger` | `data-pressed` | ''（条件成立时才出现） |
 | `trigger` | `data-state` | 'open' \| 'closed' |
+| `trigger` | `data-xh-action-control` | '' |
+| `trigger` | `data-xh-action-display` | 'always' |
+| `trigger` | `data-xh-action-profile` | 'disclosure-trigger' |
+| `trigger` | `data-xh-action-size` | props.size |
+| `trigger` | `data-xh-action-variant` | 'ghost' |
+| `content` | `data-instant` | ''（条件成立时才出现） |
 | `content` | `data-state` | 'open' \| 'closed' |
 | `indicator` | `data-disabled` | ''（条件成立时才出现） |
+| `indicator` | `data-instant` | ''（条件成立时才出现） |
 | `indicator` | `data-state` | 'open' \| 'closed' |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
 | `--xh-collapsible-content-fg` | `content` | `color` | `default` | `--xh-fg-muted` | collapsible 的 content 部件 color 覆盖槽。 |
 | `--xh-collapsible-content-font-size` | `content` | `font-size` | `default` | `--xh-text-secondary-size` | collapsible 的 content 部件 font-size 覆盖槽。 |
-| `--xh-collapsible-content-pb` | `*`<br>`content` | `padding-block-end` | `@keyframes xh-collapsible-collapse`<br>`@keyframes xh-collapsible-expand`<br>`default` | `--xh-_collapsible-content-pb` | collapsible 的 *、content 部件 padding-block-end 覆盖槽。 |
+| `--xh-collapsible-content-pb` | `content` | `padding-block-end` | `@keyframes xh-disclosure-collapse`<br>`@keyframes xh-disclosure-expand`<br>`default` | `--xh-_collapsible-content-pb` | collapsible 的 content 部件 padding-block-end 覆盖槽。 |
 | `--xh-collapsible-content-px` | `content` | `padding-inline` | `default` | `--xh-_collapsible-content-px` | collapsible 的 content 部件 padding-inline 覆盖槽。 |
 | `--xh-collapsible-header-gap` | `header` | `gap` | `default` | `--xh-_collapsible-trigger-gap` | collapsible 的 header 部件 gap 覆盖槽。 |
-| `--xh-collapsible-icon-size` | `root` | `--xh-icon-size` | `default` | `--xh-glyph-size-text` | collapsible 的 root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-collapsible-icon-size` | `root`<br>`trigger` | `--xh-icon-size` | `default` | `--xh-_action-profile-glyph-size`<br>`--xh-glyph-size-md` | collapsible 的 root、trigger 部件 --xh-icon-size 覆盖槽。 |
 | `--xh-collapsible-indicator-fg` | `indicator` | `color` | `default` | `--xh-fg-muted` | collapsible 的 indicator 部件 color 覆盖槽。 |
-| `--xh-collapsible-trigger-bg` | `trigger` | `background` | `default` | `transparent` | collapsible 的 trigger 部件 background 覆盖槽。 |
-| `--xh-collapsible-trigger-bg-hover` | `trigger` | `background` | `disabled`<br>`hover`<br>`not([data-disabled])`<br>`not([data-state='open'])`<br>`state=open` | `--xh-bg-subtle-hover` | collapsible 的 trigger 部件 background 覆盖槽。 |
-| `--xh-collapsible-trigger-fg` | `trigger` | `color` | `default` | `--xh-fg-default` | collapsible 的 trigger 部件 color 覆盖槽。 |
-| `--xh-collapsible-trigger-fg-open` | `trigger` | `color` | `state=open` | `--xh-_collapsible-open-fg` | collapsible 的 trigger 部件 color 覆盖槽。 |
-| `--xh-collapsible-trigger-font-size` | `trigger` | `font-size` | `default` | `--xh-_collapsible-trigger-font-size` | collapsible 的 trigger 部件 font-size 覆盖槽。 |
+| `--xh-collapsible-trigger-bg` | `trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | collapsible 的 trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-collapsible-trigger-bg-hover` | `trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | collapsible 的 trigger 部件 background-color 覆盖槽。 |
+| `--xh-collapsible-trigger-fg` | `trigger` | `color` | `default`<br>`disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-fg-hover`<br>`--xh-_action-variant-fg-pressed`<br>`--xh-_action-variant-fg-rest` | collapsible 的 trigger 部件 color 覆盖槽。 |
+| `--xh-collapsible-trigger-fg-disabled` | `trigger` | `color` | `disabled` | `--xh-_action-variant-fg-disabled` | collapsible 的 trigger 部件 color 覆盖槽。 |
+| `--xh-collapsible-trigger-fg-open` | `trigger` | `color` | `disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed`<br>`state=open` | `--xh-_collapsible-open-fg` | collapsible 的 trigger 部件 color 覆盖槽。 |
+| `--xh-collapsible-trigger-font-size` | `trigger` | `font-size` | `default` | `--xh-_action-profile-font-size` | collapsible 的 trigger 部件 font-size 覆盖槽。 |
 | `--xh-collapsible-trigger-font-weight` | `trigger` | `font-weight` | `default` | `--xh-text-label-weight` | collapsible 的 trigger 部件 font-weight 覆盖槽。 |
-| `--xh-collapsible-trigger-gap` | `trigger` | `gap` | `default` | `--xh-_collapsible-trigger-gap` | collapsible 的 trigger 部件 gap 覆盖槽。 |
-| `--xh-collapsible-trigger-h` | `trigger` | `min-block-size` | `default` | `--xh-_collapsible-trigger-h` | collapsible 的 trigger 部件 min-block-size 覆盖槽。 |
-| `--xh-collapsible-trigger-px` | `trigger` | `padding-inline` | `default` | `--xh-_collapsible-trigger-px` | collapsible 的 trigger 部件 padding-inline 覆盖槽。 |
-| `--xh-collapsible-trigger-py` | `trigger` | `padding-block` | `default` | `--xh-_collapsible-trigger-py` | collapsible 的 trigger 部件 padding-block 覆盖槽。 |
-| `--xh-collapsible-trigger-radius` | `trigger` | `border-radius` | `default` | `--xh-shape-control` | collapsible 的 trigger 部件 border-radius 覆盖槽。 |
+| `--xh-collapsible-trigger-gap` | `trigger` | `gap` | `default` | `--xh-_action-profile-gap` | collapsible 的 trigger 部件 gap 覆盖槽。 |
+| `--xh-collapsible-trigger-h` | `trigger` | `block-size`<br>`min-block-size` | `default`<br>`xh-action-profile=disclosure-trigger` | `--xh-_action-profile-visual-size` | collapsible 的 trigger 部件 block-size、min-block-size 覆盖槽。 |
+| `--xh-collapsible-trigger-px` | `trigger` | `padding-inline` | `default` | `--xh-_action-profile-padding-inline` | collapsible 的 trigger 部件 padding-inline 覆盖槽。 |
+| `--xh-collapsible-trigger-py` | `trigger` | `padding-block` | `xh-action-profile=disclosure-trigger` | `--xh-_action-profile-padding-block` | collapsible 的 trigger 部件 padding-block 覆盖槽。 |
+| `--xh-collapsible-trigger-radius` | `trigger` | `border-radius` | `default` | `--xh-_action-profile-radius` | collapsible 的 trigger 部件 border-radius 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
 
-关键帧 `xh-collapsible-collapse` · `xh-collapsible-expand` 随皮肤自带，不引用别处文件里的名字；`background` · `rotate` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 披露（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-disclosure-collapse` · `xh-disclosure-expand` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立；`rotate` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 皮肤之外还有一段：退场由适配器的退场闸门把关，动画播完才真收起。
 

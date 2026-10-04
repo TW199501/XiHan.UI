@@ -36,7 +36,7 @@ git log -5 --oneline
 | 三端一致性套件 | `ui/tooling/testing/src/suites` |
 | 组件文档文案 | Headless 的 `<component>.doc.md` |
 | 示例 | `docs/.vitepress/demos/<component>` |
-| 总览预览 | `docs/.vitepress/catalog/<component>.vue` |
+| 总览示意图 | `docs/.vitepress/catalog/<component>.vue`（内联 SVG，写法见设计真源 §15.2） |
 | 文档清单 | `ui/scripts/component-docs.manifest.json` |
 
 生成文件必须由真源生成，不要直接修生成结果。
@@ -123,6 +123,8 @@ pnpm --filter @xihan-ui/vue exec vitest run tests/browser/<file>.spec.ts --confi
 不要把 jsdom 的零尺寸布局或模拟 animationend 当作真实视觉证据。
 
 ## 8. 完成门禁
+
+开发中改了哪一块，先跑对应模块（`pnpm gate skin visual`，`pnpm gate --list` 列出十个模块）；检查脚本在 `tooling/scripts/<模块>/` 下，模块清单是 `tooling/scripts/gate.modules.mjs`。浏览器态同理按组件分类跑（`pnpm test:browser form --pkg=vue`，`pnpm test:browser --list` 列出分类）。
 
 任务相关检查通过后，至少运行：
 

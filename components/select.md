@@ -1,8 +1,8 @@
 来源：https://ui.docs.xihanfun.com/components/select
 
-# Select 选择器 `alpha`
+# Select 选择器
 
-从一份已知清单里选一个或多个值，选项收在浮层里。
+从已知清单中选择一个或多个值，选项收在浮层内。
 
 <div class="xh-resource-links">
   <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/engine/headless/src/select" target="_blank" rel="noreferrer">Headless</a>
@@ -78,13 +78,13 @@ const fruits = [
 
 加粗的是必需部件。
 
-`data-scope="select"`：`root` · `label` · `control` · **`trigger`** · `value-text` · `indicator` · `clear-trigger` · `tag-list` · `positioner` · **`content`** · **`list`** · `footer` · `group` · `group-label` · `item` · `item-text` · `item-indicator` · `empty` · `loading` · `hidden-select`
+`data-scope="select"`：`root` · `label` · `control` · **`trigger`** · `value-text` · `indicator` · `clear-trigger` · `tag-list` · `positioner` · **`content`** · **`list`** · `footer` · `group` · `group-label` · `item` · `item-prefix` · `item-text` · `item-description` · `item-suffix` · `item-indicator` · `empty` · `loading` · `hidden-select`
 
 ## 示例
 
 ### 多选
 
-选择多个值
+已选项在触发器里排成标签
 
 ```vue
 <script setup lang="ts">
@@ -124,6 +124,10 @@ const fruits = [
     <div data-xh-part="control">
       <button data-xh-part="trigger">
         <span data-xh-part="value-text"></span>
+        <!-- 标签行：可见的几枚由脚本按 tags 渲染，+N 那一枚常挂、由元素填字；触发器里的标签只作展示 -->
+        <span data-xh-part="tag-list">
+          <span data-xh-part="overflow-tag"></span>
+        </span>
         <span data-xh-part="indicator"></span>
       </button>
     </div>
@@ -154,12 +158,38 @@ const fruits = [
 <p>已选：<span id="select-multiple-value">apple</span></p>
 
 <script type="module">
-  // 选中集合回显在下面那行文字里
   const select = document.getElementById("select-multiple");
+  const overflow = select.querySelector('[data-xh-part="overflow-tag"]');
   const readout = document.getElementById("select-multiple-value");
-  select.addEventListener("value-change", (event) => {
+
+  // 摆得下几枚由组件按 max-tag-count 算好：按值复用已有的节点，只增删变了的那几枚
+  function renderTags() {
+    const current = new Map(
+      [...select.querySelectorAll('[data-xh-part="tag-list"] > [data-xh-part="tag"]')].map((el) => [el.getAttribute("value"), el]),
+    );
+    const next = select.tags.map((tag) => {
+      if (current.has(tag.value))
+        return current.get(tag.value);
+      const el = document.createElement("span");
+      el.setAttribute("data-xh-part", "tag");
+      el.setAttribute("value", tag.value);
+      el.textContent = tag.label;
+      return el;
+    });
+    for (const el of current.values()) {
+      if (!next.includes(el))
+        el.remove();
+    }
+    overflow.before(...next);
+  }
+
+  // 选中集合回显在标签行与下面那行文字里；等元素把这一轮更新落定再按 tags 重排
+  select.addEventListener("value-change", async (event) => {
     readout.textContent = event.detail.value.join("、") || "（无）";
+    await select.updateComplete;
+    renderTags();
   });
+  select.updateComplete.then(renderTags);
 </script>
 ```
 
@@ -989,7 +1019,7 @@ const plans = [
     <XhSelectRoot
       :default-value="['long']"
       placeholder="请选择"
-      style="--xh-select-control-min-w: 15rem; --xh-select-content-min-w: 22rem"
+      style="--xh-select-control-w: 20rem; --xh-select-content-min-w: 22rem"
     >
       <XhSelectLabel>加宽</XhSelectLabel>
       <XhSelectControl>
@@ -1050,7 +1080,7 @@ const plans = [
   <xh-select default-value="long" placeholder="请选择">
     <div
       data-xh-part="root"
-      style="--xh-select-control-min-w: 15rem; --xh-select-content-min-w: 22rem"
+      style="--xh-select-control-w: 20rem; --xh-select-content-min-w: 22rem"
     >
       <span data-xh-part="label">加宽</span>
       <div data-xh-part="control">
@@ -1706,7 +1736,6 @@ const picked = ref<string[]>(["vue", "svelte", "solid"]);
     :max-tag-count="2"
     multiple
     placeholder="请选择"
-    style="inline-size: 280px"
   >
     <XhSelectLabel>技术栈</XhSelectLabel>
     <XhSelectControl>
@@ -1743,7 +1772,7 @@ const picked = ref<string[]>(["vue", "svelte", "solid"]);
 
 ```html
 <xh-select id="select-tags" multiple max-tag-count="2" placeholder="请选择">
-  <div data-xh-part="root" style="inline-size: 280px">
+  <div data-xh-part="root">
     <span data-xh-part="label">技术栈</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -2216,7 +2245,6 @@ function submit(): void {
   if (picked.value.length === 0)
     trigger.value?.$el.focus();
 }
-
 </script>
 
 <template>
@@ -2321,7 +2349,6 @@ const teams = [
   { value: "frontend", label: "前端组" },
   { value: "server", label: "服务端组" },
 ];
-
 </script>
 
 <template>
@@ -2332,14 +2359,13 @@ const teams = [
     clearable
     label="所属小组"
     placeholder="选一个组"
-    style="inline-size: 240px"
   />
 </template>
 ```
 
 ```html
 <xh-select default-value="design" placeholder="选一个组">
-  <div data-xh-part="root" style="inline-size: 240px">
+  <div data-xh-part="root">
     <span data-xh-part="label">所属小组</span>
     <div data-xh-part="control">
       <button data-xh-part="trigger">
@@ -2609,6 +2635,225 @@ function onValueChange(details: { value: string[] }): void {
 </script>
 ```
 
+### 选项副文本
+
+一行放不下的解释写在第 2 行
+
+```vue
+<script setup lang="ts">
+import type { SelectNode } from "@xihan-ui/headless";
+import { XhSelectRoot } from "@xihan-ui/vue";
+
+const plans: SelectNode[] = [
+  { value: "free", label: "免费版", description: "单人使用，保留 30 天历史" },
+  { value: "team", label: "团队版", description: "最多 20 人，共享工作区与审计日志" },
+  { value: "enterprise", label: "企业版", description: "单点登录、私有部署与专属支持" },
+];
+</script>
+
+<template>
+  <XhSelectRoot :collection="plans" :default-value="['team']" label="订阅方案" placeholder="请选择" />
+</template>
+```
+
+```html
+<xh-select default-value="team" placeholder="请选择">
+  <div data-xh-part="root">
+    <span data-xh-part="label">订阅方案</span>
+    <div data-xh-part="control">
+      <button data-xh-part="trigger">
+        <span data-xh-part="value-text"></span>
+        <span data-xh-part="indicator"></span>
+      </button>
+    </div>
+    <div data-xh-part="positioner">
+      <div data-xh-part="content">
+        <div data-xh-part="list">
+          <div data-xh-part="item" value="free">
+            <span data-xh-part="item-text">免费版</span>
+            <span data-xh-part="item-description">单人使用，保留 30 天历史</span>
+            <span data-xh-part="item-indicator"></span>
+          </div>
+          <div data-xh-part="item" value="team">
+            <span data-xh-part="item-text">团队版</span>
+            <span data-xh-part="item-description">最多 20 人，共享工作区与审计日志</span>
+            <span data-xh-part="item-indicator"></span>
+          </div>
+          <div data-xh-part="item" value="enterprise">
+            <span data-xh-part="item-text">企业版</span>
+            <span data-xh-part="item-description">单点登录、私有部署与专属支持</span>
+            <span data-xh-part="item-indicator"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</xh-select>
+```
+
+### 行首与行尾
+
+两格交给作者，文字与副文本仍由数据铺
+
+```vue
+<script setup lang="ts">
+import type { SelectNode, SelectNodeMeta } from "@xihan-ui/headless";
+import { XhSelectRoot } from "@xihan-ui/vue";
+
+const states: SelectNode[] = [
+  { value: "open", label: "进行中", description: "已排期，尚未合并" },
+  { value: "merged", label: "已合并", description: "进入主干" },
+  { value: "closed", label: "已关闭", description: "不再处理" },
+];
+
+const dot = { open: "var(--xh-fg-warning)", merged: "var(--xh-fg-success)", closed: "var(--xh-fg-muted)" };
+const count = { open: 12, merged: 148, closed: 31 };
+const key = (node: SelectNodeMeta): keyof typeof dot => node.value as keyof typeof dot;
+</script>
+
+<template>
+  <XhSelectRoot :collection="states" :default-value="['open']" label="状态" placeholder="请选择">
+    <template #item-prefix="node">
+      <span :style="{ display: 'block', inlineSize: '8px', blockSize: '8px', borderRadius: 'var(--xh-shape-pill)', background: dot[key(node)] }" />
+    </template>
+    <template #item-suffix="node">
+      <span style="color: var(--xh-fg-muted); font-size: var(--xh-control-caption-md)">{{ count[key(node)] }}</span>
+    </template>
+  </XhSelectRoot>
+</template>
+```
+
+```html
+<xh-select default-value="open" placeholder="请选择">
+  <div data-xh-part="root">
+    <span data-xh-part="label">状态</span>
+    <div data-xh-part="control">
+      <button data-xh-part="trigger">
+        <span data-xh-part="value-text"></span>
+        <span data-xh-part="indicator"></span>
+      </button>
+    </div>
+    <div data-xh-part="positioner">
+      <div data-xh-part="content">
+        <div data-xh-part="list">
+          <div data-xh-part="item" value="open">
+            <span data-xh-part="item-prefix"><span style="display: block; inline-size: 8px; block-size: 8px; border-radius: var(--xh-shape-pill); background: var(--xh-fg-warning)"></span></span>
+            <span data-xh-part="item-text">进行中</span>
+            <span data-xh-part="item-description">已排期，尚未合并</span>
+            <span data-xh-part="item-suffix" style="color: var(--xh-fg-muted); font-size: var(--xh-control-caption-md)">12</span>
+            <span data-xh-part="item-indicator"></span>
+          </div>
+          <div data-xh-part="item" value="merged">
+            <span data-xh-part="item-prefix"><span style="display: block; inline-size: 8px; block-size: 8px; border-radius: var(--xh-shape-pill); background: var(--xh-fg-success)"></span></span>
+            <span data-xh-part="item-text">已合并</span>
+            <span data-xh-part="item-description">进入主干</span>
+            <span data-xh-part="item-suffix" style="color: var(--xh-fg-muted); font-size: var(--xh-control-caption-md)">148</span>
+            <span data-xh-part="item-indicator"></span>
+          </div>
+          <div data-xh-part="item" value="closed">
+            <span data-xh-part="item-prefix"><span style="display: block; inline-size: 8px; block-size: 8px; border-radius: var(--xh-shape-pill); background: var(--xh-fg-muted)"></span></span>
+            <span data-xh-part="item-text">已关闭</span>
+            <span data-xh-part="item-description">不再处理</span>
+            <span data-xh-part="item-suffix" style="color: var(--xh-fg-muted); font-size: var(--xh-control-caption-md)">31</span>
+            <span data-xh-part="item-indicator"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</xh-select>
+```
+
+### 长选项虚拟化
+
+完整 collection 负责选择语义，Virtualizer 负责浮层中的窗口
+
+```vue
+<script setup lang="ts">
+import {
+  XhSelectContent,
+  XhSelectControl,
+  XhSelectIndicator,
+  XhSelectItem,
+  XhSelectItemIndicator,
+  XhSelectItemText,
+  XhSelectLabel,
+  XhSelectList,
+  XhSelectPositioner,
+  XhSelectRoot,
+  XhSelectTrigger,
+  XhSelectValueText,
+  XhVirtualizerContent,
+  XhVirtualizerItem,
+  XhVirtualizerRoot,
+  XhVirtualizerViewport,
+} from "@xihan-ui/vue";
+
+const options = Array.from({ length: 1000 }, (_, index) => ({ value: `option-${index + 1}`, label: `选项 ${index + 1}` }));
+</script>
+
+<template>
+  <XhVirtualizerRoot v-slot="{ virtualItems, collectionVirtualizer }" :count="options.length" :estimate-size="36" :viewport-tab-index="-1">
+    <XhSelectRoot :collection="options" :virtualizer="collectionVirtualizer" placeholder="请选择">
+      <XhSelectLabel>长列表</XhSelectLabel>
+      <XhSelectControl><XhSelectTrigger><XhSelectValueText /><XhSelectIndicator /></XhSelectTrigger></XhSelectControl>
+      <XhSelectPositioner>
+        <XhSelectContent>
+          <XhVirtualizerViewport style="block-size: 240px">
+            <XhSelectList style="overflow: visible; max-block-size: none">
+              <XhVirtualizerContent>
+                <XhVirtualizerItem v-for="virtualItem in virtualItems" :key="virtualItem.key" :value="virtualItem.index" style="block-size: 36px">
+                  <XhSelectItem :value="options[virtualItem.index].value">
+                    <XhSelectItemText>{{ options[virtualItem.index].label }}</XhSelectItemText>
+                    <XhSelectItemIndicator />
+                  </XhSelectItem>
+                </XhVirtualizerItem>
+              </XhVirtualizerContent>
+            </XhSelectList>
+          </XhVirtualizerViewport>
+        </XhSelectContent>
+      </XhSelectPositioner>
+    </XhSelectRoot>
+  </XhVirtualizerRoot>
+</template>
+```
+
+```html
+<xh-select id="select-virtualized" placeholder="请选择">
+  <div data-xh-part="root">
+    <span data-xh-part="label">长列表</span>
+    <div data-xh-part="control"><button data-xh-part="trigger"><span data-xh-part="value-text"></span><span data-xh-part="indicator"></span></button></div>
+    <div data-xh-part="positioner"><div data-xh-part="content">
+      <div data-xh-part="list" style="overflow: visible; max-block-size: none">
+        <xh-virtualizer id="select-virtualizer" count="1000" estimate-size="36" viewport-tab-index="-1">
+          <div data-xh-part="root"><div data-xh-part="viewport" style="block-size: 240px"><div data-xh-part="content"></div></div></div>
+        </xh-virtualizer>
+      </div>
+    </div></div>
+  </div>
+</xh-select>
+
+<script type="module">
+  const select = document.getElementById("select-virtualized");
+  const virtualizer = document.getElementById("select-virtualizer");
+  const content = virtualizer.querySelector('[data-xh-part="content"]');
+  const options = Array.from({ length: 1000 }, (_, index) => ({ value: `option-${index + 1}`, label: `选项 ${index + 1}` }));
+  select.collection = options;
+  function render(virtualItems) {
+    content.replaceChildren(...virtualItems.map((virtualItem) => {
+      const shell = document.createElement("div"); shell.dataset.xhPart = "item"; shell.setAttribute("value", virtualItem.index); shell.style.blockSize = "36px";
+      const option = document.createElement("div"); option.dataset.xhPart = "item"; option.dataset.xhPartOwner = "select"; option.setAttribute("value", options[virtualItem.index].value);
+      const text = document.createElement("span"); text.dataset.xhPart = "item-text"; text.textContent = options[virtualItem.index].label;
+      const indicator = document.createElement("span"); indicator.dataset.xhPart = "item-indicator";
+      option.append(text, indicator); shell.append(option); return shell;
+    }));
+    virtualizer.requestUpdate(); select.virtualizer = virtualizer.collectionVirtualizer; select.requestUpdate();
+  }
+  render(virtualizer.virtualItems);
+  virtualizer.addEventListener("range-change", event => render(event.detail.virtualItems));
+</script>
+```
+
 ## 设计指引
 
 ### 何时使用
@@ -2626,16 +2871,21 @@ function onValueChange(details: { value: string[] }): void {
 ### 特性
 
 - 通过 `hidden-select` 参与表单。
-- 多选值可显示为标签，超出 `maxTagCount` 后合并为 `+N`。
+- 多选值在触发器里排成标签（Vue / React 的自动结构直接铺出），超出 `maxTagCount` 后合并为 `+N`；组合框、树选择与级联选择的多选用同一套呈现。
 - 支持分组、加载、空状态、底部操作区和滚动加载。
-- 控件使用 Field Chrome，浮层使用 M2 磨砂表面。
+- 选项可逐条声明语气，失效或需要留意的那条自带该族字色与高亮底。
+- 选项可写副文本，第 2 行放一句解释，与标题同列、走 muted 档。
+- 行首与行尾两格各有逐条钩子：只想加个图标或计数，不必把整条重搭。
+- 控件使用 Field Chrome，浮层使用 M2 磨砂表面；候选面板与字段盒等宽，长选项在条目里截断。
 - 选中项保留普通文字，通过末端对号表示状态。
 - 关闭时立即退出交互，资源在退场动画结束后释放。
+- 占位态：首次加载时在途占位在文案前转一枚加载环；已有选项时后台刷新保留上一帧、列表按 micro 淡下，在途占位让位；空态与加载文字取次要文字、上下内距一档。
 
 ### 组合
 
 - 与[表单字段](./field)组合。
 - 不参与表单时使用 [气泡卡片](./popover) 与 [列表框](./listbox)。
+- 长选项列表把完整 collection 与 [Virtualizer](./virtualizer) 的 `collectionVirtualizer` 同时交给根，浮层内只渲染 `virtualItems`。
 
 ### 最佳实践
 
@@ -2655,7 +2905,7 @@ function onValueChange(details: { value: string[] }): void {
 | 层 | 值 |
 | --- | --- |
 | 自定义元素 | `<xh-select>` |
-| Vue 组件 | `XhSelectClearTrigger` `XhSelectContent` `XhSelectControl` `XhSelectEmpty` `XhSelectFooter` `XhSelectGroup` `XhSelectGroupLabel` `XhSelectIndicator` `XhSelectItem` `XhSelectItemDeleteTrigger` `XhSelectItemIndicator` `XhSelectItemText` `XhSelectLabel` `XhSelectList` `XhSelectLoading` `XhSelectOverflowTag` `XhSelectPositioner` `XhSelectRoot` `XhSelectTag` `XhSelectTagLabel` `XhSelectTagList` `XhSelectTrigger` `XhSelectValueText` |
+| Vue 组件 | `XhSelectClearTrigger` `XhSelectContent` `XhSelectControl` `XhSelectEmpty` `XhSelectFooter` `XhSelectGroup` `XhSelectGroupLabel` `XhSelectIndicator` `XhSelectItem` `XhSelectItemDeleteTrigger` `XhSelectItemDescription` `XhSelectItemIndicator` `XhSelectItemPrefix` `XhSelectItemSuffix` `XhSelectItemText` `XhSelectLabel` `XhSelectList` `XhSelectLoading` `XhSelectOverflowTag` `XhSelectPositioner` `XhSelectRoot` `XhSelectTag` `XhSelectTagLabel` `XhSelectTagList` `XhSelectTrigger` `XhSelectValueText` |
 | 组合式函数 | `useSelect` |
 | 状态机 | `selectMachine` |
 | 皮肤 | `@xihan-ui/styles/select.css` |
@@ -2664,30 +2914,44 @@ function onValueChange(details: { value: string[] }): void {
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `collection` | `SelectNode[]` |  | 条目数据，显示文本与禁用的事实源。给了它，条目部件只需报 value， 显示文本也不再从活 DOM 现查。缺省即回到「文本写在条目里、现查 DOM」的老路。 |
-| `value` | `string \| string[] \| null` |  | 选中值。裸串是单选的简写，null 是「受控且无选中」，缺省（undefined）才是非受控；内部一律按数组处理。 受控时 cell 直读 prop，写只发 onValueChange 不落内部值。 |
+| `collection` | `SelectNode[]` |  | 条目数据，显示文本与禁用的事实源。提供后条目部件只需声明 value， 显示文本也不再从 DOM 查询。未提供时回到文本写在条目中、从 DOM 查询的方式。 |
+| `virtualizer` | `CollectionVirtualizer` |  | 完整 collection 与 Virtualizer 的焦点桥；count 必须与 collection.length 一致。 |
+| `value` | `string \| string[] \| null` |  | 选中值。裸串是单选的简写，null 是受控且无选中，未提供（undefined）才是非受控；内部一律按数组处理。 受控时 cell 直读 prop，写入只发 onValueChange 不落内部值。 |
 | `defaultValue` | `string \| string[] \| null` |  | 非受控初始选中值。与 value 同样接受裸串与 null。 |
 | `multiple` | `boolean` |  | 允许选中多项。单选时选完即收起，多选时保持展开继续选。 |
-| `open` | `boolean` |  | 展开态。给定即受控：内部不再自改，只发 onOpenChange。 |
+| `open` | `boolean` |  | 展开态。提供即受控：内部不再自行修改，只发 onOpenChange。 |
 | `defaultOpen` | `boolean` |  |  |
-| `disabled` | `boolean` |  | 整个控件禁用：trigger 用原生 disabled，隐藏 select 不参与提交。 |
-| `readOnly` | `boolean` |  | 只读：浮层照常展开与浏览，但选中值改不动、也清不掉。 |
+| `disabled` | `boolean` |  | 整个控件禁用：trigger 使用原生 disabled，隐藏 select 不参与提交。 |
+| `readOnly` | `boolean` |  | 只读：浮层照常展开与浏览，但选中值不可修改、也不可清空。 |
 | `invalid` | `boolean` |  | 校验错误态：trigger 标红并输出 aria-invalid。 |
-| `loading` | `boolean` |  | 条目还在取：列表报 aria-busy，在途占位顶上来、空态占位让位。 |
-| `translations` | `Partial<SelectTranslations>` |  | 读屏用的文案，默认英文。 |
-| `maxTagCount` | `number` |  | 多选标签最多摆几枚，其余折进 overflowCount、合成 +N 那一枚；缺省 3（SELECT_DEFAULT_MAX_TAG_COUNT）。 |
-| `required` | `boolean` |  | 原生表单校验：无选中值时提交被拦下。 |
-| `name` | `string` |  | 表单字段名。给定后隐藏 select 才带 name，选中值随表单一并提交。 |
+| `loading` | `boolean` |  | 条目加载中：列表报告 aria-busy，显示在途占位、隐藏空态占位。 |
+| `translations` | `Partial<SelectTranslations>` |  | 读屏文案，默认英文。 |
+| `maxTagCount` | `number` |  | 多选标签最多显示的数量，其余折叠进 overflowCount、合成 +N 标签；默认 3（SELECT_DEFAULT_MAX_TAG_COUNT）。 |
+| `required` | `boolean` |  | 原生表单校验：无选中值时提交被拦截。 |
+| `name` | `string` |  | 表单字段名。提供后隐藏 select 才带 name，选中值随表单一并提交。 |
 | `placeholder` | `string` |  | 无选中时 value-text 显示的占位文字。 |
 | `placement` | `Placement` |  |  |
 | `offset` | `number` |  |  |
-| `loop` | `boolean` |  | 方向键走到尽头是否回绕，默认 true。 |
+| `loop` | `boolean` |  | 方向键到达末尾是否回绕，默认 true。 |
 | `dir` | `Direction` |  | 文字方向，默认 ltr。 |
-| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定触发器的描边与底色怎么用。 |
-| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦与选中强调用哪族颜色。 |
+| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定触发器的描边与底色使用方式。默认 outline。 |
+| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦与选中强调使用哪族颜色。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg，决定触发器高度、内边距与字号档位。 |
-| `onValueChange` | `(details: SelectValueChangeDetails) => void` |  | value 变化意图回调；受控时是唯一出口，非受控随内部写入一并通知。 |
+| `onValueChange` | `(details: SelectValueChangeDetails) => void` |  | value 变化意图回调；受控时是唯一出口，非受控时随内部写入一并通知。 |
+| `onClear` | `() => void` |  | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 | `onOpenChange` | `(details: SelectOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控时随内部转移一并通知。 |
+
+### SelectNode
+
+`collection` 的元素。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `value` | `string` | 是 |  |
+| `label` | `string` |  | 展示文本，也是连打检索的取字来源；默认回退为 value。 |
+| `disabled` | `boolean` |  | 条目禁用：方向键跳过它，但它仍可聚焦、仍是导航起点。 |
+| `tone` | `Tone` |  | 该条选项自身的性质：危险选项写 danger、需要留意的写 warning。不写即与其余条目同档。 只换字色与悬停 / 按下的面，不表达选中与校验；选中的标记与禁用都压过它。 彩字不是唯一通道，要紧的差别仍要配图标或文案。整个选择器的 tone 不下发给条目。 |
+| `description` | `string` |  | 副文本，写入 item-description 部件；未提供时本条不铺该部件。 它是第 2 行的说明，跟着条目走 muted 档，不跟语气；放不下一行的解释才用它， 一句话能说清的写进 label。 |
 
 ### 事件
 
@@ -2696,6 +2960,7 @@ function onValueChange(details: { value: string[] }): void {
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `value-change` | `SelectValueChangeDetails` | 选中值变化；detail 为 `{ value: string[] }` |
+| `clear` | `` | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 | `open-change` | `SelectOpenChangeDetails` | open 状态变化；detail 为 `{ open: boolean }` |
 
 ### 插槽
@@ -2706,7 +2971,27 @@ function onValueChange(details: { value: string[] }): void {
 | --- | --- | --- | --- |
 | `XhSelectRoot` | `default` | `SelectRootSlotProps` |  |
 | `XhSelectRoot` | `label` | — |  |
-| `XhSelectRoot` | `item` | `SelectNodeMeta` |  |
+| `XhSelectRoot` | `item` | `SelectNodeMeta` | 只填条目的文字槽，副文本与首尾两格照旧各归各的 |
+| `XhSelectRoot` | `item-prefix` | `SelectNodeMeta` | 只接管行首那一格，其余槽照旧由数据铺 |
+| `XhSelectRoot` | `item-suffix` | `SelectNodeMeta` | 只接管行尾那一格（计数、徽标、次级图标），其余槽照旧由数据铺 |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhSelectGroup` | `value` | `string` | 是 |  |
+| `XhSelectItem` | `value` | `string` | 是 |  |
+| `XhSelectItem` | `disabled` | `boolean` |  | 默认交给 connect 查询 collection，写死 false 会覆盖数据中的禁用。 |
+| `XhSelectPositioner` | `container` | `() => Element \| null` |  | 浮层挂载的容器；未提供时按全局配置，再未提供时挂载到 body。 |
+| `XhSelectRoot` | `label` | `ReactNode` |  | 标题文字。提供后不必再写 label 部件。 |
+| `XhSelectRoot` | `clearable` | `boolean` |  | 自动渲染树中是否带清空按钮；手写部件不使用它，写了节点即可清空。 |
+| `XhSelectRoot` | `renderItem` | `(node: SelectNodeMeta) => ReactNode` |  | 每个条目的自定义内容；未提供时使用 collection 中的 label。 |
+| `XhSelectRoot` | `renderItemPrefix` | `(node: SelectNodeMeta) => ReactNode` |  | 只接管条目行首那一格；其余槽仍由数据铺。 |
+| `XhSelectRoot` | `renderItemSuffix` | `(node: SelectNodeMeta) => ReactNode` |  | 只接管条目行尾那一格；其余槽仍由数据铺。 |
+| `XhSelectRoot` | `children` | `SlotChildren<SelectRootSlotProps>` |  |  |
+| `XhSelectTag` | `value` | `string` | 是 | 它代表哪个选中值。 |
 
 ### 状态
 
@@ -2722,6 +3007,12 @@ function onValueChange(details: { value: string[] }): void {
 | `content` | 'open' \| 'closed' |
 | `list` | 'open' \| 'closed' |
 | `footer` | 'open' \| 'closed' |
+| `item` | 'checked' \| 'unchecked' |
+| `item-prefix` | 'checked' \| 'unchecked' |
+| `item-text` | 'checked' \| 'unchecked' |
+| `item-description` | 'checked' \| 'unchecked' |
+| `item-suffix` | 'checked' \| 'unchecked' |
+| `item-indicator` | 'checked' \| 'unchecked' |
 | `empty` | 'open' \| 'closed' |
 | `loading` | 'open' \| 'closed' |
 
@@ -2729,9 +3020,9 @@ function onValueChange(details: { value: string[] }): void {
 
 **状态**：`open` · `closed`
 
-**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `ITEM.HIGHLIGHT` · `HIGHLIGHT.CLEAR` · `ITEM.LOST` · `ITEM.SELECT` · `VALUE.SET` · `VALUE.CLEAR` · `FORM.RESET`
+**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `ITEM.HIGHLIGHT` · `HIGHLIGHT.CLEAR` · `ITEM.LOST` · `ITEM.SELECT` · `VALUE.SET` · `VALUE.CLEAR` · `FORM.RESET` · `PRESS.START` · `PRESS.END` · `TAG_LIST.TRACKED`
 
-**判据**：`isOpenControlled` · `isMultiple` · `isReadOnly`
+**判据**：`isOpenControlled` · `isMultiple` · `isReadOnly` · `canPress`
 
 ### connect API
 
@@ -2740,46 +3031,49 @@ function onValueChange(details: { value: string[] }): void {
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
 | `open` | `boolean` |  |
-| `collection` | `readonly SelectNodeMeta[]` | collection 推出的条目元信息，按数据顺序排列；没给 collection 即空数组。 |
+| `collection` | `readonly SelectNodeMeta[]` | 由 collection 推导的条目元信息，按数据顺序排列；未提供 collection 时为空数组。 |
 | `value` | `string[]` | 选中集合，按选中先后排列而非文档顺序。单选恒为长度 ≤ 1。 |
-| `valueText` | `string[]` | 选中项的文本，与 value 逐项等长对应；某项在 DOM 里查不到条目时该项退回值本身。 |
-| `displayText` | `string` | value-text 实际显示的文字：有选中取其文本（多选按半角逗号加空格连起来），否则取 placeholder。 |
+| `valueText` | `string[]` | 选中项的文本，与 value 逐项等长对应；某项在 DOM 中查询不到条目时该项回退为值本身。 |
+| `displayText` | `string` | value-text 实际显示的文字：有选中时取其文本（多选按半角逗号加空格连接），否则取 placeholder。 |
 | `multiple` | `boolean` | 是否允许多选。 |
 | `invalid` | `boolean` | 校验错误态。 |
 | `readOnly` | `boolean` | 只读态。 |
-| `canClear` | `boolean` | 此刻能否清空：有选中且既不禁用也不只读。 |
-| `tags` | `SelectTagMeta[]` | 可见标签（受 maxTagCount 截断），与 value/valueText 同序。 |
-| `overflowCount` | `number` | 被 maxTagCount 折起来的标签数。 |
-| `overflowText` | `string` | +N 那一枚显示的文字（translations.overflowTag 算出）；没有折起的标签时为空串。 |
+| `canClear` | `boolean` | 当前能否清空：有选中且既不禁用也不只读。 |
+| `tags` | `SelectTagMeta[]` | 可见标签（受 maxTagCount 截断），与 value / valueText 同序。 |
+| `overflowCount` | `number` | 被 maxTagCount 折叠的标签数。 |
+| `overflowText` | `string` | +N 标签显示的文字（由 translations.overflowTag 计算）；没有折叠的标签时为空串。 |
 | `highlightedValue` | `string \| null` | 高亮锚点；收起时为 null。 |
 | `setOpen` | `(next: boolean) => void` |  |
 | `setValue` | `(next: string \| string[]) => void` |  |
 | `clear` | `() => void` | 清空全部选中。 |
-| `deselect` | `(value: string) => void` | 摘掉一个选中值。 |
+| `deselect` | `(value: string) => void` | 移除一个选中值。 |
 | `getRootProps` | `() => T['element']` |  |
 | `getLabelProps` | `() => T['element']` |  |
-| `getControlProps` | `() => T['element']` | 触发器与清空按钮的收纳容器：两者在里面并排，有值时清空钮顶替展开指示符。 |
+| `getControlProps` | `() => T['element']` | 触发器与清空按钮的收纳容器：两者在其中并排，有值时清空按钮替代展开指示符。 |
 | `getTriggerProps` | `() => T['button']` |  |
 | `getValueTextProps` | `() => T['element']` |  |
 | `getIndicatorProps` | `() => T['element']` |  |
-| `getClearTriggerProps` | `() => T['button']` | 清空按钮：不占 Tab 位；清不了时整个藏掉；点按清空全部选中、不展开浮层，焦点送回 trigger。 |
-| `getTagListProps` | `() => T['element']` | 标签行：收着可见标签与 +N 那一枚，放在触发器里；无选中时整个 hidden。 |
-| `getTagProps` | `(props: SelectTagProps) => T['element']` | 标签：一个选中值一枚，就是库里 tag 的 root（data-scope="tag"）：语气、尺寸与禁用从本控件传下去，形态按控件的面派（outline / ghost / 缺省摆淡底标签，subtle 摆描边标签），另带 data-value 记它代表哪个值。放触发器里就是纯展示（不渲关闭钮），放外面配删除钮可删。 |
+| `getClearTriggerProps` | `() => T['button']` | 清空按钮：不占 Tab 位；无法清空时整体隐藏；点击清空全部选中、不展开浮层，焦点送回 trigger。 |
+| `getTagListProps` | `() => T['element']` | 标签行：收纳可见标签与 +N 标签，放在触发器中；无选中时整体 hidden。 |
+| `getTagProps` | `(props: SelectTagProps) => T['element']` | 标签：一个选中值一个，即库内 tag 的 root（data-scope="tag"）：语气、尺寸与禁用从本控件传下，形态按控件的面派生（outline / ghost / 默认使用淡底标签，subtle 使用描边标签），另带 data-value 记录代表的值。放在触发器中即纯展示（不渲染关闭按钮），放在外部配删除按钮可删除。 |
 | `getTagLabelProps` | `() => T['element']` | 标签文字所在的块（tag 的 label）：截断落在这一层；标签与 +N 共用。 |
-| `getOverflowTagProps` | `() => T['element']` | 被折起的标签合成的那一枚：同样是 tag 的 root，显示 overflowText、带 data-count；没有折起的标签时 hidden。 |
-| `getItemDeleteTriggerProps` | `(props: SelectTagProps) => T['button']` | 标签删除按钮：就是所在标签那份 tag 的 close-trigger（data-scope="tag"），可及名走 translations.deleteItem，禁用时留位、原生 disabled；点按摘掉所在标签的选中值；须放在标签里。 |
+| `getOverflowTagProps` | `() => T['element']` | 被折叠的标签合成的一个：同样是 tag 的 root，显示 overflowText、带 data-count；没有折叠的标签时 hidden。 |
+| `getItemDeleteTriggerProps` | `(props: SelectTagProps) => T['button']` | 标签删除按钮：即所在标签那份 tag 的 close-trigger（data-scope="tag"），可及名使用 translations.deleteItem，禁用时保留位置、原生 disabled；点击移除所在标签的选中值；须放在标签中。 |
 | `getPositionerProps` | `() => T['element']` |  |
 | `getContentProps` | `() => T['element']` | 浮层外壳：描边、底色、阴影与键盘收口都在它身上。 |
 | `getListProps` | `() => T['element']` | 列表框本体，滚动在这一层；role=listbox 与条目的拥有关系都归它。 |
-| `getFooterProps` | `() => T['element']` | 浮层底部的操作区，是 list 的兄弟；不在列表框的拥有关系里，也不参与方向键与连打检索。 |
-| `getEmptyProps` | `() => T['element']` | 空态占位：放在 content 里、list 的兄弟。 给了 collection 时由连接层按条数收放；条目手写时不写 hidden，露不露面归作者。 |
-| `getLoadingProps` | `() => T['element']` | 在途占位：与空态占位同一个位置，两者不同屏——取数期间它顶上来，空态让位。 给了 collection 时由连接层按条数收放；条目手写时只按 loading 收放。 |
-| `getGroupProps` | `(props: SelectGroupProps) => T['element']` | 分组容器：role=group，条目挂在它里面；分组标题经 aria-labelledby 关联。 |
-| `getGroupLabelProps` | `(props: SelectGroupProps) => T['element']` | 分组标题：不是选项、不进导航，只作为本组的可及名字。 |
+| `getFooterProps` | `() => T['element']` | 浮层底部的操作区，是 list 的兄弟；不在列表框的拥有关系中，也不参与方向键与连打检索。 |
+| `getEmptyProps` | `() => T['element']` | 空态占位：放在 content 中、list 的兄弟。 提供 collection 时由连接层按条数收放；条目手写时不写 hidden，是否显示由作者决定。 |
+| `getLoadingProps` | `() => T['element']` | 在途占位：与空态占位同一位置，两者不同时显示：加载期间显示它，空态让位。 提供 collection 时由连接层按条数收放；条目手写时只按 loading 收放。 |
+| `getGroupProps` | `(props: SelectGroupProps) => T['element']` | 分组容器：role=group，条目挂在其中；分组标题经 aria-labelledby 关联。 |
+| `getGroupLabelProps` | `(props: SelectGroupProps) => T['element']` | 分组标题：不是选项、不进入导航，只作为本组的可及名。 |
 | `getItemProps` | `(props: SelectItemProps) => T['element']` |  |
+| `getItemPrefixProps` | `(props: SelectItemProps) => T['element']` |  |
 | `getItemTextProps` | `(props: SelectItemProps) => T['element']` |  |
+| `getItemDescriptionProps` | `(props: SelectItemProps) => T['element']` |  |
+| `getItemSuffixProps` | `(props: SelectItemProps) => T['element']` |  |
 | `getItemIndicatorProps` | `(props: SelectItemProps) => T['element']` |  |
-| `getHiddenSelectProps` | `() => T['select']` | 表单出口：一份视觉隐藏的原生 select，由根部件自行渲染（作者不必手写）。 选项由适配器按当前值补齐，原生提交与 required 校验据此拿到值。 |
+| `getHiddenSelectProps` | `() => T['select']` | 表单出口：一份视觉隐藏的原生 select，由根部件自行渲染（作者不必手写）。 选项由适配器按当前值补齐，原生提交与 required 校验据此获取值。 |
 
 ## 无障碍
 
@@ -2801,6 +3095,7 @@ function onValueChange(details: { value: string[] }): void {
 | `End` | open, focus in content | 高亮移到末个可用条目 |
 | `单个可打印字符` | open, focus in content | 连打检索移动高亮，不改选中值 |
 | `Enter` / `Space` | open, 单选, 高亮条目未禁用 | 选中高亮条目并关闭列表，焦点归还 trigger |
+| `Enter` / `Space` | held in item / clear-trigger, 未禁用、未只读 | 按住期间该部件投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下，条目随浮层收起一并撤下；没有值可清时清空按钮不进 |
 | `Enter` / `Space` | open, 多选, 高亮条目未禁用 | 切换高亮条目的选中态，列表不收起、焦点留在条目上 |
 | `Escape` | open | 关闭列表并把焦点归还 trigger，选中值不变 |
 | `Tab` / `Shift+Tab` | open | 关闭列表，焦点不归还 trigger，按 Tab 序列自然离开 |
@@ -2831,6 +3126,7 @@ function onValueChange(details: { value: string[] }): void {
 | `item` | `aria-disabled` | 'true' \| 'false' |
 | `item` | `aria-selected` | 'true' \| 'false' |
 | `item` | `role` | 'option' |
+| `item-prefix` | `aria-hidden` | 'true' |
 | `item-indicator` | `aria-hidden` | 'true' |
 | `hidden-select` | `aria-hidden` | 'true' |
 
@@ -2838,7 +3134,9 @@ function onValueChange(details: { value: string[] }): void {
 
 ### 皮肤
 
-`@xihan-ui/styles/select.css` 使用 `[data-scope="select"][data-part="root"]` 部件选择器，位于 `xihan.components` 与 `xihan.motion` 层。覆盖样式使用 `xihan.overrides`。
+`@xihan-ui/styles/select.css` 使用 `[data-scope="select"][data-part="root"]` 部件选择器，位于 `xihan.components` 层。覆盖样式使用 `xihan.overrides`。
+
+`forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
 
 ### 数据属性
 
@@ -2859,6 +3157,9 @@ function onValueChange(details: { value: string[] }): void {
 | `control` | `data-invalid` | ''（条件成立时才出现） |
 | `control` | `data-readonly` | ''（条件成立时才出现） |
 | `control` | `data-state` | 'open' \| 'closed' |
+| `control` | `data-variant` | props.variant |
+| `control` | `data-xh-field-chrome` | '' |
+| `control` | `data-xh-field-size` | props.size |
 | `trigger` | `data-disabled` | ''（条件成立时才出现） |
 | `trigger` | `data-invalid` | ''（条件成立时才出现） |
 | `trigger` | `data-placeholder` | ''（条件成立时才出现） |
@@ -2869,7 +3170,16 @@ function onValueChange(details: { value: string[] }): void {
 | `indicator` | `data-clearable` | ''（条件成立时才出现） |
 | `indicator` | `data-disabled` | ''（条件成立时才出现） |
 | `indicator` | `data-state` | 'open' \| 'closed' |
+| `clear-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `clear-trigger` | `data-xh-action-control` | '' |
+| `clear-trigger` | `data-xh-action-display` | 'has-value' |
+| `clear-trigger` | `data-xh-action-has-value` | ''（条件成立时才出现） |
+| `clear-trigger` | `data-xh-action-profile` | 'field-inset' |
+| `clear-trigger` | `data-xh-action-size` | props.size |
+| `clear-trigger` | `data-xh-action-variant` | 'ghost' |
 | `tag-list` | `data-disabled` | ''（条件成立时才出现） |
+| `tag-list` | `data-instant` | ''（条件成立时才出现） |
+| `tag-list` | `data-xh-tag-list` | '' |
 | `positioner` | `data-hidden` | ''（条件成立时才出现） |
 | `positioner` | `data-placement` | 定位引擎算出的实际落位 |
 | `positioner` | `data-positioned` | ''（条件成立时才出现） |
@@ -2877,61 +3187,85 @@ function onValueChange(details: { value: string[] }): void {
 | `positioner` | `data-state` | 'open' \| 'closed' |
 | `positioner` | `data-tone` | props.tone |
 | `positioner` | `data-variant` | props.variant |
+| `content` | `data-instant` | ''（条件成立时才出现） |
 | `content` | `data-placement` | 定位引擎算出的实际落位 |
 | `content` | `data-state` | 'open' \| 'closed' |
+| `content` | `data-xh-material` | 'frosted' |
 | `list` | `data-state` | 'open' \| 'closed' |
 | `footer` | `data-state` | 'open' \| 'closed' |
+| `item` | `data-disabled` | ''（条件成立时才出现） |
 | `item` | `data-highlighted` | ''（条件成立时才出现） |
+| `item` | `data-pressed` | ''（条件成立时才出现） |
+| `item` | `data-state` | 'checked' \| 'unchecked' |
+| `item` | `data-tone` | metaOf.get(item.value)?.tone |
+| `item` | `data-xh-collection-context` | 'overlay' |
 | `item` | `data-xh-collection-item` | '' |
 | `item` | `data-xh-collection-size` | props.size |
+| `item-prefix` | `data-disabled` | ''（条件成立时才出现） |
+| `item-prefix` | `data-state` | 'checked' \| 'unchecked' |
+| `item-prefix` | `data-xh-collection-slot` | 'prefix' |
+| `item-text` | `data-disabled` | ''（条件成立时才出现） |
+| `item-text` | `data-state` | 'checked' \| 'unchecked' |
 | `item-text` | `data-xh-collection-slot` | 'text' |
+| `item-description` | `data-disabled` | ''（条件成立时才出现） |
+| `item-description` | `data-state` | 'checked' \| 'unchecked' |
+| `item-description` | `data-xh-collection-slot` | 'description' |
+| `item-suffix` | `data-disabled` | ''（条件成立时才出现） |
+| `item-suffix` | `data-state` | 'checked' \| 'unchecked' |
+| `item-suffix` | `data-xh-collection-slot` | 'suffix' |
+| `item-indicator` | `data-disabled` | ''（条件成立时才出现） |
+| `item-indicator` | `data-state` | 'checked' \| 'unchecked' |
 | `item-indicator` | `data-xh-collection-slot` | 'indicator' |
 | `empty` | `data-state` | 'open' \| 'closed' |
+| `loading` | `data-loading` | ''（条件成立时才出现） |
 | `loading` | `data-state` | 'open' \| 'closed' |
+| `loading` | `data-xh-loading-ring` | '' |
 | `overflow-tag` | `data-count` | String(overflowCount) |
 | `tag` | `data-value` | v |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-select-action-bg` | `clear-trigger` | `background` | `default` | `transparent` | select 的 clear-trigger 部件 background 覆盖槽。 |
-| `--xh-select-action-bg-active` | `clear-trigger` | `background` | `active` | `--xh-bg-subtle-active` | select 的 clear-trigger 部件 background 覆盖槽。 |
-| `--xh-select-action-bg-hover` | `clear-trigger` | `background` | `hover` | `--xh-bg-subtle-hover` | select 的 clear-trigger 部件 background 覆盖槽。 |
+| `--xh-select-action-bg` | `clear-trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | select 的 clear-trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-select-action-bg-active` | `clear-trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | select 的 clear-trigger 部件 background-color 覆盖槽。 |
+| `--xh-select-action-bg-hover` | `clear-trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | select 的 clear-trigger 部件 background-color 覆盖槽。 |
 | `--xh-select-action-fg` | `clear-trigger` | `color` | `default` | `--xh-fg-muted` | select 的 clear-trigger 部件 color 覆盖槽。 |
-| `--xh-select-action-fg-hover` | `clear-trigger` | `color` | `hover` | `--xh-fg-default` | select 的 clear-trigger 部件 color 覆盖槽。 |
+| `--xh-select-action-fg-hover` | `clear-trigger` | `color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-fg-default` | select 的 clear-trigger 部件 color 覆盖槽。 |
 | `--xh-select-action-font-size` | `clear-trigger` | `font-size` | `default` | `--xh-text-secondary-size` | select 的 clear-trigger 部件 font-size 覆盖槽。 |
-| `--xh-select-action-radius` | `clear-trigger` | `border-radius` | `default` | `--xh-shape-control` | select 的 clear-trigger 部件 border-radius 覆盖槽。 |
-| `--xh-select-action-size` | `clear-trigger`<br>`indicator` | `block-size`<br>`inline-size` | `default` | `--xh-control-action-size` | select 的 clear-trigger、indicator 部件 block-size、inline-size 覆盖槽。 |
-| `--xh-select-content-backdrop` | `content` | `-webkit-backdrop-filter`<br>`backdrop-filter` | `default` | `--xh-material-frosted-backdrop` | select 的 content 部件 -webkit-backdrop-filter、backdrop-filter 覆盖槽。 |
-| `--xh-select-content-bg` | `content` | `background` | `default` | `--xh-material-frosted-bg` | select 的 content 部件 background 覆盖槽。 |
-| `--xh-select-content-border` | `content` | `border` | `default` | `--xh-material-frosted-border` | select 的 content 部件 border 覆盖槽。 |
-| `--xh-select-content-fg` | `content` | `color` | `default` | `--xh-material-frosted-fg` | select 的 content 部件 color 覆盖槽。 |
-| `--xh-select-content-highlight` | `content` | `background` | `default` | `--xh-material-frosted-highlight` | select 的 content 部件 background 覆盖槽。 |
+| `--xh-select-action-radius` | `clear-trigger` | `border-radius` | `default` | `--xh-shape-inset` | select 的 clear-trigger 部件 border-radius 覆盖槽。 |
+| `--xh-select-action-size` | `clear-trigger`<br>`indicator` | `block-size`<br>`inline-size`<br>`min-inline-size` | `default`<br>`xh-action-profile=field-inset` | `--xh-_action-profile-visual-size`<br>`--xh-control-action-size` | select 的 clear-trigger、indicator 部件 block-size、inline-size、min-inline-size 覆盖槽。 |
+| `--xh-select-content-backdrop` | `content` | `-webkit-backdrop-filter`<br>`backdrop-filter` | `xh-material=frosted` | `--xh-_material-backdrop` | select 的 content 部件 -webkit-backdrop-filter、backdrop-filter 覆盖槽。 |
+| `--xh-select-content-bg` | `content` | `background` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-bg` | select 的 content 部件 background 覆盖槽。 |
+| `--xh-select-content-border` | `content` | `border` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-border` | select 的 content 部件 border 覆盖槽。 |
+| `--xh-select-content-fg` | `content` | `color` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-fg` | select 的 content 部件 color 覆盖槽。 |
+| `--xh-select-content-highlight` | `content` | `background` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-highlight` | select 的 content 部件 background 覆盖槽。 |
 | `--xh-select-content-max-h` | `content` | `max-block-size` | `default` | `--xh-overlay-menu-max-h` | select 的 content 部件 max-block-size 覆盖槽。 |
-| `--xh-select-content-max-w` | `content` | `max-inline-size` | `default` | `--xh-overlay-max-w` | select 的 content 部件 max-inline-size 覆盖槽。 |
-| `--xh-select-content-min-w` | `content` | `min-inline-size` | `default` | `--xh-overlay-menu-min-w` | select 的 content 部件 min-inline-size 覆盖槽。 |
+| `--xh-select-content-max-w` | `content` | `max-inline-size` | `default` | `none` | select 的 content 部件 max-inline-size 覆盖槽。 |
+| `--xh-select-content-min-w` | `content` | `inline-size` | `default` | `--xh-overlay-menu-min-w` | select 的 content 部件 inline-size 覆盖槽。 |
 | `--xh-select-content-px` | `content` | `padding-inline` | `default` | `--xh-space-1` | select 的 content 部件 padding-inline 覆盖槽。 |
 | `--xh-select-content-py` | `content` | `padding-block` | `default` | `--xh-space-1` | select 的 content 部件 padding-block 覆盖槽。 |
-| `--xh-select-content-radius` | `content` | `border-radius` | `default` | `--xh-shape-surface` | select 的 content 部件 border-radius 覆盖槽。 |
-| `--xh-select-content-shadow` | `content` | `box-shadow` | `default` | `--xh-material-frosted-shadow` | select 的 content 部件 box-shadow 覆盖槽。 |
-| `--xh-select-control-bg` | `control` | `background-color` | `default` | `--xh-_select-control-bg` | select 的 control 部件 background-color 覆盖槽。 |
-| `--xh-select-control-bg-disabled` | `control` | `background-color` | `disabled` | `--xh-bg-subtle` | select 的 control 部件 background-color 覆盖槽。 |
-| `--xh-select-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`not([data-disabled], [data-readonly])`<br>`readonly` | `--xh-_select-control-bg-hover` | select 的 control 部件 background-color 覆盖槽。 |
-| `--xh-select-control-bg-readonly` | `control` | `background-color` | `readonly` | `--xh-bg-subtle` | select 的 control 部件 background-color 覆盖槽。 |
-| `--xh-select-control-border` | `control` | `border` | `default` | `--xh-_select-control-border` | select 的 control 部件 border 覆盖槽。 |
-| `--xh-select-control-border-focus` | `control` | `border-color` | `focus-within`<br>`invalid`<br>`not([data-invalid])` | `--xh-_tone` | select 的 control 部件 border-color 覆盖槽。 |
-| `--xh-select-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`not([data-disabled], [data-invalid])` | `--xh-_select-control-border-hover` | select 的 control 部件 border-color 覆盖槽。 |
-| `--xh-select-control-border-invalid` | `control` | `border-color` | `invalid` | `--xh-border-invalid` | select 的 control 部件 border-color 覆盖槽。 |
-| `--xh-select-control-gap` | `control` | `gap` | `default` | `--xh-_select-gap` | select 的 control 部件 gap 覆盖槽。 |
-| `--xh-select-control-h` | `control` | `block-size` | `default` | `--xh-_select-h` | select 的 control 部件 block-size 覆盖槽。 |
-| `--xh-select-control-min-w` | `control`<br>`root` | `min-inline-size` | `default` | `--xh-control-min-w` | select 的 control、root 部件 min-inline-size 覆盖槽。 |
-| `--xh-select-control-px` | `control` | `padding-inline` | `default` | `--xh-_select-px` | select 的 control 部件 padding-inline 覆盖槽。 |
-| `--xh-select-control-radius` | `control` | `border-radius` | `default` | `--xh-shape-surface` | select 的 control 部件 border-radius 覆盖槽。 |
-| `--xh-select-control-shadow` | `control` | `box-shadow` | `default` | `--xh-_select-control-shadow` | select 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-select-content-radius` | `content` | `border-radius` | `default` | `--xh-shape-overlay` | select 的 content 部件 border-radius 覆盖槽。 |
+| `--xh-select-content-shadow` | `content` | `box-shadow` | `not([data-xh-action-control])`<br>`xh-material=frosted` | `--xh-_material-shadow` | select 的 content 部件 box-shadow 覆盖槽。 |
+| `--xh-select-control-bg` | `control` | `background-color` | `xh-field-chrome` | `--xh-_field-variant-bg-rest` | select 的 control 部件 background-color 覆盖槽。 |
+| `--xh-select-control-bg-disabled` | `control` | `background-color` | `disabled`<br>`xh-field-chrome` | `--xh-_field-variant-bg-disabled` | select 的 control 部件 background-color 覆盖槽。 |
+| `--xh-select-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-hover` | select 的 control 部件 background-color 覆盖槽。 |
+| `--xh-select-control-bg-readonly` | `control` | `background-color` | `readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-read-only` | select 的 control 部件 background-color 覆盖槽。 |
+| `--xh-select-control-border` | `control` | `border` | `xh-field-chrome` | `--xh-_field-variant-border-rest` | select 的 control 部件 border 覆盖槽。 |
+| `--xh-select-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`xh-field-chrome` | `--xh-_field-variant-border-focus` | select 的 control 部件 border-color 覆盖槽。 |
+| `--xh-select-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-border-hover` | select 的 control 部件 border-color 覆盖槽。 |
+| `--xh-select-control-border-invalid` | `control` | `border-color` | `invalid`<br>`xh-field-chrome` | `--xh-_field-variant-border-invalid` | select 的 control 部件 border-color 覆盖槽。 |
+| `--xh-select-control-fg` | `control` | `color` | `xh-field-chrome` | `--xh-fg-default` | select 的 control 部件 color 覆盖槽。 |
+| `--xh-select-control-gap` | `control` | `gap` | `xh-field-chrome` | `--xh-_select-gap` | select 的 control 部件 gap 覆盖槽。 |
+| `--xh-select-control-h` | `control` | `block-size`<br>`min-block-size` | `has([data-xh-field-input][data-xh-field-layout='multi-tag'])`<br>`has([data-xh-field-input][data-xh-field-layout='single-line'])`<br>`has([data-xh-field-input][data-xh-field-layout='textarea'])`<br>`xh-field-chrome`<br>`xh-field-input`<br>`xh-field-layout=multi-tag`<br>`xh-field-layout=single-line`<br>`xh-field-layout=textarea` | `--xh-_select-h` | select 的 control 部件 block-size、min-block-size 覆盖槽。 |
+| `--xh-select-control-min-w` | `control`<br>`root` | `min-inline-size` | `default`<br>`xh-field-chrome` | `--xh-control-min-w` | select 的 control、root 部件 min-inline-size 覆盖槽。 |
+| `--xh-select-control-px` | `control` | `padding-inline` | `xh-field-chrome` | `--xh-_select-px` | select 的 control 部件 padding-inline 覆盖槽。 |
+| `--xh-select-control-radius` | `control` | `border-radius` | `xh-field-chrome` | `--xh-shape-control` | select 的 control 部件 border-radius 覆盖槽。 |
+| `--xh-select-control-shadow` | `control` | `box-shadow` | `xh-field-chrome` | `none` | select 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-select-control-w` | `root` | `inline-size`<br>`min-inline-size` | `default` | `--xh-control-w` | select 的 root 部件 inline-size、min-inline-size 覆盖槽。 |
 | `--xh-select-empty-fg` | `empty` | `color` | `default` | `--xh-material-frosted-fg-muted` | select 的 empty 部件 color 覆盖槽。 |
 | `--xh-select-empty-font-size` | `empty` | `font-size` | `default` | `--xh-_select-font-size` | select 的 empty 部件 font-size 覆盖槽。 |
 | `--xh-select-empty-px` | `empty` | `padding-inline` | `default` | `--xh-_select-item-px` | select 的 empty 部件 padding-inline 覆盖槽。 |
@@ -2951,24 +3285,24 @@ function onValueChange(details: { value: string[] }): void {
 | `--xh-select-group-label-py` | `group-label` | `padding-block` | `default` | `--xh-space-1` | select 的 group-label 部件 padding-block 覆盖槽。 |
 | `--xh-select-group-separator-color` | `group` | `border-block-start` | `default` | `--xh-material-frosted-separator` | select 的 group 部件 border-block-start 覆盖槽。 |
 | `--xh-select-group-spacing` | `group` | `padding-block-start` | `default` | `--xh-space-1_5` | select 的 group 部件 padding-block-start 覆盖槽。 |
-| `--xh-select-icon-size` | `root` | `--xh-icon-size` | `default`<br>`size=lg`<br>`size=sm` | `--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | select 的 root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-select-icon-size` | `control`<br>`root` | `--xh-icon-size` | `default`<br>`size=lg`<br>`size=sm`<br>`xh-field-chrome` | `--xh-_field-size-glyph-size`<br>`--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | select 的 control、root 部件 --xh-icon-size 覆盖槽。 |
 | `--xh-select-indicator-fg` | `indicator` | `color` | `default` | `--xh-fg-muted` | select 的 indicator 部件 color 覆盖槽。 |
-| `--xh-select-item-bg-hover` | `item` | `background-color` | `error`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`not([aria-disabled='true'], [aria-busy='true'], [data-error])` | `--xh-bg-subtle` | select 的 item 部件 background-color 覆盖槽。 |
-| `--xh-select-item-bg-pressed` | `item` | `background-color` | `active`<br>`disabled`<br>`not([data-disabled])` | `--xh-bg-subtle-active` | select 的 item 部件 background-color 覆盖槽。 |
-| `--xh-select-item-check-fg` | `item` | `color` | `state=checked`<br>`xh-collection-slot=indicator` | `--xh-_select-accent` | select 的 item 部件 color 覆盖槽。 |
-| `--xh-select-item-fg` | `item` | `color` | `default`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`not([aria-disabled='true'], [aria-busy='true'], [data-error])` | `--xh-material-frosted-fg` | select 的 item 部件 color 覆盖槽。 |
-| `--xh-select-item-fg-selected` | `item` | `color` | `default`<br>`highlighted`<br>`is(:focus-visible, [data-highlighted])` | `--xh-select-item-fg` | select 的 item 部件 color 覆盖槽。 |
+| `--xh-select-item-bg-hover` | `item` | `background-color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle` | select 的 item 部件 background-color 覆盖槽。 |
+| `--xh-select-item-bg-pressed` | `item` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle-hover` | select 的 item 部件 background-color 覆盖槽。 |
+| `--xh-select-item-check-fg` | `item` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`state=checked`<br>`xh-collection-context=overlay`<br>`xh-collection-slot=indicator` | `--xh-_select-accent` | select 的 item 部件 color 覆盖槽。 |
+| `--xh-select-item-fg` | `item` | `color` | `default`<br>`disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-material-frosted-fg` | select 的 item 部件 color 覆盖槽。 |
+| `--xh-select-item-fg-selected` | `item` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-select-item-fg` | select 的 item 部件 color 覆盖槽。 |
 | `--xh-select-item-font-size` | `item` | `font-size` | `default` | `--xh-_select-font-size` | select 的 item 部件 font-size 覆盖槽。 |
-| `--xh-select-item-font-weight-selected` | `item` | `font-weight` | `default`<br>`highlighted`<br>`is(:focus-visible, [data-highlighted])` | `--xh-font-weight-regular` | select 的 item 部件 font-weight 覆盖槽。 |
+| `--xh-select-item-font-weight-selected` | `item` | `font-weight` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-font-weight-regular` | select 的 item 部件 font-weight 覆盖槽。 |
 | `--xh-select-item-gap` | `item` | `margin-inline-end`<br>`margin-inline-start` | `xh-collection-slot=indicator`<br>`xh-collection-slot=prefix`<br>`xh-collection-slot=shortcut`<br>`xh-collection-slot=suffix` | `--xh-_select-gap` | select 的 item 部件 margin-inline-end、margin-inline-start 覆盖槽。 |
-| `--xh-select-item-indicator-size` | `item-indicator` | `block-size`<br>`inline-size` | `default` | `--xh-control-indicator-size` | select 的 item-indicator 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-select-item-indicator-size` | `item-indicator` | `--xh-icon-size`<br>`block-size`<br>`inline-size` | `default` | `--xh-control-indicator-size` | select 的 item-indicator 部件 --xh-icon-size、block-size、inline-size 覆盖槽。 |
 | `--xh-select-item-leading` | `item` | `line-height` | `default` | `--xh-leading-normal` | select 的 item 部件 line-height 覆盖槽。 |
 | `--xh-select-item-px` | `item` | `padding-inline` | `default` | `--xh-_select-item-px` | select 的 item 部件 padding-inline 覆盖槽。 |
 | `--xh-select-item-py` | `item` | `padding-block` | `default` | `--xh-_select-item-py` | select 的 item 部件 padding-block 覆盖槽。 |
-| `--xh-select-item-radius` | `item` | `border-radius` | `default` | `--xh-shape-control` | select 的 item 部件 border-radius 覆盖槽。 |
+| `--xh-select-item-radius` | `item` | `border-radius` | `default` | `--xh-shape-inset` | select 的 item 部件 border-radius 覆盖槽。 |
 | `--xh-select-label-fg` | `label` | `color` | `default` | `--xh-fg-default` | select 的 label 部件 color 覆盖槽。 |
 | `--xh-select-label-fg-disabled` | `label` | `color` | `disabled` | `--xh-fg-subtle` | select 的 label 部件 color 覆盖槽。 |
-| `--xh-select-label-font-size` | `label` | `font-size` | `default` | `--xh-_select-label-font-size` | select 的 label 部件 font-size 覆盖槽。 |
+| `--xh-select-label-font-size` | `label` | `font-size` | `default` | `--xh-text-label-size` | select 的 label 部件 font-size 覆盖槽。 |
 | `--xh-select-label-font-weight` | `label` | `font-weight` | `default` | `--xh-text-label-weight` | select 的 label 部件 font-weight 覆盖槽。 |
 | `--xh-select-layer` | `positioner` | `z-index` | `default` | `--xh-_layer` | select 的 positioner 部件 z-index 覆盖槽。 |
 | `--xh-select-list-gap` | `list` | `gap` | `default` | `--xh-list-option-gap` | select 的 list 部件 gap 覆盖槽。 |
@@ -2977,7 +3311,7 @@ function onValueChange(details: { value: string[] }): void {
 | `--xh-select-loading-px` | `loading` | `padding-inline` | `default` | `--xh-_select-item-px` | select 的 loading 部件 padding-inline 覆盖槽。 |
 | `--xh-select-loading-py` | `loading` | `padding-block` | `default` | `--xh-space-3` | select 的 loading 部件 padding-block 覆盖槽。 |
 | `--xh-select-placeholder-fg` | `value-text` | `color` | `placeholder` | `--xh-fg-subtle` | select 的 value-text 部件 color 覆盖槽。 |
-| `--xh-select-tag-list-gap` | `tag-list` | `gap` | `default` | `--xh-space-1` | select 的 tag-list 部件 gap 覆盖槽。 |
+| `--xh-select-tag-list-gap` | `tag-list` | `gap` | `xh-tag-list` | `--xh-space-1` | select 的 tag-list 部件 gap 覆盖槽。 |
 | `--xh-select-trigger-fg` | `trigger` | `color` | `default` | `--xh-fg-default` | select 的 trigger 部件 color 覆盖槽。 |
 | `--xh-select-trigger-font-size` | `trigger` | `font-size` | `default` | `--xh-_select-font-size` | select 的 trigger 部件 font-size 覆盖槽。 |
 | `--xh-select-trigger-gap` | `trigger` | `gap` | `default` | `--xh-_select-gap` | select 的 trigger 部件 gap 覆盖槽。 |
@@ -2985,7 +3319,9 @@ function onValueChange(details: { value: string[] }): void {
 
 ### 动效
 
-关键帧 `xh-overlay-slide-in` · `xh-overlay-slide-out` 随皮肤自带，不引用别处文件里的名字；`background` · `background-color` · `border-color` · `box-shadow` · `rotate` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 切换 · 指示与换位 · 出现（锚定列表） · 出现（无锚定弹出）（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-fade-out` · `xh-overlay-slide-in` · `xh-overlay-slide-out` · `xh-pop-in` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立；`opacity` · `rotate` · `translate` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 皮肤之外还有一段：退场由适配器的退场闸门把关，动画播完才真收起。
 

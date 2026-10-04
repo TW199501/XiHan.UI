@@ -1,1 +1,0 @@
-import{j as t}from"./jsx-runtime.BjG_zV1W.js";import{X as o}from"./button.B2CExtWy.js";import"./jsx-runtime.Dw0sbWRO.js";import"./theme.CJjSsKhw.js";import"./framework.DkvuVDKz.js";import"./config.BGKeu67s.js";import"./index.CVfUds7h.js";import"./native-events.29TdJGw2.js";function a(){return t.jsx(o,{children:"按钮"})}export{a as default};

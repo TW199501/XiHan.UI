@@ -2,9 +2,9 @@
 
 # Vue 适配器
 
-`@xihan-ui/vue` 是无头内核的 Vue 3 外壳。它做三件事：把机器接到 Vue 的响应式上、把部件包成组件、把 `connect` 产出的 props 展开到 vnode 上。**不实现任何组件逻辑。**
+`@xihan-ui/vue` 是无头内核的 Vue 3 外壳。它负责三件事：把状态机接入 Vue 的响应式、把部件封装为组件、把 `connect` 产出的 props 展开到 vnode 上。它不实现任何组件逻辑。
 
-依赖：`vue` 是 peer 依赖（由你的项目提供）；`@xihan-ui/backgrounds` 与 `@xihan-ui/sound` 是**可选** peer，不用视觉效果或音效就不必装。
+依赖：`vue` 是 peer 依赖（由项目提供）；`@xihan-ui/backgrounds` 与 `@xihan-ui/sound` 是可选 peer，不使用视觉效果或音效时不需要安装。
 
 ## 组件命名
 
@@ -21,13 +21,13 @@ import {
 } from "@xihan-ui/vue";
 ```
 
-只有一个部件的组件不带部件后缀（`XhButton`、`XhSwitch`、`XhBadge`）。全部 1002 个导出组件按组件分组列在[组件参考](../components/)里。
+只有一个部件的组件不带部件后缀（`XhButton`、`XhSwitch`、`XhBadge`）。全部导出组件按组件分组列在[组件参考](../components/)。
 
-没有插件，不需要 `app.use()`。按名字 import 即可，`sideEffects: false` 让打包器摇掉没用到的部分。
+没有插件，不需要 `app.use()`。按名称 import 即可，`sideEffects: false` 让打包器移除未使用的部分。
 
 ## 配置与视觉环境
 
-`provideXhConfig` 接收响应式配置。七轴视觉环境必须显式给出对应 DOM 根；嵌套 provide 自动接父控制器，局部 motion 不改全局 JS override：
+`provideXhConfig` 接收响应式配置。八轴视觉环境必须显式给出对应 DOM 根；嵌套 provide 自动接父控制器，局部 motion 不改全局 JS override：
 
 ```ts
 provideXhConfig({
@@ -39,7 +39,7 @@ provideXhConfig({
 });
 ```
 
-物理 Portal 会由 Core 从该根桥接已解析七轴到实例壳，Vue 适配器不复制视觉状态。
+物理 Portal 会由 Core 从该根桥接已解析八轴到实例壳，Vue 适配器不复制视觉状态。
 
 ## 事件与 v-model
 
@@ -56,20 +56,41 @@ emits: {
 
 | 事件 | 载荷 | 用途 |
 | --- | --- | --- |
-| `value-change` | 完整明细对象，如 `{ value }` | 需要拿到全部上下文时 |
-| `update:value` | 裸值 | 供 `v-model` 用 |
+| `value-change` | 完整明细对象，如 `{ value }` | 需要全部上下文时 |
+| `update:value` | 裸值 | 供 `v-model` 使用 |
 
 ```vue
 <template>
   <!-- 双向绑定 -->
   <XhAccordionRoot v-model:value="panels" multiple />
 
-  <!-- 或者自己接明细 -->
+  <!-- 或自行处理明细 -->
   <XhAccordionRoot :value="panels" @value-change="onChange" />
 </template>
 ```
 
 具体的绑定名按组件而定：开关是 `v-model:checked`，浮层是 `v-model:open`，输入框是 `v-model:value`。
+
+## 原生属性透传与严格模板检查
+
+组件上没声明成 prop 的属性按 Vue 的属性透传落到根元素上：给 `XhFormRoot` 写 `id`，外部的提交按钮就能用 `form="…"` 关联到这张表单；`class`、`style`、`aria-*`、`data-*` 同理。组件的类型只列出自己的 prop，没有把根元素的原生属性并进来——把几百个原生属性并进每个组件，会让 prop 表与类型提示都淹没在里面。
+
+开启 vue-tsc 的 `strictTemplates`（或单开 `checkUnknownProps`）后，这类透传属性会被报成未知属性。在项目的 `env.d.ts` 里扩一次 `ComponentCustomProps` 即可，组件自己的 prop 照常受检，拼错的属性名仍然会报：
+
+<!-- eslint-skip -->
+
+```ts
+// env.d.ts
+import type { HTMLAttributes } from 'vue'
+
+declare module 'vue' {
+  interface ComponentCustomProps extends Omit<HTMLAttributes, 'class' | 'style'> {}
+}
+```
+
+这条扩充对项目里所有组件生效（第三方组件同样放行原生属性），由项目自己决定是否开启。表单、按钮等元素专有的属性（`novalidate`、`form`）不在通用原生属性里，需要时把对应的 `FormHTMLAttributes`、`ButtonHTMLAttributes` 一并并进去。
+
+升级时同样建议开启 `checkUnknownProps` 与 `checkUnknownEvents`：移除或改名的属性不会报错，只会被当成原生属性透传到根元素上而静默失效，这两项检查能把它们一次扫出来。
 
 ## asChild 与事件取消
 
@@ -88,11 +109,13 @@ emits: {
 </template>
 ```
 
-受控时组件**永远不会自己动**：它只发出变更意图，等你把新值写回来才真的改。这条语义收在机器的 `cell` 与 `watch` 里，不由各组件自己判断。详见[状态机运行时](../guide/machine#受控与非受控-cell)。
+受控时组件不会自行改变：它只发出变更意图，由使用者写回新值后才真正改变。这条语义收在状态机的 `cell` 与 `watch` 中，不由各组件自行判断。详见[状态机运行时](../guide/machine#受控与非受控-cell)。
+
+`default*` 只在 setup 时读取一次，之后修改不影响当前值，只改变表单重置的落点；要换初值就换 `key`。三端的取法见[初值的读取时机](../guide/machine#初值的读取时机)。
 
 ## 作用域插槽
 
-根组件通过作用域插槽把命令式方法交出来：
+根组件通过作用域插槽提供命令式方法：
 
 ```vue
 <template>
@@ -107,7 +130,7 @@ emits: {
 
 ### 载荷有类型
 
-插槽载荷都写进了组件的 `SlotsType`，所以 `vue-tsc` 接得住两类拼写错误：
+插槽载荷都写进了组件的 `SlotsType`，`vue-tsc` 可以捕获两类拼写错误：
 
 ```vue
 <template>
@@ -118,7 +141,7 @@ emits: {
 </template>
 ```
 
-两类拼写错误各自接得住：
+两类拼写错误分别如下：
 
 ```vue
 <template>
@@ -134,13 +157,11 @@ emits: {
 </template>
 ```
 
-载荷类型本身也从主入口导出（`TabsPanelSlotProps`、`StepsRootSlotProps` 这样命名），
-需要把插槽内容拆成子组件时可以直接拿来标注 props。
+载荷类型本身也从主入口导出（命名如 `TabsPanelSlotProps`、`StepsRootSlotProps`），需要把插槽内容拆成子组件时可以直接用于标注 props。
 
-插槽键在类型上一律是**可选**的：组件内部靠「作者写没写这个插槽」决定要不要按 `collection` 铺开默认结构，
-键若非可选，那条判断在类型上就恒为真了。
+插槽键在类型上一律可选：组件内部按作者是否编写该插槽决定是否按 `collection` 铺开默认结构，键若非可选，该判断在类型上恒为真。
 
-不想用现成 DOM 结构时，直接拿 `api` 自己渲染：
+不使用现成 DOM 结构时，直接使用 `api` 自行渲染：
 
 ```vue
 <script setup lang="ts">
@@ -164,13 +185,13 @@ const { api } = useAccordion(
 </template>
 ```
 
-`api` 是一个 `ComputedRef`，随机器状态变化重新求值。纯展示型组件（`XhBadge` 这类没有状态机的）不提供组合式函数。
+`api` 是一个 `ComputedRef`，随状态机状态变化重新求值。纯展示型组件（如 `XhBadge` 等没有状态机的组件）不提供组合式函数。
 
-上下文类型（`AccordionContext` 等）也一并导出，便于把 `api` 往下透传时标注类型。父子组件之间的 provide / inject 是内部实现，不对外开放——要自定义结构请直接用组合式函数拿 `api`，而不是接进现成组件的上下文。
+上下文类型（`AccordionContext` 等）也一并导出，便于向下透传 `api` 时标注类型。父子组件之间的 provide / inject 是内部实现，不对外开放；自定义结构请直接用组合式函数获取 `api`，不接入现成组件的上下文。
 
-## 机器接到 Vue 响应式
+## 状态机接入 Vue 响应式
 
-内部只有一层薄适配。`createVueRuntime()` 实现 `ReactiveRuntime` 的五个口子：
+内部只有一层薄适配。`createVueRuntime()` 实现 `ReactiveRuntime` 的五个接口：
 
 | 接口 | Vue 实现 |
 | --- | --- |
@@ -179,7 +200,9 @@ const { api } = useAccordion(
 | `flush` | `nextTick` |
 | `onMount` / `onCleanup` | `onMounted` / `onBeforeUnmount`（不在组件内则立即执行 / 忽略） |
 
-`useMachine(machine, props, scope)` 把它包起来。props 传的是 getter 而不是对象，每次展开成新对象让机器的身份缓存失效——这样在模板里原地改某个 prop 也收得到。
+`useMachine(machine, props, scope)` 封装了它。props 传的是 getter 而不是对象，因此在模板中原地修改某个 prop 也能生效。
+
+getter 的求值放在一个 `computed` 里：连接层每读一个 prop 都会经过它，依赖没动时复用同一份展开结果（状态机的身份缓存跟着命中），依赖一动就产出新对象，身份缓存照旧失效。失效面与组件自己的重渲一致，getter 因此必须只读响应式来源——组件 props、`attrs`、ref、注入的上下文、全局配置。读普通变量或普通数组的长度不会让它重算；那类来源本来也驱动不了 `computed(() => connectX(...))` 的重算，只是以前靠每次重新展开碰巧读到过新值。
 
 ## 行为原语
 
@@ -189,7 +212,7 @@ const { api } = useAccordion(
 
 ## 背景层
 
-Vue 侧的视觉适配在**单独的子入口**，不引就不会把 WebGL 引擎打进包：
+Vue 侧的视觉适配位于单独的子入口，不引入就不会把 WebGL 引擎打进包：
 
 ```ts
 import { useBackground, vBackground, XhBackground } from "@xihan-ui/vue/backgrounds";
@@ -199,10 +222,10 @@ import { useBackground, vBackground, XhBackground } from "@xihan-ui/vue/backgrou
 
 ## 声音层
 
-同样是单独的子入口。`withToastSound` / `withDialogSound` 给命令式反馈服务配上声音，调用点一行都不用改；`v-sound` 给单个元素配声：
+同样是单独的子入口。`withNotificationSound` / `withDialogSound` 为命令式反馈服务配置声音，调用点不需要修改；`v-sound` 为单个元素配置声音：
 
 ```ts
-import { setSoundPlayer, vSound, withToastSound } from "@xihan-ui/vue/sound";
+import { setSoundPlayer, vSound, withNotificationSound } from "@xihan-ui/vue/sound";
 ```
 
 默认映射与开关见[声音层](../guide/sound#在-vue-里用)。
@@ -215,9 +238,9 @@ import { setSoundPlayer, vSound, withToastSound } from "@xihan-ui/vue/sound";
 
 ## 与 Web Components 适配器的关系
 
-两者跑同一个机器、同一份 `connect`，输出的 DOM 属性完全一致——跨适配器一致性测试逐帧比对归一化快照，抹不掉的差异即判失败。
+两者运行同一个状态机、同一份 `connect`，输出的 DOM 属性完全一致：跨适配器一致性测试逐帧比对归一化快照，无法消除的差异即判失败。
 
-选哪个：Vue 项目用这个；需要在多个框架 / 无框架页面里复用同一套组件时用[自定义元素](./web-components)。两者可以在同一页面共存。
+Vue 项目使用本适配器；需要在多个框架或无框架页面中复用同一套组件时使用[自定义元素](./web-components)。两者可以在同一页面共存。
 
 ## 相关
 

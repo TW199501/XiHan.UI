@@ -2,7 +2,7 @@
 
 # Skeleton 骨架屏
 
-内容还没到时，先按最终版面占位。
+内容尚未到达时，按最终版面占位。
 
 <div class="xh-resource-links">
   <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/engine/headless/src/skeleton" target="_blank" rel="noreferrer">Headless</a>
@@ -52,7 +52,7 @@ import { XhSkeletonItem, XhSkeletonRoot } from "@xihan-ui/vue";
 
 ### 形状
 
-容器的 shape 是这一组的默认形状，单根骨架条自带 shape 就按自己的来
+容器的 shape 是该组的默认形状，单根骨架条自带 shape 时按自己的形状
 
 ```vue
 <script setup lang="ts">
@@ -97,7 +97,7 @@ import { XhSkeletonItem, XhSkeletonRoot } from "@xihan-ui/vue";
 
 ### 加载结束
 
-loading 期间容器报 aria-busy，翻成 false 后整块收起，位置让给真内容
+loading 期间容器报告 aria-busy；切换为 false 后骨架让出位置，原地盖在真实内容之上淡出，播完才收起
 
 ```vue
 <script setup lang="ts">
@@ -213,29 +213,29 @@ const animations: SkeletonAnimation[] = ["shimmer", "pulse", "none"];
 
 ### 何时不用
 
-- 加载极快：骨架闪一下比直接出现更烦人。
-- 版面完全不可预测：用[加载指示器](./spinner)。
-- 是一次动作的等待（提交中）：用按钮的载入态。
+- 加载极快时，骨架闪烁比直接出现更差。
+- 版面完全不可预测时，使用[加载指示器](./spinner)。
+- 一次动作的等待（提交中）使用按钮的载入态。
 
 ### 特性
 
-- `loading` 翻假即换成真内容。
+- `loading` 为假时替换为真实内容：刚加载完的骨架让出版面，原地盖在真实内容之上淡出，播完才收起；挂载时就已加载完的直接收起，不播淡出。
 - `shape` 决定骨块的形状（文本行、圆形、矩形）。
 - `animation` 在微光、呼吸和静止三档之间切换。
 
 ### 组合
 
-- 按最终版面用[栅格](./grid)或[弹性布局](./flex)摆骨块。
+- 按最终版面用[栅格](./grid)或[弹性布局](./flex)排列骨块。
 
 ### 最佳实践
 
-- 骨架的形状与真内容对上：行数、宽度、圆角都要接近，否则内容一到就整块跳。
-- 别做得比真内容还花哨。
+- 骨架的形状与真实内容对应：行数、宽度、圆角都要接近，否则内容到达时整块跳动。
+- 不做得比真实内容更复杂。
 
 ### 反模式
 
-- 一块巨大的灰色矩形代替所有内容。
-- 加载失败后骨架一直闪着。
+- 用一块巨大的灰色矩形代替所有内容。
+- 加载失败后骨架持续闪烁。
 
 ## API 参考
 
@@ -245,16 +245,24 @@ const animations: SkeletonAnimation[] = ["shimmer", "pulse", "none"];
 | --- | --- |
 | 自定义元素 | `<xh-skeleton>` |
 | Vue 组件 | `XhSkeletonItem` `XhSkeletonRoot` |
-| 状态机 | 无，`connect` 直接由 props 算属性 |
+| 状态机 | `skeletonMachine` |
 | 皮肤 | `@xihan-ui/styles/skeleton.css` |
 
 ### Props
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `animation` | `SkeletonAnimation` |  | 动效档，默认 'shimmer'；缺省档不输出 data-animation。 |
+| `animation` | `SkeletonAnimation` |  | 动效档，默认 'shimmer'；默认档不输出 data-animation。 |
 | `loading` | `boolean` |  | 是否还在加载，默认 true。 |
 | `shape` | `SkeletonShape` |  | 容器内骨架条的默认形状，默认 'text'。 |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhSkeletonItem` | `shape` | `SkeletonShape` |  | 该根的形状，覆盖容器提供的默认值。 |
 
 ### 状态
 
@@ -263,6 +271,12 @@ const animations: SkeletonAnimation[] = ["shimmer", "pulse", "none"];
 | 部件 | 取值 |
 | --- | --- |
 | `root` | 'loading' \| 'loaded' |
+
+以下名称仅用于内部状态机。
+
+**状态**：`idle`
+
+**事件**：`ROOT.RENDERED`
 
 ### connect API
 
@@ -312,16 +326,16 @@ const animations: SkeletonAnimation[] = ["shimmer", "pulse", "none"];
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
 | `--xh-skeleton-bg` | `item` | `background-color` | `default` | `--xh-bg-subtle` | skeleton 的 item 部件 background-color 覆盖槽。 |
-| `--xh-skeleton-circle-radius` | `item` | `border-radius` | `shape=circle` | `--xh-shape-pill` | skeleton 的 item 部件 border-radius 覆盖槽。 |
+| `--xh-skeleton-circle-radius` | `item` | `border-radius` | `shape=circle` | `--xh-shape-circle` | skeleton 的 item 部件 border-radius 覆盖槽。 |
 | `--xh-skeleton-circle-size` | `item` | `inline-size` | `shape=circle` | `--xh-control-h-lg` | skeleton 的 item 部件 inline-size 覆盖槽。 |
-| `--xh-skeleton-duration` | `item` | `animation` | `default` | `--xh-shimmer-duration` | skeleton 的 item 部件 animation 覆盖槽。 |
+| `--xh-skeleton-duration` | `item` | `animation` | `default` | `--xh-motion-loop-shimmer` | skeleton 的 item 部件 animation 覆盖槽。 |
 | `--xh-skeleton-gap` | `root` | `gap` | `default` | `--xh-space-3` | skeleton 的 root 部件 gap 覆盖槽。 |
-| `--xh-skeleton-pulse-duration` | `item`<br>`root` | `animation` | `animation=pulse` | `--xh-shimmer-duration` | skeleton 的 item、root 部件 animation 覆盖槽。 |
+| `--xh-skeleton-pulse-duration` | `item`<br>`root` | `animation` | `animation=pulse` | `--xh-motion-loop-shimmer` | skeleton 的 item、root 部件 animation 覆盖槽。 |
 | `--xh-skeleton-radius` | `item` | `border-radius` | `default` | `--xh-shape-control` | skeleton 的 item 部件 border-radius 覆盖槽。 |
 | `--xh-skeleton-rect-block-size` | `item` | `min-block-size` | `shape=rect` | `--xh-control-h-lg` | skeleton 的 item 部件 min-block-size 覆盖槽。 |
 | `--xh-skeleton-rect-radius` | `item` | `border-radius` | `shape=rect` | `--xh-shape-surface` | skeleton 的 item 部件 border-radius 覆盖槽。 |
@@ -332,6 +346,10 @@ const animations: SkeletonAnimation[] = ["shimmer", "pulse", "none"];
 
 ### 动效
 
-关键帧 `xh-skeleton-pulse` · `xh-skeleton-shimmer` 随皮肤自带，不引用别处文件里的名字。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：出现 · 循环（见[动效规范](../design/motion#角色)）。
+
+可覆盖的动效槽：`--xh-skeleton-duration` · `--xh-skeleton-pulse-duration`。
+
+关键帧 `xh-skeleton-pulse` 随皮肤自带，不引用别处文件里的名字；共享关键帧 `xh-fade-out` · `xh-shimmer` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 `prefers-reduced-motion: reduce` 下本组件另有降级规则。

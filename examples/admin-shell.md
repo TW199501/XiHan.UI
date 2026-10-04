@@ -60,21 +60,21 @@ import {
 import { ref } from "vue";
 
 const nav: SideNavNode[] = [
-  { value: "dashboard", label: "工作台", href: "#dashboard" },
+  { value: "dashboard", label: "工作台", href: "#/dashboard" },
   {
     value: "order",
     label: "订单",
     children: [
-      { value: "order-list", label: "订单列表", href: "#order-list" },
-      { value: "order-refund", label: "退款处理", href: "#order-refund" },
+      { value: "order-list", label: "订单列表", href: "#/order/list" },
+      { value: "order-refund", label: "退款处理", href: "#/order/refund" },
     ],
   },
   {
     value: "user",
     label: "用户",
     children: [
-      { value: "user-list", label: "用户列表", href: "#user-list" },
-      { value: "user-role", label: "角色权限", href: "#user-role" },
+      { value: "user-list", label: "用户列表", href: "#/user/list" },
+      { value: "user-role", label: "角色权限", href: "#/user/role" },
     ],
   },
 ];
@@ -92,7 +92,7 @@ const lastCommand = ref("（无）");
 </script>
 
 <template>
-  <XhLayoutRoot bordered class="shell">
+  <XhLayoutRoot split class="shell">
     <XhLayoutHeader class="shell__header">
       <XhLayoutSiderTrigger>菜单</XhLayoutSiderTrigger>
       <strong class="shell__brand">曦寒控制台</strong>
@@ -117,7 +117,7 @@ const lastCommand = ref("（无）");
         <!-- 触发器是作者写的内容，菜单只接管展开与键盘 -->
         <XhMenuRoot :collection="account" @select="lastCommand = `账户 · ${$event.value}`">
           <template #trigger>
-            <XhAvatarRoot src="/images/logo.png" alt="曦寒">
+            <XhAvatarRoot src="/images/demo-avatar.svg" alt="曦寒">
               <XhAvatarImage />
               <XhAvatarFallback>曦</XhAvatarFallback>
             </XhAvatarRoot>
@@ -159,15 +159,15 @@ const lastCommand = ref("（无）");
       <XhBreadcrumbRoot>
         <XhBreadcrumbList>
           <XhBreadcrumbItem>
-            <XhBreadcrumbLink href="#dashboard">工作台</XhBreadcrumbLink>
+            <XhBreadcrumbLink href="#/dashboard">工作台</XhBreadcrumbLink>
           </XhBreadcrumbItem>
           <XhBreadcrumbSeparator>/</XhBreadcrumbSeparator>
           <XhBreadcrumbItem>
-            <XhBreadcrumbLink href="#order">订单</XhBreadcrumbLink>
+            <XhBreadcrumbLink href="#/order">订单</XhBreadcrumbLink>
           </XhBreadcrumbItem>
           <XhBreadcrumbSeparator>/</XhBreadcrumbSeparator>
           <XhBreadcrumbItem>
-            <XhBreadcrumbLink href="#order-list" current>订单列表</XhBreadcrumbLink>
+            <XhBreadcrumbLink href="#/order/list" current>订单列表</XhBreadcrumbLink>
           </XhBreadcrumbItem>
         </XhBreadcrumbList>
       </XhBreadcrumbRoot>
@@ -194,7 +194,7 @@ const lastCommand = ref("（无）");
       </XhToolbarRoot>
 
       <div class="shell__cards">
-        <XhCardRoot variant="secondary">
+        <XhCardRoot variant="subtle">
           <XhCardHeader>
             <XhCardTitle>待发货</XhCardTitle>
           </XhCardHeader>
@@ -206,7 +206,7 @@ const lastCommand = ref("（无）");
           </XhCardContent>
         </XhCardRoot>
 
-        <XhCardRoot variant="secondary">
+        <XhCardRoot variant="subtle">
           <XhCardHeader>
             <XhCardTitle>待退款</XhCardTitle>
           </XhCardHeader>
@@ -365,7 +365,7 @@ const lastCommand = ref("（无）");
   }
 </style>
 
-<xh-layout id="admin-shell" bordered>
+<xh-layout id="admin-shell" split>
   <div data-xh-part="root" data-shell="root">
     <div data-xh-part="header" data-shell="header">
       <button data-xh-part="sider-trigger">菜单</button>
@@ -398,7 +398,7 @@ const lastCommand = ref("（无）");
         <!-- 触发器是作者写的内容，菜单只接管展开与键盘 -->
         <xh-menu id="admin-shell-account">
           <button data-xh-part="trigger" data-shell="account">
-            <xh-avatar src="/images/logo.png" alt="曦寒">
+            <xh-avatar src="/images/demo-avatar.svg" alt="曦寒">
               <span data-xh-part="root">
                 <img data-xh-part="image" />
                 <span data-xh-part="fallback">曦</span>
@@ -472,15 +472,15 @@ const lastCommand = ref("（无）");
         <nav data-xh-part="root">
           <ol data-xh-part="list">
             <li data-xh-part="item">
-              <a data-xh-part="link" href="#dashboard">工作台</a>
+              <a data-xh-part="link" href="#/dashboard">工作台</a>
             </li>
             <li data-xh-part="separator">/</li>
             <li data-xh-part="item">
-              <a data-xh-part="link" href="#order">订单</a>
+              <a data-xh-part="link" href="#/order">订单</a>
             </li>
             <li data-xh-part="separator">/</li>
             <li data-xh-part="item">
-              <a data-xh-part="link" href="#order-list" current>订单列表</a>
+              <a data-xh-part="link" href="#/order/list" current>订单列表</a>
             </li>
           </ol>
         </nav>
@@ -510,7 +510,7 @@ const lastCommand = ref("（无）");
       </xh-toolbar>
 
       <div data-shell="cards">
-        <xh-card variant="secondary">
+        <xh-card variant="subtle">
           <div data-xh-part="root">
             <div data-xh-part="header">
               <div data-xh-part="title">待发货</div>
@@ -526,7 +526,7 @@ const lastCommand = ref("（无）");
           </div>
         </xh-card>
 
-        <xh-card variant="secondary">
+        <xh-card variant="subtle">
           <div data-xh-part="root">
             <div data-xh-part="header">
               <div data-xh-part="title">待退款</div>
@@ -568,21 +568,21 @@ const lastCommand = ref("（无）");
 
   // 入口树是 href 与层级的事实源，数组只能走 property
   nav.collection = [
-    { value: "dashboard", label: "工作台", href: "#dashboard" },
+    { value: "dashboard", label: "工作台", href: "#/dashboard" },
     {
       value: "order",
       label: "订单",
       children: [
-        { value: "order-list", label: "订单列表", href: "#order-list" },
-        { value: "order-refund", label: "退款处理", href: "#order-refund" },
+        { value: "order-list", label: "订单列表", href: "#/order/list" },
+        { value: "order-refund", label: "退款处理", href: "#/order/refund" },
       ],
     },
     {
       value: "user",
       label: "用户",
       children: [
-        { value: "user-list", label: "用户列表", href: "#user-list" },
-        { value: "user-role", label: "角色权限", href: "#user-role" },
+        { value: "user-list", label: "用户列表", href: "#/user/list" },
+        { value: "user-role", label: "角色权限", href: "#/user/role" },
       ],
     },
   ];

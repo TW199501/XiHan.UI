@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/drawer
 
-# Drawer 抽屉 `alpha`
+# Drawer 抽屉
 
 从屏幕某一边滑出的面板。
 
@@ -14,7 +14,7 @@
 
 ## 用法
 
-不传 open 即为非受控；Escape 关闭、Tab 在面板里循环，展开期间页面滚不动
+不传 open 即为非受控；Escape 关闭、Tab 在面板内循环，展开期间页面不可滚动
 
 ```vue
 <script setup lang="ts">
@@ -79,13 +79,13 @@ import {
 
 加粗的是必需部件。
 
-`data-scope="drawer"`：**`root`** · `trigger` · `backdrop` · `positioner` · **`content`** · `header` · `title` · `description` · `body` · `footer` · `close-trigger`
+`data-scope="drawer"`：**`root`** · `trigger` · `backdrop` · `positioner` · **`content`** · `header` · `title` · `description` · `body` · `footer` · `close-trigger` · `resize-trigger`
 
 ## 示例
 
 ### 贴边方向
 
-side 只落成 data-side，面板压在哪条边由皮肤按这个值决定；root 与 content 报的是同一条边
+side 只写为 data-side，面板贴在哪条边由皮肤按该值决定；root 与 content 报告的是同一条边
 
 ```vue
 <script setup lang="ts">
@@ -197,7 +197,7 @@ const sides = [
 
 ### 受控
 
-传了 open 就由宿主说了算；Escape、点面板外、按叉都只回写 open，不自己改状态
+传入 open 后由宿主决定；Escape、点击面板外、按关闭按钮都只回写 open，不自行修改状态
 
 ```vue
 <script setup lang="ts">
@@ -273,7 +273,7 @@ const open = ref(false);
 
 ### 尺寸
 
-size 落成 content 的 data-size，只改面板贴边方向上的厚度；三档各自一个抽屉，点开才看得出厚薄
+size 写为 content 的 data-size，只改变面板贴边方向上的厚度；三档各自一个抽屉，打开后才可见厚度差异
 
 ```vue
 <script setup lang="ts">
@@ -388,7 +388,7 @@ const sizes = [
 
 ### 头尾固定、正文滚动
 
-header / body / footer 把面板切成三段：头与尾定在原处，只有正文那一段在滚
+header / body / footer 把面板切为三段：头与尾固定在原处，只有正文一段滚动
 
 ```vue
 <script setup lang="ts">
@@ -490,7 +490,7 @@ const records = Array.from({ length: 24 }, (_, i) => ({
 
 ### 关闭前拦截
 
-受控时组件不自改状态：Escape、点面板外、按叉都只发一次收起意图，写不写由宿主定
+受控时组件不自行修改状态：Escape、点击面板外、按关闭按钮都只发一次收起意图，是否写回由宿主决定
 
 ```vue
 <script setup lang="ts">
@@ -602,9 +602,9 @@ function discard() {
 </script>
 ```
 
-### 拖边缘改厚度
+### 调整厚度
 
-面板里放一根把手，拖动时把新厚度写进 content 的 --xh-drawer-size；这个槽压过 size 三档，滑入滑出仍按面板自身宽度算
+resizable 在朝向页面的那条边上放一根把手：拖动或用方向键推，厚度夹在 minPanelSize 与 maxPanelSize 之间；受控的 panelSize 读写当前厚度
 
 ```vue
 <script setup lang="ts">
@@ -613,155 +613,68 @@ import {
   XhDrawerCloseTrigger,
   XhDrawerContent,
   XhDrawerDescription,
+  XhDrawerResizeTrigger,
   XhDrawerRoot,
   XhDrawerTitle,
   XhDrawerTrigger,
 } from "@xihan-ui/vue";
 import { ref } from "vue";
 
-const MIN = 260;
-const MAX = 560;
-
-const width = ref(0);
-const dragging = ref(false);
-let panel: HTMLElement | null = null;
-
-function begin(event: PointerEvent): void {
-  const handle = event.currentTarget as HTMLElement;
-  panel = handle.closest<HTMLElement>("[data-scope=\"drawer\"][data-part=\"content\"]");
-  if (!panel)
-    return;
-  dragging.value = true;
-  // 起点取面板当前的实际厚度
-  width.value = Math.round(panel.getBoundingClientRect().width);
-  handle.setPointerCapture(event.pointerId);
-}
-
-function move(event: PointerEvent): void {
-  if (!dragging.value || !panel)
-    return;
-  // 面板贴右边，厚度就是视口右缘到指针的距离
-  width.value = Math.round(Math.min(MAX, Math.max(MIN, window.innerWidth - event.clientX)));
-  panel.style.setProperty("--xh-drawer-size", `${width.value}px`);
-}
-
-function end(event: PointerEvent): void {
-  if (!dragging.value)
-    return;
-  dragging.value = false;
-  panel = null;
-  (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
-}
+const panelSize = ref<number>();
 </script>
 
 <template>
-  <XhDrawerRoot v-slot="{ setOpen }" :translations="{ close: '关闭' }">
+  <XhDrawerRoot
+    v-slot="{ setOpen }"
+    v-model:panel-size="panelSize"
+    resizable
+    :min-panel-size="260"
+    :max-panel-size="560"
+    :translations="{ close: '关闭', resizeTrigger: '调整抽屉宽度' }"
+  >
     <XhDrawerTrigger>打开可调宽的抽屉</XhDrawerTrigger>
     <XhDrawerContent>
-      <div
-        style="
-          position: absolute;
-          inset-block: 0;
-          inset-inline-start: 0;
-          inline-size: 8px;
-          cursor: ew-resize;
-          touch-action: none;
-        "
-        @pointerdown="begin"
-        @pointermove="move"
-        @pointerup="end"
-        @pointercancel="end"
-      />
       <XhDrawerTitle>字段设置</XhDrawerTitle>
-      <XhDrawerDescription>
-        拖面板左边缘，厚度在 {{ MIN }} 到 {{ MAX }} 像素之间取值。
-      </XhDrawerDescription>
-      <p style="margin: 0; color: var(--xh-fg-muted)">
-        当前厚度：{{ width ? `${width} px` : "默认" }}
-      </p>
+      <XhDrawerDescription>拖面板左边缘，或聚焦把手后按方向键；Home / End 推到最窄与最宽。</XhDrawerDescription>
+      <p style="margin: 0; color: var(--xh-fg-muted)">当前厚度：{{ panelSize ? `${panelSize} px` : "默认" }}</p>
       <XhButton variant="solid" @click="setOpen(false)">关闭</XhButton>
       <XhDrawerCloseTrigger />
+      <XhDrawerResizeTrigger />
     </XhDrawerContent>
   </XhDrawerRoot>
 </template>
 ```
 
 ```html
-<xh-drawer id="drawer-resize">
+<xh-drawer id="drawer-resize" resizable min-panel-size="260" max-panel-size="560">
   <div data-xh-part="root">
     <button data-xh-part="trigger">打开可调宽的抽屉</button>
     <div data-xh-part="backdrop"></div>
     <div data-xh-part="positioner">
       <div data-xh-part="content">
-        <div
-          id="drawer-resize-handle"
-          style="
-            position: absolute;
-            inset-block: 0;
-            inset-inline-start: 0;
-            inline-size: 8px;
-            cursor: ew-resize;
-            touch-action: none;
-          "
-        ></div>
         <h2 data-xh-part="title">字段设置</h2>
-        <p data-xh-part="description">
-          拖面板左边缘，厚度在 260 到 560 像素之间取值。
-        </p>
-        <p id="drawer-resize-readout" style="margin: 0; color: var(--xh-fg-muted)">
-          当前厚度：默认
-        </p>
+        <p data-xh-part="description">拖面板左边缘，或聚焦把手后按方向键；Home / End 推到最窄与最宽。</p>
+        <p id="drawer-resize-readout" style="margin: 0; color: var(--xh-fg-muted)">当前厚度：默认</p>
         <xh-button variant="solid">
           <button data-xh-part="root" data-dismiss>关闭</button>
         </xh-button>
         <button data-xh-part="close-trigger"></button>
+        <div data-xh-part="resize-trigger"></div>
       </div>
     </div>
   </div>
 </xh-drawer>
 
 <script type="module">
-  const MIN = 260;
-  const MAX = 560;
-
+  // 文案是对象，只能走 property；厚度意图写回 panel-size，回显同步刷新
   const drawer = document.getElementById("drawer-resize");
-  const handle = document.getElementById("drawer-resize-handle");
+  drawer.translations = { close: "关闭", resizeTrigger: "调整抽屉宽度" };
   const readout = document.getElementById("drawer-resize-readout");
-  // 文案是对象，只走 property
-  drawer.translations = { close: "关闭" };
-
-  let panel = null;
-
-  handle.addEventListener("pointerdown", (event) => {
-    panel = handle.closest('[data-scope="drawer"][data-part="content"]');
-    handle.setPointerCapture(event.pointerId);
-  });
-
-  handle.addEventListener("pointermove", (event) => {
-    if (!panel) {
-      return;
-    }
-    // 面板贴右边，厚度就是视口右缘到指针的距离
-    const width = Math.round(
-      Math.min(MAX, Math.max(MIN, window.innerWidth - event.clientX)),
-    );
-    panel.style.setProperty("--xh-drawer-size", `${width}px`);
-    readout.textContent = `当前厚度：${width} px`;
-  });
-
-  function end(event) {
-    if (!panel) {
-      return;
-    }
-    panel = null;
-    handle.releasePointerCapture(event.pointerId);
-  }
-
-  handle.addEventListener("pointerup", end);
-  handle.addEventListener("pointercancel", end);
-
-  // 面板里那颗按钮把关闭转交给已接线的关闭部件
   const close = drawer.querySelector('[data-xh-part="close-trigger"]');
+  drawer.addEventListener("panel-size-change", (event) => {
+    drawer.panelSize = event.detail.panelSize;
+    readout.textContent = `当前厚度：${event.detail.panelSize} px`;
+  });
   for (const button of drawer.querySelectorAll("[data-dismiss]")) {
     button.addEventListener("click", () => close.click());
   }
@@ -770,7 +683,7 @@ function end(event: PointerEvent): void {
 
 ### 局部抽屉
 
-把抽屉收进某块区域：遮罩与定位层从 fixed 换成 absolute，只罩住那块区域而不是盖满整屏
+把抽屉收进某块区域：遮罩与定位层从 fixed 换为 absolute，只覆盖该区域而不是整屏
 
 ```vue
 <script setup lang="ts">
@@ -870,35 +783,39 @@ const panel = ref<HTMLElement | null>(null);
 
 ### 何时使用
 
-- 内容比对话框长（一整张表单、一份详情），但仍属于当前上下文。
+- 内容比对话框长（完整表单、详情），但仍属于当前上下文。
 - 窄屏上的导航或筛选面板。
 
 ### 何时不用
 
-- 只是确认一件事：用[对话框](./dialog)或[弹出确认](./popconfirm)。
-- 内容需要与页面主体对照着看：并排展开，别遮住。
+- 只确认一件事时，使用[对话框](./dialog)或[弹出确认](./popconfirm)。
+- 内容需要与页面主体对照查看时，并排展开，不遮挡。
 
 ### 特性
 
-- `side` 决定从哪一边出来；`contained` 让它只占据某个容器而不是整个视口。
+- `side` 决定滑出方向；`contained` 让它只占据某个容器而不是整个视口。
+- 焦点进入时落在 `initialFocus`；没给时落在内容里第一个可聚焦的控件上，越过关闭钮与改尺把手（除它们之外没有可聚焦的才落在关闭钮上）。关闭后归还触发器。
 - `modal=false` 时不渲染遮罩，定位层也不截获页面指针；页面可以与抽屉并行交互。展开期间切换 `modal`，滚动锁、背景失活与焦点陷阱会同步切换。
-- 可以拖边缘改厚度。
+- `resizable` 在朝向页面的那条边上放一根改尺把手（`resize-trigger`，role=separator）：拖动它面板沿贴边方向变宽（左右放置）或变高（上下放置），聚焦后方向键推一步（8px）、Shift 大步（40px）、Home / End 推到下限与上限。推向页面那一侧变厚：从右往左排版时 `right` 贴在屏幕左边，把手与推的方向一起翻过来。厚度夹在 `minPanelSize`（缺省 160）与 `maxPanelSize` 之间，且不超出视口（`contained` 时是所在容器）。`panelSize` / `defaultPanelSize` / `onPanelSizeChange` 走受控与非受控；没调过时面板按 `size` 档绘制。拖动走 `@xihan-ui/pointer` 的指针会话，步长与 Resizable 同一档。把手是 content 里的绝对定位节点，content 自己滚动（不用 body 段）时它会随内容滚走，长内容请放进 body。
 - 关闭时内容立即失活并退出可访问树；面板与遮罩全部完成退场后释放模态资源并发出 `onExitComplete` / `exit-complete`。退场中重开不会被旧完成关闭，卸载立即清理。
-- 关闭前可以拦截（有未保存改动时先问一句）。
+- 关闭前可以拦截，例如有未保存改动时先确认。
+- 面板走 M4 sheet 三件套（1px 描边、不透明底、投影），边界由描边承担，不只靠影分层；入场是整面板从画外推入的大尺度位移，走 slide 时长与曲线，退场仍走 exit 档。
+- 触发器与关闭按钮走 Action Control 家族配方：触发器为 text 档中性描边，展开期间压住为悬停同档的中性面；关闭按钮为 icon 档 ghost 面，悬停与按下沿画布承载阶梯换底；Space / Enter 与触屏按住期间投影 `data-pressed`。标题为 heading-3，说明文字为 13px 说明档。
+- Body 是模态滚动面：滚到头不带动页面，内容高度变化时保留稳定的滚动条空道；不用三段结构时 content 自身是唯一滚动层。
 
 ### 组合
 
-- 里面放[表单](./form)、[侧栏导航](./side-nav)；内容区套[滚动区域](./scroll-area)。
+- 内部放[表单](./form)、[侧栏导航](./side-nav)；内容区使用[滚动区域](./scroll-area)。
 
 ### 最佳实践
 
-- 提交与取消固定在底部，别让用户滚到最下面才找得到。
-- 有未保存改动时拦下关闭。
+- 提交与取消固定在底部，用户不需要滚动到底部查找。
+- 有未保存改动时拦截关闭。
 
 ### 反模式
 
-- 抽屉里再开抽屉。
-- 在宽屏上用抽屉装本可以直接展开的内容。
+- 在抽屉内再打开抽屉。
+- 在宽屏上用抽屉承载可以直接展开的内容。
 
 ## API 参考
 
@@ -907,7 +824,7 @@ const panel = ref<HTMLElement | null>(null);
 | 层 | 值 |
 | --- | --- |
 | 自定义元素 | `<xh-drawer>` |
-| Vue 组件 | `XhDrawerBody` `XhDrawerCloseTrigger` `XhDrawerContent` `XhDrawerDescription` `XhDrawerFooter` `XhDrawerHeader` `XhDrawerRoot` `XhDrawerTitle` `XhDrawerTrigger` |
+| Vue 组件 | `XhDrawerBody` `XhDrawerCloseTrigger` `XhDrawerContent` `XhDrawerDescription` `XhDrawerFooter` `XhDrawerHeader` `XhDrawerResizeTrigger` `XhDrawerRoot` `XhDrawerTitle` `XhDrawerTrigger` |
 | 组合式函数 | `useDrawer` |
 | 状态机 | `drawerMachine` |
 | 皮肤 | `@xihan-ui/styles/drawer.css` |
@@ -919,17 +836,23 @@ const panel = ref<HTMLElement | null>(null);
 | `open` | `boolean` |  |  |
 | `defaultOpen` | `boolean` |  |  |
 | `modal` | `boolean` |  | 是否启用模态约束，默认 true。false 时不提供遮罩，页面其余部分保持可交互； 展开期间可以切换，滚动锁、背景失活与焦点陷阱会同步更新。 |
-| `contained` | `boolean` |  | 浮层挂在某个局部容器里而不是视口：遮罩与定位层从 fixed 换成 absolute， 于是只罩住那个容器、不再盖满整屏。 挂到哪个容器是适配器的事（Vue 由 root 的 container 决定，WC 本就是 Light DOM、 作者写在哪就在哪），这里只表达「按局部容器画」这一件事。 |
-| `side` | `DrawerSide` |  | 从哪条边滑出，默认 'right'。只影响输出的 data-side，不参与状态转移。 |
+| `contained` | `boolean` |  | 浮层挂在局部容器中而不是视口：遮罩与定位层从 fixed 改为 absolute， 因此只覆盖该容器、不再覆盖整屏。 挂到哪个容器由适配器决定（Vue 由 root 的 container 决定，WC 本身是 Light DOM、 作者写在何处即在何处），这里只表达按局部容器绘制这一点。 |
+| `side` | `DrawerSide` |  | 滑出的边，默认 'right'。只影响输出的 data-side，不参与状态转移。 |
 | `role` | `'dialog' \| 'alertdialog'` |  |  |
 | `closeOnEscape` | `boolean` |  |  |
 | `closeOnInteractOutside` | `boolean` |  |  |
 | `restoreFocus` | `boolean` |  |  |
-| `size` | `Size` |  | 尺寸：sm / md / lg。横放时换面板宽度、竖放时换面板高度，随 side 而定。 |
-| `variant` | `OverlayBackdropVariant` |  | 遮罩形态：opaque / blur / transparent。落在 backdrop 上，只换那一层的底色与模糊。 |
+| `size` | `Size` |  | 尺寸：sm / md / lg。横向放置时影响面板宽度、纵向放置时影响面板高度，随 side 而定。 |
+| `variant` | `OverlayBackdropVariant` |  | 遮罩形态：opaque / blur / transparent。写在 backdrop 上，只影响该层的底色与模糊。 |
 | `translations` | `Partial<DrawerTranslations>` |  |  |
 | `onOpenChange` | `(details: DrawerOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控时随内部转移一并通知。 |
 | `onExitComplete` | `() => void` |  | 退出动画结束或取消，且本层资源全部释放后通知；卸载和重新打开不通知。 |
+| `resizable` | `boolean` |  | 可调厚度：朝向页面的那条边上的 resize-trigger 拖动或用方向键推，面板沿贴边方向变宽（左右放置）或变高（上下放置）。 默认 false。厚度夹在 minPanelSize 与 maxPanelSize 之间，且不超出视口（contained 时是所在容器）。 |
+| `panelSize` | `number` |  | 受控厚度（像素）；未提供即非受控。没有值时面板按 size 档的厚度绘制。 |
+| `defaultPanelSize` | `number` |  | 非受控的初始厚度（像素）；不给即按 size 档。 |
+| `minPanelSize` | `number` |  | 厚度下限（像素），默认 160。 |
+| `maxPanelSize` | `number` |  | 厚度上限（像素）；不给时只受视口（或所在容器）限制。 |
+| `onPanelSizeChange` | `(details: DrawerPanelSizeChangeDetails) => void` |  | 厚度变化意图：拖动途中连续发出，键盘每推一步发一次。 |
 
 ### 事件
 
@@ -938,6 +861,7 @@ const panel = ref<HTMLElement | null>(null);
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `exit-complete` | `CustomEvent` | 退出完成且本层资源已释放 |
+| `panel-size-change` | `CustomEvent` | 厚度变化意图；detail 为 `{ panelSize: number }` |
 | `open-change` | `DrawerOpenChangeDetails` | open 状态变化；detail 为 `{ open: boolean }` |
 
 ### 插槽
@@ -947,6 +871,15 @@ const panel = ref<HTMLElement | null>(null);
 | Vue 组件 | 插槽 | 载荷 | 说明 |
 | --- | --- | --- | --- |
 | `XhDrawerRoot` | `default` | `DrawerRootSlotProps` |  |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhDrawerRoot` | `container` | `() => Element \| null` |  | 浮层挂载的容器；未提供时按全局配置，再未提供时挂载到 body。 提供后即为局部抽屉：遮罩与定位层从 fixed 换为 absolute，只覆盖该容器而不是整屏。 该容器要自带 position（relative 等），否则 absolute 会向上找到其他定位祖先。 |
+| `XhDrawerRoot` | `children` | `SlotChildren<DrawerRootSlotProps>` |  |  |
 
 ### 状态
 
@@ -964,9 +897,9 @@ const panel = ref<HTMLElement | null>(null);
 
 **状态**：`open` · `closed`
 
-**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE`
+**事件**：`RESIZE.START` · `RESIZE.NUDGE` · `RESIZE.TO_BOUND` · `RESIZE.MEASURE`
 
-**判据**：`isOpenControlled`
+**判据**：`canResize`
 
 ### connect API
 
@@ -975,7 +908,9 @@ const panel = ref<HTMLElement | null>(null);
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
 | `open` | `boolean` |  |
-| `side` | `DrawerSide` | 已解析的滑出边（prop 缺省时是默认值），作者据此配动画。 |
+| `panelSize` | `number \| null` | 当前厚度；没被调过、也没给初值时为 null。 |
+| `resizing` | `boolean` | 正在被指针调厚度。 |
+| `side` | `DrawerSide` | 已解析的滑出边（prop 未提供时是默认值），作者据此配置动画。 |
 | `setOpen` | `(next: boolean) => void` |  |
 | `getRootProps` | `() => T['element']` |  |
 | `getTriggerProps` | `() => T['button']` |  |
@@ -988,6 +923,7 @@ const panel = ref<HTMLElement | null>(null);
 | `getBodyProps` | `() => T['element']` |  |
 | `getFooterProps` | `() => T['element']` |  |
 | `getCloseTriggerProps` | `() => T['button']` |  |
+| `getResizeTriggerProps` | `() => T['element']` | 改尺把手：role=separator，落在朝向页面的那条边上；没开 resizable 时带 hidden。 |
 
 ## 无障碍
 
@@ -1001,6 +937,10 @@ const panel = ref<HTMLElement | null>(null);
 | `Escape` | open | 关闭并把焦点还给 trigger |
 | `Tab` | open 且 modal | 在 content 内向后循环焦点 |
 | `Shift+Tab` | open 且 modal | 在 content 内向前循环焦点 |
+| `Enter` / `Space` | held in trigger / close-trigger | 按住期间该按钮投影 data-pressed，与指针 :active 同一副按压面；抬起、失焦或抽屉收起撤下 |
+| `ArrowLeft` / `ArrowRight` / `ArrowUp` / `ArrowDown` | focus in resize-trigger, resizable | 按屏幕方向推把手一步（8px）：推向页面那一侧变厚、推向贴边那一侧变薄；左右放置只认左右键、上下放置只认上下键；夹在上下限之间 |
+| `Shift+ArrowLeft` / `Shift+ArrowRight` / `Shift+ArrowUp` / `Shift+ArrowDown` | focus in resize-trigger, resizable | 按大步长推（40px） |
+| `Home` / `End` | focus in resize-trigger, resizable | Home 推到厚度下限，End 推到上限（没给上限时推到视口或所在容器能放下的最大厚度） |
 
 ### ARIA
 
@@ -1017,12 +957,21 @@ const panel = ref<HTMLElement | null>(null);
 | `content` | `aria-modal` | 'true' \| 'false' |
 | `content` | `role` | props.role |
 | `close-trigger` | `aria-label` | props.translations.close |
+| `resize-trigger` | `aria-controls` | `content` 部件的 id |
+| `resize-trigger` | `aria-label` | props.translations.resizeTrigger |
+| `resize-trigger` | `aria-orientation` | 'vertical' \| 'horizontal' |
+| `resize-trigger` | `aria-valuemax` | String(max) \| undefined |
+| `resize-trigger` | `aria-valuemin` | String(min) |
+| `resize-trigger` | `aria-valuenow` | String(now) \| undefined |
+| `resize-trigger` | `role` | 'separator' |
 
 ## 样式参考
 
 ### 皮肤
 
-`@xihan-ui/styles/drawer.css` 使用 `[data-scope="drawer"][data-part="root"]` 部件选择器，位于 `xihan.components` 与 `xihan.motion` 层。覆盖样式使用 `xihan.overrides`。
+`@xihan-ui/styles/drawer.css` 使用 `[data-scope="drawer"][data-part="root"]` 部件选择器，位于 `xihan.components` 层。覆盖样式使用 `xihan.overrides`。
+
+`forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
 
 ### 数据属性
 
@@ -1034,81 +983,106 @@ const panel = ref<HTMLElement | null>(null);
 | `root` | `data-side` | props.side |
 | `root` | `data-size` | props.size |
 | `root` | `data-state` | 'open' \| 'closed' |
+| `trigger` | `data-pressed` | ''（条件成立时才出现） |
 | `trigger` | `data-state` | 'open' \| 'closed' |
+| `trigger` | `data-xh-action-control` | '' |
+| `trigger` | `data-xh-action-display` | 'always' |
+| `trigger` | `data-xh-action-profile` | 'text' |
+| `trigger` | `data-xh-action-size` | 'md' |
+| `trigger` | `data-xh-action-variant` | 'outline' |
 | `backdrop` | `data-contained` | ''（条件成立时才出现） |
+| `backdrop` | `data-instant` | ''（条件成立时才出现） |
 | `backdrop` | `data-state` | 'open' \| 'closed' |
 | `backdrop` | `data-variant` | props.variant |
 | `positioner` | `data-contained` | ''（条件成立时才出现） |
 | `positioner` | `data-positioned` | '' |
 | `positioner` | `data-state` | 'open' \| 'closed' |
 | `content` | `data-contained` | ''（条件成立时才出现） |
+| `content` | `data-instant` | ''（条件成立时才出现） |
+| `content` | `data-resizing` | ''（条件成立时才出现） |
 | `content` | `data-side` | props.side |
 | `content` | `data-size` | props.size |
 | `content` | `data-state` | 'open' \| 'closed' |
+| `close-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `close-trigger` | `data-xh-action-control` | '' |
+| `close-trigger` | `data-xh-action-display` | 'always' |
+| `close-trigger` | `data-xh-action-profile` | 'icon' |
+| `close-trigger` | `data-xh-action-size` | 'sm' |
+| `close-trigger` | `data-xh-action-variant` | 'ghost' |
+| `resize-trigger` | `data-resizing` | ''（条件成立时才出现） |
+| `resize-trigger` | `data-side` | props.side |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
 | `--xh-drawer-backdrop-bg` | `backdrop` | `background` | `default` | `--xh-bg-overlay` | drawer 的 backdrop 部件 background 覆盖槽。 |
-| `--xh-drawer-backdrop-blur` | `backdrop` | `backdrop-filter` | `variant=blur` | `--xh-overlay-backdrop-blur` | drawer 的 backdrop 部件 backdrop-filter 覆盖槽。 |
+| `--xh-drawer-backdrop-blur` | `backdrop` | `-webkit-backdrop-filter`<br>`backdrop-filter` | `variant=blur` | `--xh-overlay-backdrop-blur` | drawer 的 backdrop 部件 -webkit-backdrop-filter、backdrop-filter 覆盖槽。 |
 | `--xh-drawer-backdrop-layer` | `backdrop` | `z-index` | `default` | `--xh-_layer` | drawer 的 backdrop 部件 z-index 覆盖槽。 |
-| `--xh-drawer-bg` | `content` | `background` | `default` | `--xh-bg-surface` | drawer 的 content 部件 background 覆盖槽。 |
-| `--xh-drawer-close-bg-active` | `close-trigger` | `background` | `active` | `--xh-bg-subtle-active` | drawer 的 close-trigger 部件 background 覆盖槽。 |
-| `--xh-drawer-close-bg-hover` | `close-trigger` | `background` | `hover` | `--xh-bg-subtle-hover` | drawer 的 close-trigger 部件 background 覆盖槽。 |
+| `--xh-drawer-bg` | `content` | `background` | `default` | `--xh-material-elevated-bg` | drawer 的 content 部件 background 覆盖槽。 |
+| `--xh-drawer-border` | `content` | `border` | `default` | `--xh-material-elevated-border` | drawer 的 content 部件 border 覆盖槽。 |
+| `--xh-drawer-close-bg-active` | `close-trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | drawer 的 close-trigger 部件 background-color 覆盖槽。 |
+| `--xh-drawer-close-bg-focus` | `close-trigger` | `background-color` | `focus-visible` | `--xh-_action-variant-bg-focus-visible` | drawer 的 close-trigger 部件 background-color 覆盖槽。 |
+| `--xh-drawer-close-bg-hover` | `close-trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | drawer 的 close-trigger 部件 background-color 覆盖槽。 |
 | `--xh-drawer-close-fg` | `close-trigger` | `color` | `default` | `--xh-fg-muted` | drawer 的 close-trigger 部件 color 覆盖槽。 |
-| `--xh-drawer-close-fg-hover` | `close-trigger` | `color` | `hover` | `--xh-fg-default` | drawer 的 close-trigger 部件 color 覆盖槽。 |
+| `--xh-drawer-close-fg-focus` | `close-trigger` | `color` | `focus-visible` | `--xh-drawer-close-fg-hover` | drawer 的 close-trigger 部件 color 覆盖槽。 |
+| `--xh-drawer-close-fg-hover` | `close-trigger` | `color` | `disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-fg-focus-visible`<br>`--xh-_action-variant-fg-hover`<br>`--xh-_action-variant-fg-pressed` | drawer 的 close-trigger 部件 color 覆盖槽。 |
 | `--xh-drawer-close-radius` | `close-trigger` | `border-radius` | `default` | `--xh-shape-control` | drawer 的 close-trigger 部件 border-radius 覆盖槽。 |
-| `--xh-drawer-close-size` | `close-trigger`<br>`content`<br>`title` | `block-size`<br>`inline-size`<br>`padding-inline-end` | `default`<br>`has([data-scope='drawer'][data-part='close-trigger'])` | `--xh-control-h-sm` | drawer 的 close-trigger、content、title 部件 block-size、inline-size、padding-inline-end 覆盖槽。 |
+| `--xh-drawer-close-size` | `close-trigger`<br>`content`<br>`title` | `block-size`<br>`inline-size`<br>`padding-inline-end` | `default`<br>`has([data-scope='drawer'][data-part='close-trigger'])`<br>`xh-action-profile=icon` | `--xh-_action-profile-visual-size`<br>`--xh-control-h-sm` | drawer 的 close-trigger、content、title 部件 block-size、inline-size、padding-inline-end 覆盖槽。 |
 | `--xh-drawer-description-fg` | `description` | `color` | `default` | `--xh-fg-muted` | drawer 的 description 部件 color 覆盖槽。 |
-| `--xh-drawer-description-font-size` | `description` | `font-size` | `default` | `--xh-text-body-size` | drawer 的 description 部件 font-size 覆盖槽。 |
-| `--xh-drawer-fg` | `content` | `color` | `default` | `--xh-fg-default` | drawer 的 content 部件 color 覆盖槽。 |
+| `--xh-drawer-description-font-size` | `description` | `font-size` | `default` | `--xh-text-secondary-size` | drawer 的 description 部件 font-size 覆盖槽。 |
+| `--xh-drawer-fg` | `content` | `color` | `default` | `--xh-material-elevated-fg` | drawer 的 content 部件 color 覆盖槽。 |
 | `--xh-drawer-footer-gap` | `footer` | `gap` | `default` | `--xh-control-gap-md` | drawer 的 footer 部件 gap 覆盖槽。 |
 | `--xh-drawer-footer-pt` | `footer` | `padding-block-start` | `default` | `--xh-space-2` | drawer 的 footer 部件 padding-block-start 覆盖槽。 |
 | `--xh-drawer-gap` | `content` | `gap` | `default` | `--xh-stack-gap-md` | drawer 的 content 部件 gap 覆盖槽。 |
 | `--xh-drawer-header-gap` | `header` | `gap` | `default` | `--xh-stack-gap-sm` | drawer 的 header 部件 gap 覆盖槽。 |
 | `--xh-drawer-header-pb` | `header` | `padding-block-end` | `default` | `--xh-space-2` | drawer 的 header 部件 padding-block-end 覆盖槽。 |
-| `--xh-drawer-icon-size` | `content`<br>`root` | `--xh-icon-size` | `default` | `--xh-glyph-size-text` | drawer 的 content、root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-drawer-icon-size` | `close-trigger`<br>`content`<br>`root`<br>`trigger` | `--xh-icon-size` | `default` | `--xh-_action-profile-glyph-size`<br>`--xh-glyph-size-md` | drawer 的 close-trigger、content、root、trigger 部件 --xh-icon-size 覆盖槽。 |
 | `--xh-drawer-layer` | `content`<br>`positioner` | `z-index` | `default` | `--xh-_layer` | drawer 的 content、positioner 部件 z-index 覆盖槽。 |
 | `--xh-drawer-px` | `content` | `padding-inline` | `contained`<br>`default` | `--xh-surface-px-md` | drawer 的 content 部件 padding-inline 覆盖槽。 |
 | `--xh-drawer-py` | `content` | `padding-block-end`<br>`padding-block-start` | `contained`<br>`default` | `--xh-surface-py-md` | drawer 的 content 部件 padding-block-end、padding-block-start 覆盖槽。 |
-| `--xh-drawer-radius` | `content` | `border-end-end-radius`<br>`border-end-start-radius`<br>`border-start-end-radius`<br>`border-start-start-radius` | `side=bottom`<br>`side=left`<br>`side=right`<br>`side=top` | `--xh-shape-surface` | drawer 的 content 部件 border-end-end-radius、border-end-start-radius、border-start-end-radius、border-start-start-radius 覆盖槽。 |
-| `--xh-drawer-shadow` | `content` | `box-shadow` | `default` | `--xh-elevation-sheet` | drawer 的 content 部件 box-shadow 覆盖槽。 |
+| `--xh-drawer-radius` | `content` | `border-end-end-radius`<br>`border-end-start-radius`<br>`border-start-end-radius`<br>`border-start-start-radius` | `side=bottom`<br>`side=left`<br>`side=right`<br>`side=top` | `--xh-shape-overlay` | drawer 的 content 部件 border-end-end-radius、border-end-start-radius、border-start-end-radius、border-start-start-radius 覆盖槽。 |
+| `--xh-drawer-resize-indicator-length` | `resize-trigger` | `block-size`<br>`inline-size` | `is([data-side='left'], [data-side='right'])`<br>`is([data-side='top'], [data-side='bottom'])`<br>`side=bottom`<br>`side=left`<br>`side=right`<br>`side=top` | `--xh-space-8` | drawer 的 resize-trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-drawer-resize-indicator-thickness` | `resize-trigger` | `block-size`<br>`inline-size` | `is([data-side='left'], [data-side='right'])`<br>`is([data-side='top'], [data-side='bottom'])`<br>`side=bottom`<br>`side=left`<br>`side=right`<br>`side=top` | `--xh-stroke-strong` | drawer 的 resize-trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-drawer-resize-trigger-bg` | `resize-trigger` | `background` | `default` | `--xh-border-control` | drawer 的 resize-trigger 部件 background 覆盖槽。 |
+| `--xh-drawer-resize-trigger-bg-active` | `resize-trigger` | `background` | `resizing` | `--xh-bg-brand` | drawer 的 resize-trigger 部件 background 覆盖槽。 |
+| `--xh-drawer-resize-trigger-bg-hover` | `resize-trigger` | `background` | `hover` | `--xh-border-control-hover` | drawer 的 resize-trigger 部件 background 覆盖槽。 |
+| `--xh-drawer-resize-trigger-radius` | `resize-trigger` | `border-radius` | `default` | `--xh-shape-pill` | drawer 的 resize-trigger 部件 border-radius 覆盖槽。 |
+| `--xh-drawer-resize-trigger-size` | `resize-trigger` | `block-size`<br>`inline-size` | `side=bottom`<br>`side=left`<br>`side=right`<br>`side=top` | `--xh-space-2` | drawer 的 resize-trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-drawer-shadow` | `content` | `box-shadow` | `default` | `--xh-material-elevated-shadow` | drawer 的 content 部件 box-shadow 覆盖槽。 |
 | `--xh-drawer-size` | `content` | `block-size`<br>`inline-size` | `side=bottom`<br>`side=left`<br>`side=right`<br>`side=top` | `--xh-_drawer-size` | drawer 的 content 部件 block-size、inline-size 覆盖槽。 |
 | `--xh-drawer-title-fg` | `title` | `color` | `default` | `--xh-fg-default` | drawer 的 title 部件 color 覆盖槽。 |
 | `--xh-drawer-title-font-size` | `title` | `font-size` | `default` | `--xh-text-heading-3-size` | drawer 的 title 部件 font-size 覆盖槽。 |
 | `--xh-drawer-title-font-weight` | `title` | `font-weight` | `default` | `--xh-text-heading-3-weight` | drawer 的 title 部件 font-weight 覆盖槽。 |
-| `--xh-drawer-trigger-bg` | `trigger` | `background` | `default` | `--xh-bg-canvas` | drawer 的 trigger 部件 background 覆盖槽。 |
-| `--xh-drawer-trigger-bg-active` | `trigger` | `background` | `active`<br>`not(:disabled)` | `--xh-bg-subtle-active` | drawer 的 trigger 部件 background 覆盖槽。 |
-| `--xh-drawer-trigger-bg-hover` | `trigger` | `background` | `hover`<br>`not(:disabled)` | `--xh-bg-subtle-hover` | drawer 的 trigger 部件 background 覆盖槽。 |
-| `--xh-drawer-trigger-bg-open` | `trigger` | `background` | `state=open` | `--xh-bg-subtle-active` | drawer 的 trigger 部件 background 覆盖槽。 |
-| `--xh-drawer-trigger-border` | `trigger` | `border` | `default` | `--xh-border-control` | drawer 的 trigger 部件 border 覆盖槽。 |
-| `--xh-drawer-trigger-border-hover` | `trigger` | `border-color` | `hover`<br>`not(:disabled)` | `--xh-border-control-hover` | drawer 的 trigger 部件 border-color 覆盖槽。 |
-| `--xh-drawer-trigger-border-open` | `trigger` | `border-color` | `state=open` | `--xh-border-control-hover` | drawer 的 trigger 部件 border-color 覆盖槽。 |
-| `--xh-drawer-trigger-fg` | `trigger` | `color` | `default` | `--xh-fg-default` | drawer 的 trigger 部件 color 覆盖槽。 |
-| `--xh-drawer-trigger-font-size` | `trigger` | `font-size` | `default` | `--xh-text-label-size` | drawer 的 trigger 部件 font-size 覆盖槽。 |
+| `--xh-drawer-trigger-bg` | `trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`focus-visible`<br>`xh-ink-surface` | `--xh-_action-variant-bg-focus-visible`<br>`--xh-_action-variant-bg-rest` | drawer 的 trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-drawer-trigger-bg-active` | `trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | drawer 的 trigger 部件 background-color 覆盖槽。 |
+| `--xh-drawer-trigger-bg-hover` | `trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | drawer 的 trigger 部件 background-color 覆盖槽。 |
+| `--xh-drawer-trigger-bg-open` | `trigger` | `--xh-ink-surface`<br>`background-color` | `focus-visible`<br>`state=open`<br>`xh-ink-surface` | `--xh-bg-subtle` | drawer 的 trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-drawer-trigger-border` | `trigger` | `border`<br>`border-color` | `default`<br>`focus-visible` | `--xh-_action-variant-border-focus-visible`<br>`--xh-_action-variant-border-rest` | drawer 的 trigger 部件 border、border-color 覆盖槽。 |
+| `--xh-drawer-trigger-border-hover` | `trigger` | `border-color` | `disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-border-hover`<br>`--xh-_action-variant-border-pressed` | drawer 的 trigger 部件 border-color 覆盖槽。 |
+| `--xh-drawer-trigger-border-open` | `trigger` | `border`<br>`border-color` | `focus-visible`<br>`state=open` | `--xh-border-control-hover` | drawer 的 trigger 部件 border、border-color 覆盖槽。 |
+| `--xh-drawer-trigger-fg` | `trigger` | `color` | `default`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-fg-focus-visible`<br>`--xh-_action-variant-fg-hover`<br>`--xh-_action-variant-fg-pressed`<br>`--xh-_action-variant-fg-rest` | drawer 的 trigger 部件 color 覆盖槽。 |
+| `--xh-drawer-trigger-font-size` | `trigger` | `font-size` | `default` | `--xh-_action-profile-font-size` | drawer 的 trigger 部件 font-size 覆盖槽。 |
 | `--xh-drawer-trigger-font-weight` | `trigger` | `font-weight` | `default` | `--xh-text-label-weight` | drawer 的 trigger 部件 font-weight 覆盖槽。 |
-| `--xh-drawer-trigger-gap` | `trigger` | `gap` | `default` | `--xh-control-gap-md` | drawer 的 trigger 部件 gap 覆盖槽。 |
-| `--xh-drawer-trigger-h` | `trigger` | `block-size` | `default` | `--xh-control-h-md` | drawer 的 trigger 部件 block-size 覆盖槽。 |
-| `--xh-drawer-trigger-px` | `trigger` | `padding-inline` | `default` | `--xh-control-px-md` | drawer 的 trigger 部件 padding-inline 覆盖槽。 |
+| `--xh-drawer-trigger-gap` | `trigger` | `gap` | `default` | `--xh-_action-profile-gap` | drawer 的 trigger 部件 gap 覆盖槽。 |
+| `--xh-drawer-trigger-h` | `trigger` | `block-size`<br>`inline-size` | `default`<br>`xh-action-profile=icon` | `--xh-_action-profile-visual-size` | drawer 的 trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-drawer-trigger-px` | `trigger` | `padding-inline` | `default` | `--xh-_action-profile-padding-inline` | drawer 的 trigger 部件 padding-inline 覆盖槽。 |
 | `--xh-drawer-trigger-radius` | `trigger` | `border-radius` | `default` | `--xh-shape-control` | drawer 的 trigger 部件 border-radius 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
 
-关键帧 `xh-drawer-in-bottom` · `xh-drawer-in-left` · `xh-drawer-in-right` · `xh-drawer-in-top` · `xh-drawer-out-bottom` · `xh-drawer-out-left` · `xh-drawer-out-right` · `xh-drawer-out-top` · `xh-fade-in` · `xh-fade-out` 随皮肤自带，不引用别处文件里的名字；`background` · `border-color` · `color` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 出现 · 导航（整幅滑入）（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-fade-in` · `xh-fade-out` · `xh-slide-fade-in` · `xh-slide-fade-out` · `xh-slide-in` · `xh-slide-out` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立；`background-color` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 皮肤之外还有一段：退场由适配器的退场闸门把关，动画播完才真收起。
 
 系统开启减弱动效时由令牌层统一收敛，皮肤不另作判断。
 
-### 响应式
-
-皮肤另按输入能力分档：`pointer: coarse`——同一份皮肤在触屏与带指针的设备上不一样，与视口宽度无关。
-
 ### RTL
 
-皮肤用逻辑属性排布（`inline-start` 一族），`dir="rtl"` 下自动镜像；另有按 `dir` 分支的规则。
+皮肤用逻辑属性排布（`inline-start` 一族），`dir="rtl"` 下自动镜像；只认物理方向的量乘 `--xh-direction-sign` 换向，按就近的 `dir` 走；另有按 `dir` 分支的规则。

@@ -1,8 +1,8 @@
 来源：https://ui.docs.xihanfun.com/components/infinite-scroll
 
-# InfiniteScroll 无限滚动 `alpha`
+# InfiniteScroll 无限滚动
 
-取下一页的通用触发器，滚动只是默认的触发方式。
+获取下一页的通用触发器，滚动只是默认的触发方式。
 
 <div class="xh-resource-links">
   <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/engine/headless/src/infinite-scroll" target="_blank" rel="noreferrer">Headless</a>
@@ -14,7 +14,7 @@
 
 ## 用法
 
-哨兵滚进可视区就派 load，取完把 loading 写回 false
+哨兵滚进可视区即派发 load，取数完成后把 loading 写回 false
 
 ```vue
 <script setup lang="ts">
@@ -39,6 +39,7 @@ function onLoad(): void {
 <template>
   <div
     ref="scrollEl"
+    data-xh-scroll
     style="
       block-size: 240px;
       overflow: auto;
@@ -73,6 +74,7 @@ function onLoad(): void {
 
 <div
   id="infinite-scroll-basic-shell"
+  data-xh-scroll
   style="
     block-size: 240px;
     overflow: auto;
@@ -146,7 +148,7 @@ function onLoad(): void {
 
 ### 提前量
 
-distance 把可视区沿块轴向外扩，哨兵还没露头就先取下一页
+distance 把可视区沿块轴向外扩展，哨兵尚未出现就先取下一页
 
 ```vue
 <script setup lang="ts">
@@ -180,6 +182,7 @@ function onLoad(): void {
 
     <div
       ref="scrollEl"
+      data-xh-scroll
       style="
         block-size: 220px;
         overflow: auto;
@@ -218,6 +221,7 @@ function onLoad(): void {
 
   <div
     data-shell
+    data-xh-scroll
     style="
       block-size: 220px;
       overflow: auto;
@@ -290,9 +294,9 @@ function onLoad(): void {
 </script>
 ```
 
-### 取到没有了
+### 没有更多数据
 
-最后一页取完把 disabled 打开，哨兵不再被观察，load 也不再派
+最后一页取完后开启 disabled，哨兵不再被观察，load 也不再派发
 
 ```vue
 <script setup lang="ts">
@@ -320,6 +324,7 @@ function onLoad(): void {
   <div style="display: grid; gap: 12px; inline-size: 100%">
     <div
       ref="scrollEl"
+      data-xh-scroll
       style="
         block-size: 220px;
         overflow: auto;
@@ -364,6 +369,7 @@ function onLoad(): void {
 <div id="infinite-scroll-disabled" style="display: grid; gap: 12px; inline-size: 100%">
   <div
     data-shell
+    data-xh-scroll
     style="
       block-size: 220px;
       overflow: auto;
@@ -444,7 +450,7 @@ function onLoad(): void {
 
 ### 状态透出
 
-phase / loading / disabled 由组件交给宿主，加载提示与结束语都由宿主自己摆
+phase / loading / disabled 由组件交给宿主，加载提示与结束语都由宿主自行放置
 
 ```vue
 <script setup lang="ts">
@@ -470,6 +476,7 @@ function onLoad(): void {
 <template>
   <div
     ref="scrollEl"
+    data-xh-scroll
     style="
       block-size: 240px;
       overflow: auto;
@@ -512,6 +519,7 @@ function onLoad(): void {
 
 <div
   id="infinite-scroll-slot-state-shell"
+  data-xh-scroll
   style="
     block-size: 240px;
     overflow: auto;
@@ -586,7 +594,7 @@ function onLoad(): void {
 
 ### 取下一页的按钮
 
-与哨兵同一条通路：读屏在虚拟光标模式下不产生滚动事件，这颗按钮是它的键盘等价入口
+与哨兵同一条通路：读屏在虚拟光标模式下不产生滚动事件，该按钮是它的键盘等价入口
 
 ```vue
 <script setup lang="ts">
@@ -615,6 +623,7 @@ function onLoad(): void {
 <template>
   <div
     ref="scrollEl"
+    data-xh-scroll
     style="
       block-size: 240px;
       overflow: auto;
@@ -626,7 +635,7 @@ function onLoad(): void {
       <div v-for="item in items" :key="item" style="padding: 8px 12px">{{ item }}</div>
       <XhInfiniteScrollSentinel />
       <!-- 文案写在按钮里：组件不代填名字，读屏念的与眼睛看的是同一句 -->
-      <div style="display: flex; justify-content: center; padding: 8px 12px">
+      <div style="padding: 8px 12px">
         <XhInfiniteScrollLoadMoreTrigger>
           {{ loading ? "正在取下一页…" : "加载更多" }}
         </XhInfiniteScrollLoadMoreTrigger>
@@ -642,14 +651,13 @@ function onLoad(): void {
     padding: 8px 12px;
   }
   #infinite-scroll-more-shell [data-footer] {
-    display: flex;
-    justify-content: center;
     padding: 8px 12px;
   }
 </style>
 
 <div
   id="infinite-scroll-more-shell"
+  data-xh-scroll
   style="
     block-size: 240px;
     overflow: auto;
@@ -713,42 +721,172 @@ function onLoad(): void {
 </script>
 ```
 
+### 往前翻历史
+
+edge 设为 start：哨兵摆在列表开头，更早的消息插在前面，取数期间视口不跳
+
+```vue
+<script setup lang="ts">
+import { XhInfiniteScrollRoot, XhInfiniteScrollSentinel } from "@xihan-ui/vue";
+import { onMounted, ref } from "vue";
+
+const scrollEl = ref<HTMLElement | null>(null);
+let oldest = 100;
+const messages = ref(Array.from({ length: 12 }, (_, i) => `消息 ${oldest + i}`));
+const loading = ref(false);
+const done = ref(false);
+
+// 从最新一条看起
+onMounted(() => {
+  if (scrollEl.value)
+    scrollEl.value.scrollTop = scrollEl.value.scrollHeight;
+});
+
+// 取更早的一页；这里用定时器代替真实请求。loading 要如实写：组件靠它知道什么时候守住视口
+function onLoad(): void {
+  loading.value = true;
+  window.setTimeout(() => {
+    const older = Array.from({ length: 8 }, (_, i) => `消息 ${oldest - 8 + i}`);
+    oldest -= 8;
+    messages.value = [...older, ...messages.value];
+    loading.value = false;
+    done.value = oldest <= 60;
+  }, 500);
+}
+</script>
+
+<template>
+  <div
+    ref="scrollEl"
+    data-xh-scroll
+    style="
+      block-size: 240px;
+      overflow: auto;
+      border: 1px solid var(--xh-border-default);
+      border-radius: 8px;
+    "
+  >
+    <XhInfiniteScrollRoot
+      edge="start"
+      :target="scrollEl"
+      :loading="loading"
+      :disabled="done"
+      @load="onLoad"
+    >
+      <!-- 哨兵摆在第一条之前 -->
+      <XhInfiniteScrollSentinel />
+      <p style="margin: 0; padding: 8px 12px; color: var(--xh-fg-muted)">
+        {{ done ? "没有更早的消息了" : loading ? "正在取更早的消息…" : "往上翻取更早的消息" }}
+      </p>
+      <div v-for="message in messages" :key="message" style="padding: 8px 12px">{{ message }}</div>
+    </XhInfiniteScrollRoot>
+  </div>
+</template>
+```
+
+```html
+<style>
+  #infinite-scroll-edge-shell [data-row] {
+    padding: 8px 12px;
+  }
+  #infinite-scroll-edge-shell [data-hint] {
+    margin: 0;
+    padding: 8px 12px;
+    color: var(--xh-fg-muted);
+  }
+</style>
+
+<div
+  id="infinite-scroll-edge-shell"
+  data-xh-scroll
+  style="
+    block-size: 240px;
+    overflow: auto;
+    border: 1px solid var(--xh-border-default);
+    border-radius: 8px;
+  "
+>
+  <xh-infinite-scroll id="infinite-scroll-edge" edge="start" style="display: contents">
+    <div data-xh-part="root">
+      <!-- 哨兵摆在第一条之前 -->
+      <div data-xh-part="sentinel"></div>
+      <p data-hint>往上翻取更早的消息</p>
+      <div data-list></div>
+    </div>
+  </xh-infinite-scroll>
+</div>
+
+<script type="module">
+  const host = document.getElementById("infinite-scroll-edge");
+  const shell = document.getElementById("infinite-scroll-edge-shell");
+  const list = host.querySelector("[data-list]");
+  const hint = host.querySelector("[data-hint]");
+  let oldest = 100;
+
+  function row(text) {
+    const el = document.createElement("div");
+    el.setAttribute("data-row", "");
+    el.textContent = text;
+    return el;
+  }
+
+  for (let i = 0; i < 12; i += 1) list.append(row(`消息 ${oldest + i}`));
+  host.target = shell;
+  // 从最新一条看起
+  shell.scrollTop = shell.scrollHeight;
+
+  // 取更早的一页；这里用定时器代替真实请求。loading 要如实写：组件靠它知道什么时候守住视口
+  host.addEventListener("load", () => {
+    host.loading = true;
+    hint.textContent = "正在取更早的消息…";
+    window.setTimeout(() => {
+      oldest -= 8;
+      list.prepend(...Array.from({ length: 8 }, (_, i) => row(`消息 ${oldest + i}`)));
+      host.loading = false;
+      host.disabled = oldest <= 60;
+      hint.textContent = host.disabled ? "没有更早的消息了" : "往上翻取更早的消息";
+    }, 500);
+  });
+</script>
+```
+
 ## 设计指引
 
 ### 何时使用
 
-- 时间流、消息列表这类用户只关心"再来一些"的内容。
+- 时间流、消息列表等用户只需要继续加载的内容。
 
 ### 何时不用
 
-- 用户需要跳到确定位置或分享某一页：用[分页](./pagination)。
-- 页面有页脚需要够得着：无限滚动会让页脚永远追不上。
+- 用户需要跳到确定位置或分享某一页时，使用[分页](./pagination)。
+- 页面有页脚需要可达时，无限滚动会使页脚无法到达。
 
 ### 特性
 
-- `distance` 是提前量：距底部还有这么远就触发，用户感觉不到等待。
-- `loading` 与 `disabled` 由组件交给宿主，加载提示与结束语都由宿主自己摆。
-- 取完之后关掉即可，不会再触发。
-- `load-more-trigger` 是同一条通路的另一个入口：一颗真按钮，取数中与关掉两段自动停用。
+- `distance` 是提前量：距底部该距离时触发，用户感觉不到等待。
+- `loading` 与 `disabled` 由组件交给宿主，加载提示与结束语由宿主放置。
+- 加载完成后关闭即可，不会再触发。
+- `edge` 决定取数的那一头：缺省 `end` 在列表末尾往后取；`start` 在列表开头往前取（聊天历史、时间线往回翻），哨兵与按钮摆在列表开头。往前取数时新内容插在已有内容前面，组件在取数期间保持可视区离内容底部的距离不变，视口不跳；这要求宿主如实写 `loading`：写回 `true` 起开始守，写回 `false` 之后再守两帧，框架晚一拍提交的 DOM 也接得住。
+- `load-more-trigger` 是同一通路的另一个入口：一个真实按钮，取数中与关闭时自动停用。它是铺满一行的独立动作条目：宽度由容器给、高度随内容，中性描边与透明底，按下只换面不缩放。
 
 ### 组合
 
 - 与[列表](./list)、[骨架屏](./skeleton)配合。
-- 与[虚拟滚动](./virtualizer)合成一条边滚边取的长列表：`target` 指向虚拟滚动的视口，哨兵摆在内容层之后；示例在虚拟滚动那一页。
+- 与[虚拟滚动](./virtualizer)组合为边滚边取的长列表：`target` 指向虚拟滚动的视口，哨兵放在内容层之后；示例见虚拟滚动页面。
 
 ### 最佳实践
 
-- 明确的结束提示："没有更多了"比无声停止好。
-- 加载失败要能重试，别静默停在那里。
-- 摆一颗 `load-more-trigger`：读屏在虚拟光标模式下不产生滚动事件，只靠哨兵那条路取不到第二页。
-- 按钮的文案写在按钮里，组件不代填名字——读屏念的与眼睛看的才是同一句。
+- 提供明确的结束提示：“没有更多了”优于无声停止。
+- 加载失败时可以重试，不静默停止。
+- 放置一个 `load-more-trigger`：读屏在虚拟光标模式下不产生滚动事件，只靠哨兵无法获取第二页。
+- 按钮的文案写在按钮内，组件不代填名称，读屏读出的与视觉一致。
 
 ### 反模式
 
 - 页面底部有重要内容（页脚、版权、联系方式）却用无限滚动。
-- 不给结束提示，用户一直往下滚。
-- 与[虚拟滚动](./virtualizer)合用时把哨兵摆进条目之间：窗口外的条目不渲染，哨兵也就永远进不了可视区。
-- 与[虚拟滚动](./virtualizer)合用时不给 `target`：提前量按整页可视区算，而真正在滚的是虚拟滚动的视口那一层。
+- 不提供结束提示，用户持续向下滚动。
+- 与[虚拟滚动](./virtualizer)合用时把哨兵放在条目之间：窗口外的条目不渲染，哨兵永远无法进入可视区。
+- 与[虚拟滚动](./virtualizer)合用时不提供 `target`：提前量按整页可视区计算，而实际滚动的是虚拟滚动的视口。
 
 ## API 参考
 
@@ -766,10 +904,11 @@ function onLoad(): void {
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `distance` | `number` |  | 提前量（px）：哨兵离可视区还有这么远就算进入，默认 0（真正露头才算）。扩的是 getTargetEl 给出的那块可视区。 |
-| `disabled` | `boolean` |  | 关掉：不再观察，也不再触发。列表已经没有下一页时用它。 |
-| `loading` | `boolean` |  | 正在取数：其间不观察、不重复触发。取完由宿主写回 false。 |
-| `onLoad` | `() => void` |  | 该取下一页了。 |
+| `distance` | `number` |  | 提前量（px）：哨兵距可视区该距离即视为进入，默认 0（实际出现才计）。扩展的是 getTargetEl 给出的可视区。 |
+| `disabled` | `boolean` |  | 关闭：不再观察，也不再触发。列表已没有下一页时使用。 |
+| `loading` | `boolean` |  | 正在取数：期间不观察、不重复触发。取完由宿主写回 false。 |
+| `onLoad` | `() => void` |  | 应取下一页。 |
+| `edge` | `InfiniteScrollEdge` |  | 取数的那一头，缺省 end。start 时哨兵摆在列表开头，新的一页插在已有内容前面： 取数期间（loading 为 true 起、写回 false 之后再守两帧）组件保持可视区离内容底部的距离不变， 新内容插进来视口不跳。需要宿主如实写 loading。 |
 
 ### 事件
 
@@ -777,7 +916,7 @@ function onLoad(): void {
 
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
-| `load` | `` | 该取下一页了 |
+| `load` | `` | 应取下一页 |
 
 ### 插槽
 
@@ -787,15 +926,24 @@ function onLoad(): void {
 | --- | --- | --- | --- |
 | `XhInfiniteScrollRoot` | `default` | `InfiniteScrollRootSlotProps` |  |
 
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhInfiniteScrollRoot` | `target` | `HTMLElement \| null` |  | 裁剪出可视区的滚动容器，默认即整页滚动；distance 的提前量扩展的正是这块区域。 |
+| `XhInfiniteScrollRoot` | `children` | `SlotChildren<InfiniteScrollRootSlotProps>` |  |  |
+
 ### 状态
 
 以下名称仅用于内部状态机。
 
 **状态**：`idle` · `loading` · `paused`
 
-**事件**：`SENTINEL.ENTER` · `LOAD` · `MODE.SYNC`
+**事件**：`SENTINEL.ENTER` · `LOAD` · `MODE.SYNC` · `PRESS.START` · `PRESS.END`
 
-**判据**：`isPaused` · `isLoading`
+**判据**：`isPaused` · `isLoading` · `canPress`
 
 ### connect API
 
@@ -805,10 +953,10 @@ function onLoad(): void {
 | --- | --- | --- |
 | `phase` | `InfiniteScrollPhase` |  |
 | `loading` | `boolean` | 正在取数。 |
-| `disabled` | `boolean` | 已关掉，不再观察。 |
+| `disabled` | `boolean` | 已关闭，不再观察。 |
 | `getRootProps` | `() => T['element']` |  |
 | `getSentinelProps` | `() => T['element']` |  |
-| `getLoadMoreTriggerProps` | `() => T['button']` | 取下一页的按钮。文案由作者写在按钮里，组件不代填。 |
+| `getLoadMoreTriggerProps` | `() => T['button']` | 取下一页的按钮。文案由作者写在按钮中，组件不代填。 |
 
 ## 无障碍
 
@@ -816,7 +964,9 @@ function onLoad(): void {
 
 规格出处：[W3C APG](https://www.w3.org/WAI/ARIA/apg/)
 
-无键盘交互（不接收焦点，或焦点行为完全由原生元素提供）。
+| 按键 | 生效条件 | 行为 |
+| --- | --- | --- |
+| `Enter` / `Space` | held in load-more-trigger, 未关闭且未在取数 | 按住期间 load-more-trigger 投影 data-pressed，与指针 :active 同一副按压面（row 档只换面不缩放）；抬起、失焦或进入取数 / 关闭撤下 |
 
 ### ARIA
 
@@ -843,33 +993,40 @@ function onLoad(): void {
 | `root` | `data-loading` | ''（条件成立时才出现） |
 | `load-more-trigger` | `data-disabled` | ''（条件成立时才出现） |
 | `load-more-trigger` | `data-loading` | ''（条件成立时才出现） |
+| `load-more-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `load-more-trigger` | `data-xh-action-control` | '' |
+| `load-more-trigger` | `data-xh-action-display` | 'always' |
+| `load-more-trigger` | `data-xh-action-profile` | 'row' |
+| `load-more-trigger` | `data-xh-action-size` | 'md' |
+| `load-more-trigger` | `data-xh-action-variant` | 'outline' |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-infinite-scroll-load-more-bg` | `load-more-trigger` | `background` | `default` | `--xh-bg-canvas` | infinite-scroll 的 load-more-trigger 部件 background 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-bg-active` | `load-more-trigger` | `background` | `active` | `--xh-bg-subtle-active` | infinite-scroll 的 load-more-trigger 部件 background 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-bg-hover` | `load-more-trigger` | `background` | `hover` | `--xh-bg-subtle-hover` | infinite-scroll 的 load-more-trigger 部件 background 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-border` | `load-more-trigger` | `border` | `default` | `--xh-border-control` | infinite-scroll 的 load-more-trigger 部件 border 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-border-hover` | `load-more-trigger` | `border-color` | `hover` | `--xh-border-control-hover` | infinite-scroll 的 load-more-trigger 部件 border-color 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-fg` | `load-more-trigger` | `color` | `default` | `--xh-fg-default` | infinite-scroll 的 load-more-trigger 部件 color 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-bg` | `load-more-trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | infinite-scroll 的 load-more-trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-bg-active` | `load-more-trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | infinite-scroll 的 load-more-trigger 部件 background-color 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-bg-hover` | `load-more-trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | infinite-scroll 的 load-more-trigger 部件 background-color 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-border` | `load-more-trigger` | `border` | `default` | `--xh-_action-variant-border-rest` | infinite-scroll 的 load-more-trigger 部件 border 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-border-hover` | `load-more-trigger` | `border-color` | `disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-border-hover`<br>`--xh-_action-variant-border-pressed` | infinite-scroll 的 load-more-trigger 部件 border-color 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-fg` | `load-more-trigger` | `color` | `default`<br>`disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-fg-hover`<br>`--xh-_action-variant-fg-pressed`<br>`--xh-_action-variant-fg-rest` | infinite-scroll 的 load-more-trigger 部件 color 覆盖槽。 |
 | `--xh-infinite-scroll-load-more-font-size` | `load-more-trigger` | `font-size` | `default` | `--xh-text-body-size` | infinite-scroll 的 load-more-trigger 部件 font-size 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-gap` | `load-more-trigger` | `gap` | `default` | `--xh-control-gap-md` | infinite-scroll 的 load-more-trigger 部件 gap 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-h` | `load-more-trigger` | `min-block-size` | `default` | `--xh-control-h-md` | infinite-scroll 的 load-more-trigger 部件 min-block-size 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-px` | `load-more-trigger` | `padding-inline` | `default` | `--xh-control-px-md` | infinite-scroll 的 load-more-trigger 部件 padding-inline 覆盖槽。 |
-| `--xh-infinite-scroll-load-more-radius` | `load-more-trigger` | `border-radius` | `default` | `--xh-shape-control` | infinite-scroll 的 load-more-trigger 部件 border-radius 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-gap` | `load-more-trigger` | `gap` | `default` | `--xh-_action-profile-gap` | infinite-scroll 的 load-more-trigger 部件 gap 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-h` | `load-more-trigger` | `block-size`<br>`min-block-size` | `default`<br>`xh-action-profile=row` | `--xh-_action-profile-visual-size` | infinite-scroll 的 load-more-trigger 部件 block-size、min-block-size 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-icon-size` | `load-more-trigger` | `--xh-icon-size` | `default` | `--xh-_action-profile-glyph-size` | infinite-scroll 的 load-more-trigger 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-px` | `load-more-trigger` | `padding-inline` | `default` | `--xh-_action-profile-padding-inline` | infinite-scroll 的 load-more-trigger 部件 padding-inline 覆盖槽。 |
+| `--xh-infinite-scroll-load-more-radius` | `load-more-trigger` | `border-radius` | `default` | `--xh-_action-profile-radius` | infinite-scroll 的 load-more-trigger 部件 border-radius 覆盖槽。 |
 | `--xh-infinite-scroll-sentinel-size` | `sentinel` | `block-size` | `default` | `--xh-stroke-thin` | infinite-scroll 的 sentinel 部件 block-size 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
 
-`background` · `border-color` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态（见[动效规范](../design/motion#角色)）。
 
-系统开启减弱动效时由令牌层统一收敛，皮肤不另作判断。
+本组件皮肤不含过渡与关键帧，也没有脚本驱动的动效：状态一变，外观立即到位。
 
 ### RTL
 

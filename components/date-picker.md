@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/date-picker
 
-# DatePicker 日期选择器 `alpha`
+# DatePicker 日期选择器
 
 将可键入的分段日期框、日历触发器和选择浮层组合成一个字段。
 
@@ -49,7 +49,6 @@ import {
     v-slot="{ weeks, weekDays }"
     locale="zh-CN"
     name="delivery-date"
-    style="--xh-date-picker-control-min-w: calc(var(--xh-control-min-w) + var(--xh-control-h-md) + var(--xh-control-h-md) + var(--xh-space-6))"
   >
     <XhDatePickerLabel>交付日期</XhDatePickerLabel>
     <XhDatePickerControl>
@@ -108,7 +107,6 @@ import {
   <xh-date-picker locale="zh-CN" name="delivery-date">
     <div
       data-xh-part="root"
-      style="--xh-date-picker-control-min-w: calc(var(--xh-control-min-w) + var(--xh-control-h-md) + var(--xh-control-h-md) + var(--xh-space-6))"
     >
       <span data-xh-part="label">交付日期</span>
       <div data-xh-part="control">
@@ -211,7 +209,7 @@ import {
 
 加粗的是必需部件。
 
-`data-scope="date-picker"`：`root` · `label` · **`control`** · `segment-group` · `trigger` · `clear-trigger` · `positioner` · **`content`** · `preset-group` · `preset` · **`calendar`** · `time-column` · `time-item` · `confirm-trigger`
+`data-scope="date-picker"`：`root` · `label` · **`control`** · `tag-list` · `segment-group` · `trigger` · `clear-trigger` · `positioner` · **`content`** · `preset-group` · `preset` · **`calendar`** · `time-column` · `time-item` · `confirm-trigger`
 
 ## 示例
 
@@ -1092,7 +1090,7 @@ function literalBefore(type: string, index: number): string {
 
 ### 周期选择
 
-granularity 决定输入行铺哪几段、浮层铺哪一档格子
+granularity 决定输入行铺设哪几段、浮层铺设哪一档格子
 
 ```vue
 <script setup lang="ts">
@@ -1162,7 +1160,6 @@ function changeGranularity(details: { value: string | string[] | null }) {
     :granularity="granularity"
     :close-on-select="false"
     locale="zh-CN"
-    style="--xh-date-picker-control-min-w: 22rem"
   >
     <XhDatePickerLabel>统计周期</XhDatePickerLabel>
     <XhDatePickerControl>
@@ -1247,7 +1244,7 @@ function changeGranularity(details: { value: string | string[] | null }) {
 <div id="period-picker-mount"></div>
 <template id="period-picker-template">
 <xh-date-picker id="period-picker" granularity="day" close-on-select="false" locale="zh-CN">
-  <div data-xh-part="root" style="--xh-date-picker-control-min-w: 22rem">
+  <div data-xh-part="root">
     <span data-xh-part="label">统计周期</span>
     <div data-xh-part="control">
       <div data-xh-part="segment-group"></div>
@@ -1419,6 +1416,741 @@ function changeGranularity(details: { value: string | string[] | null }) {
 </script>
 ```
 
+### 12 小时制
+
+hourCycle=12 时时间列末位多出上下午列，输入行也多出上下午段；值仍是 24 小时制的 ISO 串
+
+```vue
+<script setup lang="ts">
+import {
+  XhDatePickerCalendar,
+  XhDatePickerCell,
+  XhDatePickerCellTrigger,
+  XhDatePickerClearTrigger,
+  XhDatePickerConfirmTrigger,
+  XhDatePickerContent,
+  XhDatePickerControl,
+  XhDatePickerGrid,
+  XhDatePickerGridBody,
+  XhDatePickerGridHead,
+  XhDatePickerHeader,
+  XhDatePickerHeading,
+  XhDatePickerLabel,
+  XhDatePickerNextTrigger,
+  XhDatePickerPositioner,
+  XhDatePickerPrevTrigger,
+  XhDatePickerRoot,
+  XhDatePickerSegment,
+  XhDatePickerSegmentGroup,
+  XhDatePickerTimePanel,
+  XhDatePickerTrigger,
+  XhDatePickerWeekDay,
+  XhDatePickerWeekRow,
+} from "@xihan-ui/vue";
+import { ref } from "vue";
+
+const value = ref<string[]>(["2026-09-28T21:30"]);
+
+function literalBefore(type: string, index: number): string {
+  if (index === 0)
+    return "";
+  if (type === "hour" || type === "dayPeriod")
+    return " ";
+  if (type === "minute")
+    return ":";
+  return "/";
+}
+</script>
+
+<template>
+  <XhDatePickerRoot v-slot="{ weeks, weekDays, segments }" v-model:value="value" show-time :hour-cycle="12" locale="en-US">
+    <XhDatePickerLabel>Pickup</XhDatePickerLabel>
+    <XhDatePickerControl>
+      <XhDatePickerSegmentGroup>
+        <template v-for="(segment, index) in segments" :key="segment.type">
+          <span v-if="index > 0">{{ literalBefore(segment.type, index) }}</span>
+          <XhDatePickerSegment :index="index" />
+        </template>
+      </XhDatePickerSegmentGroup>
+      <XhDatePickerClearTrigger />
+      <XhDatePickerTrigger />
+    </XhDatePickerControl>
+    <XhDatePickerPositioner>
+      <XhDatePickerContent>
+        <div style="display: flex; align-items: stretch">
+          <XhDatePickerCalendar>
+            <XhDatePickerHeader>
+              <XhDatePickerPrevTrigger aria-label="Previous month" />
+              <XhDatePickerHeading />
+              <XhDatePickerNextTrigger aria-label="Next month" />
+            </XhDatePickerHeader>
+            <XhDatePickerGrid>
+              <XhDatePickerGridHead>
+                <XhDatePickerWeekRow>
+                  <XhDatePickerWeekDay v-for="d in weekDays" :key="d.value" :value="d.value" />
+                </XhDatePickerWeekRow>
+              </XhDatePickerGridHead>
+              <XhDatePickerGridBody>
+                <XhDatePickerWeekRow v-for="week in weeks" :key="week[0].start">
+                  <XhDatePickerCell v-for="day in week" :key="day.start" :value="day.start">
+                    <XhDatePickerCellTrigger>{{ day.day }}</XhDatePickerCellTrigger>
+                  </XhDatePickerCell>
+                </XhDatePickerWeekRow>
+              </XhDatePickerGridBody>
+            </XhDatePickerGrid>
+          </XhDatePickerCalendar>
+          <!-- 时、分、上下午三列；上下午那一格的字按 locale 现译 -->
+          <XhDatePickerTimePanel />
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; margin-block-start: var(--xh-space-2); margin-inline: calc(-1 * var(--xh-space-2)); margin-block-end: calc(-1 * var(--xh-space-2)); padding-block: var(--xh-space-1); padding-inline: var(--xh-space-2); border-block-start: var(--xh-stroke-thin) solid var(--xh-border-subtle)">
+          <XhDatePickerConfirmTrigger>OK</XhDatePickerConfirmTrigger>
+        </div>
+      </XhDatePickerContent>
+    </XhDatePickerPositioner>
+  </XhDatePickerRoot>
+
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
+</template>
+```
+
+```html
+<div id="date-picker-hour-cycle-mount"></div>
+<span style="font-size: 13px">当前值：<span id="date-picker-hour-cycle-value">2026-09-28T21:30</span></span>
+
+<template id="date-picker-hour-cycle-template">
+  <xh-date-picker locale="en-US" show-time hour-cycle="12" default-value="2026-09-28T21:30">
+    <div data-xh-part="root">
+      <span data-xh-part="label">Pickup</span>
+      <div data-xh-part="control">
+        <div data-xh-part="segment-group"></div>
+        <button data-xh-part="clear-trigger"></button>
+        <button data-xh-part="trigger"></button>
+      </div>
+      <div data-xh-part="positioner">
+        <div data-xh-part="content">
+          <div style="display: flex; align-items: stretch">
+            <div data-xh-part="calendar">
+              <div data-xh-part="header">
+                <button data-xh-part="prev-trigger" aria-label="Previous month"></button>
+                <div data-xh-part="heading"></div>
+                <button data-xh-part="next-trigger" aria-label="Next month"></button>
+              </div>
+              <div data-xh-part="grid">
+                <div data-xh-part="grid-head">
+                  <div data-xh-part="week-row"></div>
+                </div>
+                <div data-xh-part="grid-body"></div>
+              </div>
+            </div>
+            <!-- 时列 1-12、分列 0-59，上下午列两格的字留空，由元素按 locale 填 -->
+            <div data-xh-part="time-column" unit="hour"></div>
+            <div data-xh-part="time-column" unit="minute"></div>
+            <div data-xh-part="time-column" unit="dayPeriod">
+              <div data-xh-part="time-item" value="00"></div>
+              <div data-xh-part="time-item" value="01"></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: flex-end; margin-block-start: var(--xh-space-2); margin-inline: calc(-1 * var(--xh-space-2)); margin-block-end: calc(-1 * var(--xh-space-2)); padding-block: var(--xh-space-1); padding-inline: var(--xh-space-2); border-block-start: var(--xh-stroke-thin) solid var(--xh-border-subtle)">
+            <button data-xh-part="confirm-trigger">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </xh-date-picker>
+</template>
+
+<script type="module">
+  const fragment = document
+    .getElementById("date-picker-hour-cycle-template")
+    .content.cloneNode(true);
+  const picker = fragment.querySelector("xh-date-picker");
+  const heading = fragment.querySelector('[data-xh-part="heading"]');
+  const head = fragment.querySelector(
+    '[data-xh-part="grid-head"] [data-xh-part="week-row"]',
+  );
+  const body = fragment.querySelector('[data-xh-part="grid-body"]');
+  const segmentGroup = fragment.querySelector('[data-xh-part="segment-group"]');
+  const readout = document.getElementById("date-picker-hour-cycle-value");
+
+  let month = "";
+
+  function paintHead() {
+    head.replaceChildren(
+      ...picker.weekDays.map((day) => {
+        const cell = document.createElement("span");
+        cell.dataset.xhPart = "week-day";
+        cell.setAttribute("value", day.value);
+        cell.textContent = day.label;
+        return cell;
+      }),
+    );
+  }
+
+  function paintBody() {
+    const first = picker.weeks[0][0].start;
+    if (first === month) {
+      return;
+    }
+    month = first;
+    heading.textContent = picker.headingLabel;
+    body.replaceChildren(
+      ...picker.weeks.map((week) => {
+        const row = document.createElement("div");
+        row.dataset.xhPart = "week-row";
+        for (const day of week) {
+          const cell = document.createElement("div");
+          cell.dataset.xhPart = "cell";
+          cell.setAttribute("value", day.start);
+          const trigger = document.createElement("div");
+          trigger.dataset.xhPart = "cell-trigger";
+          trigger.textContent = day.day;
+          cell.append(trigger);
+          row.append(cell);
+        }
+        return row;
+      }),
+    );
+  }
+
+  function literalBefore(type, index) {
+    if (index === 0) return "";
+    if (type === "hour" || type === "dayPeriod") return " ";
+    if (type === "minute") return ":";
+    return "/";
+  }
+
+  function paintSegments() {
+    const out = [];
+    picker.fieldSegments.forEach((segment, index) => {
+      if (index > 0) {
+        const literal = document.createElement("span");
+        literal.textContent = literalBefore(segment.type, index);
+        out.push(literal);
+      }
+      const item = document.createElement("span");
+      item.dataset.xhPart = "segment";
+      out.push(item);
+    });
+    segmentGroup.replaceChildren(...out);
+  }
+
+  function paintTimeColumn(unit, values) {
+    const column = fragment.querySelector(
+      `[data-xh-part="time-column"][unit="${unit}"]`,
+    );
+    column.replaceChildren(
+      ...values.map((value) => {
+        const item = document.createElement("div");
+        item.dataset.xhPart = "time-item";
+        item.setAttribute("value", value);
+        item.textContent = value;
+        return item;
+      }),
+    );
+  }
+
+  const pad = (n) => `${n}`.padStart(2, "0");
+  // 12 小时制的时列是 1-12
+  paintTimeColumn("hour", Array.from({ length: 12 }, (_, i) => pad(i + 1)));
+  paintTimeColumn("minute", Array.from({ length: 60 }, (_, i) => pad(i)));
+
+  document.getElementById("date-picker-hour-cycle-mount").append(fragment);
+  paintSegments();
+  paintHead();
+  paintBody();
+
+  picker.addEventListener("focused-value-change", paintBody);
+  picker.addEventListener("value-change", (event) => {
+    readout.textContent = event.detail.value[0] ?? "（空）";
+  });
+</script>
+```
+
+### 可约时段
+
+timeStep 让分列每 15 分钟一格；min / max 带时间段时首尾两天界外的时刻不可选，isTimeUnavailable 再按已选的日子收掉周末的下午
+
+```vue
+<script setup lang="ts">
+import type { TimeColumnUnit, TimeUnavailableContext } from "@xihan-ui/headless";
+import {
+  XhDatePickerCalendar,
+  XhDatePickerCell,
+  XhDatePickerCellTrigger,
+  XhDatePickerClearTrigger,
+  XhDatePickerConfirmTrigger,
+  XhDatePickerContent,
+  XhDatePickerControl,
+  XhDatePickerGrid,
+  XhDatePickerGridBody,
+  XhDatePickerGridHead,
+  XhDatePickerHeader,
+  XhDatePickerHeading,
+  XhDatePickerLabel,
+  XhDatePickerNextTrigger,
+  XhDatePickerPositioner,
+  XhDatePickerPrevTrigger,
+  XhDatePickerRoot,
+  XhDatePickerSegment,
+  XhDatePickerSegmentGroup,
+  XhDatePickerTimePanel,
+  XhDatePickerTrigger,
+  XhDatePickerWeekDay,
+  XhDatePickerWeekRow,
+} from "@xihan-ui/vue";
+import { ref } from "vue";
+
+const value = ref<string[]>(["2026-10-09T10:00"]);
+
+// 周末只接上午：判定收到这份时间所属的日期，时列的值恒按 24 小时制给
+function isTimeUnavailable(option: string, unit: TimeColumnUnit, context: TimeUnavailableContext): boolean {
+  if (unit !== "hour" || context.date == null)
+    return false;
+  const day = new Date(`${context.date}T00:00:00Z`).getUTCDay();
+  return (day === 0 || day === 6) && Number(option) >= 12;
+}
+
+function literalBefore(type: string, index: number): string {
+  if (index === 0)
+    return "";
+  if (type === "hour")
+    return " ";
+  if (type === "minute")
+    return ":";
+  return "/";
+}
+</script>
+
+<template>
+  <XhDatePickerRoot
+    v-slot="{ weeks, weekDays, segments }"
+    v-model:value="value"
+    show-time
+    locale="zh-CN"
+    min="2026-10-09T09:00"
+    max="2026-10-31T18:00"
+    :time-step="{ minute: 15 }"
+    :is-time-unavailable="isTimeUnavailable"
+  >
+    <XhDatePickerLabel>到店时间</XhDatePickerLabel>
+    <XhDatePickerControl>
+      <XhDatePickerSegmentGroup>
+        <template v-for="(segment, index) in segments" :key="segment.type">
+          <span v-if="index > 0">{{ literalBefore(segment.type, index) }}</span>
+          <XhDatePickerSegment :index="index" />
+        </template>
+      </XhDatePickerSegmentGroup>
+      <XhDatePickerClearTrigger />
+      <XhDatePickerTrigger />
+    </XhDatePickerControl>
+    <XhDatePickerPositioner>
+      <XhDatePickerContent>
+        <div style="display: flex; align-items: stretch">
+          <XhDatePickerCalendar>
+            <XhDatePickerHeader>
+              <XhDatePickerPrevTrigger aria-label="上个月" />
+              <XhDatePickerHeading />
+              <XhDatePickerNextTrigger aria-label="下个月" />
+            </XhDatePickerHeader>
+            <XhDatePickerGrid>
+              <XhDatePickerGridHead>
+                <XhDatePickerWeekRow>
+                  <XhDatePickerWeekDay v-for="d in weekDays" :key="d.value" :value="d.value" />
+                </XhDatePickerWeekRow>
+              </XhDatePickerGridHead>
+              <XhDatePickerGridBody>
+                <XhDatePickerWeekRow v-for="week in weeks" :key="week[0].start">
+                  <XhDatePickerCell v-for="day in week" :key="day.start" :value="day.start">
+                    <XhDatePickerCellTrigger>{{ day.day }}</XhDatePickerCellTrigger>
+                  </XhDatePickerCell>
+                </XhDatePickerWeekRow>
+              </XhDatePickerGridBody>
+            </XhDatePickerGrid>
+          </XhDatePickerCalendar>
+          <!-- 界外与判为不可用的格留在列里、按不下去，列长不随所选的日子变 -->
+          <XhDatePickerTimePanel />
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; margin-block-start: var(--xh-space-2); margin-inline: calc(-1 * var(--xh-space-2)); margin-block-end: calc(-1 * var(--xh-space-2)); padding-block: var(--xh-space-1); padding-inline: var(--xh-space-2); border-block-start: var(--xh-stroke-thin) solid var(--xh-border-subtle)">
+          <XhDatePickerConfirmTrigger>确定</XhDatePickerConfirmTrigger>
+        </div>
+      </XhDatePickerContent>
+    </XhDatePickerPositioner>
+  </XhDatePickerRoot>
+
+  <span style="font-size: 13px">当前值：{{ value[0] ?? "（空）" }}</span>
+</template>
+```
+
+```html
+<div id="date-picker-time-constraints-mount"></div>
+<span style="font-size: 13px">当前值：<span id="date-picker-time-constraints-value">2026-10-09T10:00</span></span>
+
+<template id="date-picker-time-constraints-template">
+  <xh-date-picker locale="zh-CN" show-time min="2026-10-09T09:00" max="2026-10-31T18:00" time-step='{"minute":15}' default-value="2026-10-09T10:00">
+    <div data-xh-part="root">
+      <span data-xh-part="label">到店时间</span>
+      <div data-xh-part="control">
+        <div data-xh-part="segment-group"></div>
+        <button data-xh-part="clear-trigger"></button>
+        <button data-xh-part="trigger"></button>
+      </div>
+      <div data-xh-part="positioner">
+        <div data-xh-part="content">
+          <div style="display: flex; align-items: stretch">
+            <div data-xh-part="calendar">
+              <div data-xh-part="header">
+                <button data-xh-part="prev-trigger" aria-label="上个月"></button>
+                <div data-xh-part="heading"></div>
+                <button data-xh-part="next-trigger" aria-label="下个月"></button>
+              </div>
+              <div data-xh-part="grid">
+                <div data-xh-part="grid-head">
+                  <div data-xh-part="week-row"></div>
+                </div>
+                <div data-xh-part="grid-body"></div>
+              </div>
+            </div>
+            <!-- 时列 0-23、分列每 15 分钟一格；界外与判为不可用的格留在列里、按不下去 -->
+            <div data-xh-part="time-column" unit="hour"></div>
+            <div data-xh-part="time-column" unit="minute"></div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: flex-end; margin-block-start: var(--xh-space-2); margin-inline: calc(-1 * var(--xh-space-2)); margin-block-end: calc(-1 * var(--xh-space-2)); padding-block: var(--xh-space-1); padding-inline: var(--xh-space-2); border-block-start: var(--xh-stroke-thin) solid var(--xh-border-subtle)">
+            <button data-xh-part="confirm-trigger">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </xh-date-picker>
+</template>
+
+<script type="module">
+  const fragment = document
+    .getElementById("date-picker-time-constraints-template")
+    .content.cloneNode(true);
+  const picker = fragment.querySelector("xh-date-picker");
+  const heading = fragment.querySelector('[data-xh-part="heading"]');
+  const head = fragment.querySelector(
+    '[data-xh-part="grid-head"] [data-xh-part="week-row"]',
+  );
+  const body = fragment.querySelector('[data-xh-part="grid-body"]');
+  const segmentGroup = fragment.querySelector('[data-xh-part="segment-group"]');
+  const readout = document.getElementById("date-picker-time-constraints-value");
+
+  let month = "";
+
+  function paintHead() {
+    head.replaceChildren(
+      ...picker.weekDays.map((day) => {
+        const cell = document.createElement("span");
+        cell.dataset.xhPart = "week-day";
+        cell.setAttribute("value", day.value);
+        cell.textContent = day.label;
+        return cell;
+      }),
+    );
+  }
+
+  function paintBody() {
+    const first = picker.weeks[0][0].start;
+    if (first === month) {
+      return;
+    }
+    month = first;
+    heading.textContent = picker.headingLabel;
+    body.replaceChildren(
+      ...picker.weeks.map((week) => {
+        const row = document.createElement("div");
+        row.dataset.xhPart = "week-row";
+        for (const day of week) {
+          const cell = document.createElement("div");
+          cell.dataset.xhPart = "cell";
+          cell.setAttribute("value", day.start);
+          const trigger = document.createElement("div");
+          trigger.dataset.xhPart = "cell-trigger";
+          trigger.textContent = day.day;
+          cell.append(trigger);
+          row.append(cell);
+        }
+        return row;
+      }),
+    );
+  }
+
+  function literalBefore(type, index) {
+    if (index === 0) return "";
+    if (type === "hour") return " ";
+    if (type === "minute") return ":";
+    return "/";
+  }
+
+  function paintSegments() {
+    const out = [];
+    picker.fieldSegments.forEach((segment, index) => {
+      if (index > 0) {
+        const literal = document.createElement("span");
+        literal.textContent = literalBefore(segment.type, index);
+        out.push(literal);
+      }
+      const item = document.createElement("span");
+      item.dataset.xhPart = "segment";
+      out.push(item);
+    });
+    segmentGroup.replaceChildren(...out);
+  }
+
+  function paintTimeColumn(unit, values) {
+    const column = fragment.querySelector(
+      `[data-xh-part="time-column"][unit="${unit}"]`,
+    );
+    column.replaceChildren(
+      ...values.map((value) => {
+        const item = document.createElement("div");
+        item.dataset.xhPart = "time-item";
+        item.setAttribute("value", value);
+        item.textContent = value;
+        return item;
+      }),
+    );
+  }
+
+  const pad = (n) => `${n}`.padStart(2, "0");
+  paintTimeColumn("hour", Array.from({ length: 24 }, (_, i) => pad(i)));
+  paintTimeColumn("minute", Array.from({ length: 4 }, (_, i) => pad(i * 15)));
+
+  // 周末只接上午：判定收到这份时间所属的日期，时列的值恒按 24 小时制给
+  picker.isTimeUnavailable = (option, unit, context) => {
+    if (unit !== "hour" || context.date == null) return false;
+    const day = new Date(`${context.date}T00:00:00Z`).getUTCDay();
+    return (day === 0 || day === 6) && Number(option) >= 12;
+  };
+
+  document.getElementById("date-picker-time-constraints-mount").append(fragment);
+  paintSegments();
+  paintHead();
+  paintBody();
+
+  picker.addEventListener("focused-value-change", paintBody);
+  picker.addEventListener("value-change", (event) => {
+    readout.textContent = event.detail.value[0] ?? "（空）";
+  });
+</script>
+```
+
+### 多选成标签
+
+selectionMode="multiple" 时选中的日期在输入行里排成标签，点标签上的叉或在日历钮上按退格摘掉，放不下的折进 +N；浮层选完不收起
+
+```vue
+<script setup lang="ts">
+import {
+  XhDatePickerCalendar,
+  XhDatePickerCell,
+  XhDatePickerCellTrigger,
+  XhDatePickerClearTrigger,
+  XhDatePickerContent,
+  XhDatePickerControl,
+  XhDatePickerGrid,
+  XhDatePickerGridBody,
+  XhDatePickerGridHead,
+  XhDatePickerHeader,
+  XhDatePickerHeading,
+  XhDatePickerHiddenInput,
+  XhDatePickerLabel,
+  XhDatePickerNextTrigger,
+  XhDatePickerPositioner,
+  XhDatePickerPrevTrigger,
+  XhDatePickerRoot,
+  XhDatePickerTagList,
+  XhDatePickerTrigger,
+  XhDatePickerWeekDay,
+  XhDatePickerWeekRow,
+} from "@xihan-ui/vue";
+</script>
+
+<template>
+  <XhDatePickerRoot
+    v-slot="{ weeks, weekDays }"
+    locale="zh-CN"
+    name="duty-days"
+    selection-mode="multiple"
+    placeholder="选择值班日期"
+    :default-value="['2026-10-08', '2026-10-15', '2026-10-22', '2026-10-29']"
+  >
+    <XhDatePickerLabel>值班日期</XhDatePickerLabel>
+    <XhDatePickerControl>
+      <XhDatePickerTagList />
+      <XhDatePickerClearTrigger />
+      <XhDatePickerTrigger />
+    </XhDatePickerControl>
+    <XhDatePickerHiddenInput />
+    <XhDatePickerPositioner>
+      <XhDatePickerContent>
+        <XhDatePickerCalendar>
+          <XhDatePickerHeader>
+            <XhDatePickerPrevTrigger aria-label="上个月" />
+            <XhDatePickerHeading />
+            <XhDatePickerNextTrigger aria-label="下个月" />
+          </XhDatePickerHeader>
+          <XhDatePickerGrid>
+            <XhDatePickerGridHead>
+              <XhDatePickerWeekRow>
+                <XhDatePickerWeekDay
+                  v-for="d in weekDays"
+                  :key="d.value"
+                  :value="d.value"
+                />
+              </XhDatePickerWeekRow>
+            </XhDatePickerGridHead>
+            <XhDatePickerGridBody>
+              <XhDatePickerWeekRow v-for="week in weeks" :key="week[0].start">
+                <XhDatePickerCell
+                  v-for="day in week"
+                  :key="day.start"
+                  :value="day.start"
+                >
+                  <XhDatePickerCellTrigger>{{ day.day }}</XhDatePickerCellTrigger>
+                </XhDatePickerCell>
+              </XhDatePickerWeekRow>
+            </XhDatePickerGridBody>
+          </XhDatePickerGrid>
+        </XhDatePickerCalendar>
+      </XhDatePickerContent>
+    </XhDatePickerPositioner>
+  </XhDatePickerRoot>
+</template>
+```
+
+```html
+<div id="date-picker-multiple-mount"></div>
+
+<template id="date-picker-multiple-template">
+  <xh-date-picker locale="zh-CN" name="duty-days" selection-mode="multiple" placeholder="选择值班日期">
+    <div
+      data-xh-part="root"
+    >
+      <span data-xh-part="label">值班日期</span>
+      <div data-xh-part="control">
+        <span data-xh-part="tag-list"></span>
+        <button data-xh-part="clear-trigger"></button>
+        <button data-xh-part="trigger"></button>
+      </div>
+      <input data-xh-part="hidden-input" />
+      <div data-xh-part="positioner">
+        <div data-xh-part="content">
+          <div data-xh-part="calendar">
+            <div data-xh-part="header">
+              <button data-xh-part="prev-trigger" aria-label="上个月"></button>
+              <div data-xh-part="heading"></div>
+              <button data-xh-part="next-trigger" aria-label="下个月"></button>
+            </div>
+            <div data-xh-part="grid">
+              <div data-xh-part="grid-head">
+                <div data-xh-part="week-row"></div>
+              </div>
+              <div data-xh-part="grid-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </xh-date-picker>
+</template>
+
+<script type="module">
+  const fragment = document
+    .getElementById("date-picker-multiple-template")
+    .content.cloneNode(true);
+  const picker = fragment.querySelector("xh-date-picker");
+  const heading = fragment.querySelector('[data-xh-part="heading"]');
+  const head = fragment.querySelector(
+    '[data-xh-part="grid-head"] [data-xh-part="week-row"]',
+  );
+  const body = fragment.querySelector('[data-xh-part="grid-body"]');
+  const tagList = fragment.querySelector('[data-xh-part="tag-list"]');
+
+  // 已经画出来的是哪个月
+  let month = "";
+
+  // 表头七列只跟 locale 走，画一次就够
+  function paintHead() {
+    head.replaceChildren(
+      ...picker.weekDays.map((day) => {
+        const cell = document.createElement("span");
+        cell.dataset.xhPart = "week-day";
+        cell.setAttribute("value", day.value);
+        cell.textContent = day.label;
+        return cell;
+      }),
+    );
+  }
+
+  // 换了月才重画格子：同月内移动焦点时格子原样留着，选中态与焦点态由元素自己写
+  function paintBody() {
+    const first = picker.weeks[0][0].start;
+    if (first === month) {
+      return;
+    }
+    month = first;
+    heading.textContent = picker.headingLabel;
+    body.replaceChildren(
+      ...picker.weeks.map((week) => {
+        const row = document.createElement("div");
+        row.dataset.xhPart = "week-row";
+        for (const day of week) {
+          const cell = document.createElement("div");
+          cell.dataset.xhPart = "cell";
+          cell.setAttribute("value", day.start);
+          const trigger = document.createElement("div");
+          trigger.dataset.xhPart = "cell-trigger";
+          trigger.textContent = day.day;
+          cell.append(trigger);
+          row.append(cell);
+        }
+        return row;
+      }),
+    );
+  }
+
+  // 标签按 tags 铺：一个选中值一枚，带删除钮；放不下的那些合成一枚 +N，文字由元素填
+  function paintTags() {
+    tagList.replaceChildren(
+      ...picker.tags.map((tag) => {
+        const node = document.createElement("span");
+        node.dataset.xhPart = "tag";
+        node.setAttribute("value", tag.value);
+        const label = document.createElement("span");
+        label.dataset.xhPart = "tag-label";
+        label.textContent = tag.label;
+        const remove = document.createElement("button");
+        remove.dataset.xhPart = "item-delete-trigger";
+        node.append(label, remove);
+        return node;
+      }),
+      overflowTag(),
+    );
+  }
+
+  // +N 那一枚：留空，文字由元素填
+  function overflowTag() {
+    const node = document.createElement("span");
+    node.dataset.xhPart = "overflow-tag";
+    return node;
+  }
+
+  // 多选的值是数组，只走 property
+  picker.defaultValue = ["2026-10-08", "2026-10-15", "2026-10-22", "2026-10-29"];
+
+  // 元素一连上就能读 weeks / weekDays，接线排在这之后，格子赶得上
+  document.getElementById("date-picker-multiple-mount").append(fragment);
+  paintHead();
+  paintBody();
+  paintTags();
+
+  picker.addEventListener("focused-value-change", paintBody);
+  picker.addEventListener("value-change", paintTags);
+</script>
+```
+
 ## 设计指引
 
 ### 何时使用
@@ -1428,19 +2160,25 @@ function changeGranularity(details: { value: string | string[] | null }) {
 
 ### 何时不用
 
-- 用户已知确切日期且只需要键盘输入：使用[日期字段](./date-field)。
-- 要挑的是一段起止：用[日期范围选择器](./date-range-picker)。
-- 只要时间：用[时间选择器](./time-picker)。
+- 用户已知确切日期且只需要键盘输入时，使用[日期字段](./date-field)。
+- 选择一段起止时，使用[日期范围选择器](./date-range-picker)。
+- 只需要时间时，使用[时间选择器](./time-picker)。
 
 ### 特性
 
 - `granularity` 支持 day / week / month / quarter / year，`selectionMode` 独立控制单选或多选。
-- 周选择直接渲染整周周期格；不再需要 `weekSelection` 特殊开关。
+- 多选（`selectionMode="multiple"`）时选中的日期在输入行里排成标签（库内 [标签](./tag)，与[选择器](./select)多选同一套）：段位收起，日历钮常驻并成为键盘入口，在它上面按退格摘掉最后一个，点标签上的叉摘掉那一个；标签文字按粒度与 `locale` 排出（日 2026/10/02、月 2026年10月、周 2026-W40、季 2026-Q4），标签是定长文字、不截短，一行放不下就折到下一行，盒随行数长高、到上限后在盒内滚动；超过 `maxTagCount`（默认 3）的折进 +N；没有选中时整条 `placeholder` 落在标签行上；表单一个选中值一份同名隐藏输入。
+- `placeholder` 给字符串是整条占位：一段都没填、焦点也不在段上时输入行显示这句文字（「请选择生效时间」），段位与分隔符淡出让位，焦点一进到段上就换回 yyyy / mm / dd 段位；给对象是逐段的占位串。整条占位由皮肤以生成内容画出，段位仍可聚焦、仍在读屏树里。
+- 周选择直接渲染整周周期格；不再需要 `weekSelection` 特殊开关。周粒度按 ISO 周（星期一到星期日）成段，输入行的「2026-33」按 ISO 周年计，与 `locale` 和 `firstDayOfWeek` 都无关：en-US 这类星期日开头的 locale 下，日视图的一行比所挑的 ISO 周早一天开始。
 - `min`、`max` 与 `isDateUnavailable` 限制可选日期。
 - `presets` 提供常用日期快捷项。
+- `firstDayOfWeek`（0 = 星期日 … 6 = 星期六）与 `maxSelected`（多选上限）原样交给浮层里的日历，用法与示例见[日历选择器](./calendar-picker)；输入行的段序仍按 `locale`，带的日期比上限多的快捷选项不可按下。
 - `showTime` 在 `granularity=day + selectionMode=single` 时让输入行显示完整日期时间，并加入时、分或秒选择列。
+- 时间列与时间选择器共用一份约束：`hourCycle={12}` 多出上下午列与上下午段（缺省按 `locale` 推断，没给 `locale` 时 24）；`timeStep` 按时、分、秒各设步长；`isTimeUnavailable` 逐格判定，第三个参数带已选的时分与这份时间所属的日期。
+- `min` / `max` 可以带时间段（`2026-09-28T09:30`）：日历按日期段收，与它同一天时界外的时刻留在列里、标为不可选，列长不随所选的日子变。
 - 日期时间组合面板让时间列与日期内容区从同一水平线开始；各时间列只纵向滚动，底部操作独占一行。
 - 输入值、展开状态和聚焦日期均可受控。
+- 输入行的写法随 `locale` 与 `granularity` / `segments` 走，不接受 `formatOptions` 或格式串，理由见[日期字段](./date-field)。
 - 点击输入行可以继续逐段键入，点击日历图标则把焦点送入日历；展开期间输入框保持激活边界。
 - 填齐了但越界即整个字段标为不合法，也可以用 `invalid` 显式声明。
 - 切换粒度会清空旧选择，输入段、网格和周期边界随后一起切换，不做隐式转换。
@@ -1449,16 +2187,16 @@ function changeGranularity(details: { value: string | string[] | null }) {
 
 ### 组合
 
-- 浮层里内嵌[日历选择器](./calendar-picker)，翻月、钻层与键盘导航都在它身上。
-- 输入行内嵌[日期字段](./date-field)的段位，逐段键入与加减走它。
+- 浮层内嵌[日历选择器](./calendar-picker)，翻月、层级切换与键盘导航由它负责。
+- 输入行内嵌[日期字段](./date-field)的段位，逐段键入与加减由它负责。
 
 ### 最佳实践
 
 - 使用明确的字段标签。
 - 标准输入行应同时包含清空按钮与日历图标触发器；二者按值互斥显示。参与表单时同时渲染隐藏输入。
-- 默认只展开一个日历面板；需要多面板时显式传 `visibleCount`。
+- 默认只展开一个日历面板；需要多面板时显式传 `visibleCount`。多个面板始终联动、一起翻页，不提供解绑（Element Plus 的 `unlink-panels` 那一档）：两张月历各翻各的之后，方向键跨出一张月历时焦点该落到哪一张、另一张跟不跟着走都没有一致的答案，读屏用户也失去「这几张是连续的月」这条线索。起止相隔很远时点标题里的年 / 月直接跳，或在输入行键入；React Aria 的 `visibleDuration` 同样只有联动一种。
 - 需要统一查询值时，使用 `calendarPeriodValue(granularity, 'single', value)` 得到周期首尾与回显键。
-- 快速选年可在 `year` 网格中渲染受范围约束的年份集合；网格使用三列紧凑布局与内部滚动，不再靠十年翻页堆叠大块空白。
+- 快速选年可在 `year` 网格中渲染受范围约束的年份集合；网格使用三列紧凑布局与内部滚动。
 - 不可用日期应同时提供原因。
 - 常用日期优先提供快捷项。
 
@@ -1466,7 +2204,7 @@ function changeGranularity(details: { value: string | string[] | null }) {
 
 - 未经说明就预先选择今天。
 - 让浮层遮挡当前输入值。
-- 用多选模拟区间：中间的日子不会自动补齐，也没有拖选与预览。
+- 用多选模拟区间：中间的日期不会自动补齐，也没有拖选与预览。
 
 ## API 参考
 
@@ -1475,7 +2213,7 @@ function changeGranularity(details: { value: string | string[] | null }) {
 | 层 | 值 |
 | --- | --- |
 | 自定义元素 | `<xh-date-picker>` |
-| Vue 组件 | `XhDatePickerCalendar` `XhDatePickerCell` `XhDatePickerCellTrigger` `XhDatePickerClearTrigger` `XhDatePickerConfirmTrigger` `XhDatePickerContent` `XhDatePickerControl` `XhDatePickerGrid` `XhDatePickerGridBody` `XhDatePickerGridHead` `XhDatePickerHeader` `XhDatePickerHeading` `XhDatePickerHeadingMonthTrigger` `XhDatePickerHeadingYearTrigger` `XhDatePickerHiddenInput` `XhDatePickerLabel` `XhDatePickerNextTrigger` `XhDatePickerNextYearTrigger` `XhDatePickerPositioner` `XhDatePickerPreset` `XhDatePickerPresetGroup` `XhDatePickerPrevTrigger` `XhDatePickerPrevYearTrigger` `XhDatePickerRoot` `XhDatePickerSegment` `XhDatePickerSegmentGroup` `XhDatePickerTimePanel` `XhDatePickerTrigger` `XhDatePickerWeekDay` `XhDatePickerWeekNumber` `XhDatePickerWeekRow` |
+| Vue 组件 | `XhDatePickerCalendar` `XhDatePickerCell` `XhDatePickerCellTrigger` `XhDatePickerClearTrigger` `XhDatePickerConfirmTrigger` `XhDatePickerContent` `XhDatePickerControl` `XhDatePickerGrid` `XhDatePickerGridBody` `XhDatePickerGridHead` `XhDatePickerHeader` `XhDatePickerHeading` `XhDatePickerHeadingMonthTrigger` `XhDatePickerHeadingYearTrigger` `XhDatePickerHiddenInput` `XhDatePickerItemDeleteTrigger` `XhDatePickerLabel` `XhDatePickerNextTrigger` `XhDatePickerNextYearTrigger` `XhDatePickerOverflowTag` `XhDatePickerPositioner` `XhDatePickerPreset` `XhDatePickerPresetGroup` `XhDatePickerPrevTrigger` `XhDatePickerPrevYearTrigger` `XhDatePickerRoot` `XhDatePickerSegment` `XhDatePickerSegmentGroup` `XhDatePickerTag` `XhDatePickerTagLabel` `XhDatePickerTagList` `XhDatePickerTimePanel` `XhDatePickerTrigger` `XhDatePickerWeekDay` `XhDatePickerWeekNumber` `XhDatePickerWeekRow` |
 | 组合式函数 | `useDatePicker` |
 | 状态机 | `datePickerMachine` |
 | 皮肤 | `@xihan-ui/styles/date-picker.css` |
@@ -1484,42 +2222,60 @@ function changeGranularity(details: { value: string | string[] | null }) {
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `value` | `string \| string[]` |  | 选中值，ISO 串。给定即受控：读直取 prop，写只发 onValueChange 不落内部值。 单选可写裸串，内部一律归一成数组。 |
+| `value` | `string \| string[]` |  | 选中值，ISO 串。提供即受控：读取直取 prop，写入只发 onValueChange 不落内部值。 单选可写裸串，内部一律归一为数组。 |
 | `defaultValue` | `string \| string[]` |  |  |
-| `open` | `boolean` |  | 展开态。给定即受控：内部不再自改，只发 onOpenChange。 |
+| `open` | `boolean` |  | 展开态。提供即受控：内部不再自行修改，只发 onOpenChange。 |
 | `defaultOpen` | `boolean` |  |  |
 | `min` | `string` |  | 可选范围下界（含当天），ISO 串。日历与分段输入共用这一条。 |
 | `max` | `string` |  | 可选范围上界（含当天），ISO 串。 |
-| `locale` | `string` |  | 决定周首日、月份文案与段位先后（zh-CN 年月日、en-US 月日年）。 不给按宿主语言，宿主也没有时按 en-US。 |
-| `timeZone` | `string` |  | 判定「今天」与格式化文案用的时区，默认取宿主本地时区。 |
+| `locale` | `string` |  | 决定周首日、月份文案与段位先后（zh-CN 年月日、en-US 月日年）。 未提供时按宿主语言，宿主也没有时按 en-US。 |
+| `timeZone` | `string` |  | 判定今天与格式化文案使用的时区，默认取宿主本地时区。 |
+| `firstDayOfWeek` | `number` |  | 周首日，0 = 星期日 … 6 = 星期六（与日历选择器同一套写法）；不给按 locale。 只改浮层日历的表头、每一行的行首与 Home / End，月份名、星期名与段位先后仍按 locale。 |
 | `selectionMode` | `CalendarPickerSelectionMode` |  | 选择模式，默认 single。区间选择是另一个组件（日期范围选择器）。 |
-| `isDateUnavailable` | `(value: string) => boolean` |  | 不可用判定，收 ISO 串。界外与它判真的日子同等对待。 |
-| `disabled` | `boolean` |  | 整个控件禁用：trigger 转原生 disabled，段位退出 Tab 序，日历格子全转 aria-disabled。 |
-| `readOnly` | `boolean` |  | 只读：浮层照常展开、日历照常翻月浏览，但选中值改不动。 |
-| `invalid` | `boolean` |  | 校验失败：段位报 aria-invalid，各角色节点带 data-invalid。 不给也会自己判：填齐了但越界。 |
-| `required` | `boolean` |  | 必填标注，落到每一段的 aria-required 上。 |
-| `name` | `string` |  | 表单字段名；给了隐藏输入才带 name，ISO 串随表单一并提交。 |
+| `maxSelected` | `number` |  | multiple 下最多选几个周期，交给内嵌日历：选满后没选中的格子不可再加选，已选的仍可点掉。 带的日期比它多的快捷选项不可按下。非整数向下取整，小于 1 或不是有限数时不设上限。 |
+| `maxTagCount` | `number` |  | 多选时输入行最多摆几枚标签，其余折进 +N 那一枚；默认 3。 |
+| `isDateUnavailable` | `(value: string) => boolean` |  | 不可用判定，接收 ISO 串。界外与判定为真的日期同等处理。 |
+| `disabled` | `boolean` |  | 整个控件禁用：trigger 为原生 disabled，段位退出 Tab 序列，日历格子全部为 aria-disabled。 |
+| `readOnly` | `boolean` |  | 只读：浮层照常展开、日历照常翻月浏览，但选中值不可修改。 |
+| `invalid` | `boolean` |  | 校验失败：段位报告 aria-invalid，各角色节点带 data-invalid。 未提供时也会自行判定：已填齐但越界。 |
+| `required` | `boolean` |  | 必填标注，写入每一段的 aria-required。 |
+| `name` | `string` |  | 表单字段名；提供后隐藏输入才带 name，ISO 串随表单一并提交。 |
 | `granularity` | `CalendarGranularity` |  | 选择粒度；与 selectionMode 正交。输入行与周期网格都由它决定。 |
-| `activeView` | `CalendarView` |  | 面板此刻钻到了哪一层。给定即受控；缺省跟着 granularity，每次展开都回到目标粒度。 点标题里的年 / 月会改它。 没有配套的 defaultActiveView：面板每次展开都会重置这一档，非受控初值没有生效的时刻， 发出去也观察不到任何效果。要改初始层级请用 granularity。 |
-| `segments` | `DateSegmentSet` |  | 输入行铺哪几段。不给就按 granularity 推：按周出「2026-33」、按月出「2026-05」、 按季度出「2026-Q2」、按年出「2026」，按天则按 locale 排年月日。 |
-| `presets` | `DatePickerPreset[]` |  | 快捷选项（「今天」「明天」这类）。给了就在浮层里多出一列，点一下整份写进选中值。 日子要算好再传：连接层每帧求值，把 `today()` 放进渲染期会跨零点算出两个答案。 与 selectionMode 不配（单选给了多条）、落在 min/max 之外或被 isDateUnavailable 判掉的那条 自动按不下去；showTime 下写进去的日期带上此刻已挑的时间。 |
-| `visibleCount` | `number` |  | 展示几个连续日历面板；默认 1。 |
-| `fixedWeeks` | `boolean` |  | 日历恒渲染六行，默认开。关掉后网格按当月实际周数收，翻页时浮层高度会跟着变。 |
-| `defaultFocusedValue` | `string` |  | 初始聚焦日，ISO 串；它同时决定展开时先落在哪一页。 不给就退回首个选中值，再退回今天。表单重置回到这一份。 |
-| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定输入行的描边与底色怎么用。 |
-| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦与选中强调用哪族颜色。 |
-| `size` | `Size` |  | 尺寸：sm / md / lg，输入行与浮层里的日历格一并换档。 |
+| `activeView` | `CalendarView` |  | 面板当前所在的层级。提供即受控；未提供时跟随 granularity，每次展开都回到目标粒度。 点击标题中的年 / 月会修改它。 没有配套的 defaultActiveView：面板每次展开都会重置该档，非受控初值没有生效时刻， 提供后也观察不到任何效果。修改初始层级使用 granularity。 |
+| `segments` | `DateSegmentSet` |  | 输入行铺设的段。未提供时按 granularity 推导：按周为「2026-33」、按月为「2026-05」、 按季度为「2026-Q2」、按年为「2026」，按天则按 locale 排列年月日。 |
+| `placeholder` | `string \| DateSegmentPlaceholders` |  | 占位。给字符串是整条占位：一段都没填、焦点也不在段上时，输入行显示这句文字（「请选择生效时间」）， 焦点进到段上即换回段位。给对象是逐段的占位串，覆盖内置的 yyyy / mm / dd。 |
+| `presets` | `DatePickerPreset[]` |  | 快捷选项（「今天」「明天」等）。提供后浮层中多出一列，点击即整份写入选中值。 日期需计算后传入：连接层每帧求值，把 `today()` 放进渲染期会跨零点得出两个结果。 与 selectionMode 不匹配（单选提供了多条）、落在 min / max 之外或被 isDateUnavailable 判定不可用的选项 自动不可按下；showTime 下写入的日期附带当前已选的时间。 |
+| `visibleCount` | `number` |  | 展示的连续日历面板数；默认 1。 |
+| `fixedWeeks` | `boolean` |  | 日历恒渲染六行，默认开启。关闭后网格按当月实际周数收缩，翻页时浮层高度随之变化。 |
+| `defaultFocusedValue` | `string` |  | 初始聚焦日，ISO 串；同时决定展开时先落在哪一页。 未提供时回退为首个选中值，再回退为今天。表单重置回到该值。 |
+| `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定输入行的描边与底色使用方式。默认 outline。 |
+| `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦与选中强调使用哪族颜色。 |
+| `size` | `Size` |  | 尺寸：sm / md / lg，输入行与浮层中的日历格一并换档。 |
 | `placement` | `Placement` |  |  |
-| `dir` | `Direction` |  | 文字方向，缺省 ltr。只改写浮层在行内轴上 start 与 end 的落点。 |
+| `dir` | `Direction` |  | 文字方向，默认 ltr。只改写浮层在行内轴上 start 与 end 的落点。 |
 | `offset` | `number` |  |  |
 | `translations` | `Partial<DatePickerTranslations>` |  |  |
 | `closeOnSelect` | `boolean` |  | 选完即收起，默认 true。多选不收起。 |
-| `showTime` | `boolean` |  | 一体化时间：值升格为 'YYYY-MM-DDTHH:mm[:ss]'，面板里多出时间列， 选完日子不收起、由确认按钮收口。只在 day + single 下生效。 |
+| `showTime` | `boolean` |  | 一体化时间：值升格为 'YYYY-MM-DDTHH:mm[:ss]'，面板中多出时间列， 选完日期不收起、由确认按钮收口。只在 day + single 下生效。 此时 min / max 可以带时间段（'2026-09-28T09:30'）：日历按日期段收，时间列在与它同一天时按时间段标不可选。 |
 | `timeGranularity` | `DatePickerTimeGranularity` |  | showTime 的时间段精度，默认 minute。 |
-| `onValueChange` | `(details: DatePickerValueChangeDetails) => void` |  | value 变化意图回调；受控时是唯一出口，非受控随内部写入一并通知。 |
+| `hourCycle` | `TimeHourCycle` |  | showTime 的小时制，缺省按 locale 推断（与 TimePicker 同一口径，没给 locale 时 24）。12 时时间列多出上下午列、输入行的时刻段后面多出上下午段； 值仍是 24 小时制的 ISO 串。 |
+| `timeStep` | `TimeStep` |  | showTime 时间列按单位的步进：`{ hour?, minute?, second? }`，各单位缺省 1。只影响列里的格，不限制段位上手动输入的数。 |
+| `isTimeUnavailable` | `TimeUnavailablePredicate` |  | showTime 时间列的逐格可选性。value 是两位补零的格值，时列恒按 24 小时制给出； context 带已选的时（24 小时制）与分、这份时间所属的日期（date，还没有值时是聚焦日），index 恒为 null。 判定为真的格子仍可聚焦，只是按不下去，与 min / max 之外的时刻同等对待。 |
+| `onValueChange` | `(details: DatePickerValueChangeDetails) => void` |  | value 变化意图回调；受控时是唯一出口，非受控时随内部写入一并通知。 |
+| `onClear` | `() => void` |  | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 | `onOpenChange` | `(details: DatePickerOpenChangeDetails) => void` |  | open 变化意图回调；受控时是唯一出口，非受控时随内部转移一并通知。 |
-| `onFocusedValueChange` | `(details: DatePickerFocusChangeDetails) => void` |  | 聚焦日变化（方向键、翻月、展开、段位输入都会发）。 网格由外部渲染，不监听这条日历不会换月。 |
-| `onActiveViewChange` | `(details: CalendarViewChangeDetails) => void` |  | 面板钻到了哪一层（点标题钻上、点格子钻下都会发）；受控时是唯一出口。 |
+| `onFocusedValueChange` | `(details: DatePickerFocusChangeDetails) => void` |  | 聚焦日变化（方向键、翻月、展开、段位输入都会发出）。 网格由外部渲染，不监听该事件时日历不会换月。 |
+| `onActiveViewChange` | `(details: CalendarViewChangeDetails) => void` |  | 面板所在层级变化（点击标题向上、点击格子向下都会发出）；受控时是唯一出口。 |
+
+### DatePickerPreset
+
+`presets` 的元素。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `value` | `string` | 是 |  |
+| `label` | `string` | 是 | 显示文案，同时是该项的可及名。 |
+| `disabled` | `boolean` |  | 禁用该项：方向键仍可停留，但按下不写值。 |
 
 ### 事件
 
@@ -1528,9 +2284,10 @@ function changeGranularity(details: { value: string | string[] | null }) {
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `value-change` | `DatePickerValueChangeDetails` | 选中集合变化；detail 为 `{ value: string[] }` |
+| `clear` | `` | 用户按清空钮（clear-trigger）清掉了值；先发值变化，再发它。程序化的 clear() 不发。 |
 | `open-change` | `DatePickerOpenChangeDetails` | open 状态变化；detail 为 `{ open: boolean }` |
-| `focused-value-change` | `DatePickerFocusChangeDetails` | 聚焦日变化（意味着展示月可能换了）；detail 为 `{ focusedValue: string }`，作者据此重画网格 |
-| `active-view-change` | `CalendarViewChangeDetails` | 钻到了另一层（点标题钻上、点格子钻下）；detail 为 `{ activeView: 'day'\|'week'\|'month'\|'quarter'\|'year' }`，作者据此重画网格 |
+| `focused-value-change` | `DatePickerFocusChangeDetails` | 聚焦日变化（展示月可能随之变化）；detail 为 `{ focusedValue: string }`，作者据此重绘网格 |
+| `active-view-change` | `CalendarViewChangeDetails` | 切换到另一层级（点击标题向上、点击格子向下）；detail 为 `{ activeView: 'day'\|'week'\|'month'\|'quarter'\|'year' }`，作者据此重绘网格 |
 
 ### 插槽
 
@@ -1538,10 +2295,34 @@ function changeGranularity(details: { value: string | string[] | null }) {
 
 | Vue 组件 | 插槽 | 载荷 | 说明 |
 | --- | --- | --- | --- |
-| `XhDatePickerPreset` | `default` | — | 条目内容；不写就用数据里的 label。 |
-| `XhDatePickerPresetGroup` | `default` | `DatePickerPresetsSlotProps` | 自己铺条目；不写就按 presets 数据自动铺，两者产出的 DOM 一致。 |
+| `XhDatePickerPreset` | `default` | — | 条目内容；未写时使用数据中的 label。 |
+| `XhDatePickerPresetGroup` | `default` | `DatePickerPresetsSlotProps` | 自行铺设条目；未写时按 presets 数据自动铺设，两者产出的 DOM 一致。 |
 | `XhDatePickerRoot` | `default` | `DatePickerRootSlotProps` |  |
 | `XhDatePickerSegment` | `default` | `DatePickerSegmentSlotProps` |  |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhDatePickerCalendar` | `index` | `number \| string` |  | 并排的第几张面板，默认 0。写在这里，面板内的标题、网格与格子就不必各写一遍。 |
+| `XhDatePickerCell` | `value` | `string` | 是 | ISO 日期串。 |
+| `XhDatePickerCell` | `index` | `number \| string` |  | 属于第几个面板；未写时跟随所在的日历。同一天会同时出现在两个面板中 （8 月末的几天也铺在 9 月的首行），是否为本月只有连同面板一起看才能判定。 |
+| `XhDatePickerGrid` | `index` | `number \| string` |  | 属于第几个面板；未写时跟随所在的日历。 |
+| `XhDatePickerHeading` | `index` | `number \| string` |  | 属于第几个面板；未写时跟随所在的日历。 |
+| `XhDatePickerHeadingMonthTrigger` | `index` | `number \| string` |  | 属于第几个面板；未写时跟随所在的日历。 |
+| `XhDatePickerHeadingYearTrigger` | `index` | `number \| string` |  | 属于第几个面板；未写时跟随所在的日历。 |
+| `XhDatePickerPositioner` | `container` | `() => Element \| null` |  | 浮层挂载的容器；未提供时按全局配置，再未提供时挂载到 body。 |
+| `XhDatePickerPreset` | `value` | `string` | 是 | 该条目的身份，与 presets 数据中的 value 逐字对应。 |
+| `XhDatePickerPresetGroup` | `children` | `SlotChildren<DatePickerPresetsSlotProps>` |  | 自行铺设条目；未写时按 presets 数据自动铺设，两者产出的 DOM 一致。 |
+| `XhDatePickerRoot` | `children` | `SlotChildren<DatePickerRootSlotProps>` |  |  |
+| `XhDatePickerSegment` | `index` | `number \| string` |  | 段位下标，兼收字符串。 |
+| `XhDatePickerSegment` | `segment` | `DateSegmentType` |  | 按段名声明该格。段集中没有该段时它收起；与 index 二选一，两个都写时按段名计算。 |
+| `XhDatePickerSegment` | `children` | `SlotChildren<DatePickerSegmentSlotProps>` |  |  |
+| `XhDatePickerTag` | `value` | `string` | 是 | 它代表哪个选中值。 |
+| `XhDatePickerWeekDay` | `value` | `number \| string` | 是 | 列序 0-6，兼收字符串。 |
+| `XhDatePickerWeekNumber` | `value` | `string` | 是 | 该行行首那一天的 ISO 串。 |
 
 ### 状态
 
@@ -1562,9 +2343,9 @@ function changeGranularity(details: { value: string | string[] | null }) {
 
 **状态**：`open` · `closed`
 
-**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `VALUE.SET` · `VALUE.CLEAR` · `FOCUSED.SET` · `VIEW.SET` · `FORM.RESET`
+**事件**：`OPEN` · `TOGGLE` · `CLOSE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `VALUE.SET` · `VALUE.CLEAR` · `VALUE.REMOVE` · `TAG_LIST.TRACKED` · `FOCUSED.SET` · `VIEW.SET` · `FORM.RESET` · `PRESS.START` · `PRESS.END`
 
-**判据**：`isOpenControlled` · `closesOnSelect`
+**判据**：`isOpenControlled` · `closesOnSelect` · `canPress`
 
 ### connect API
 
@@ -1573,41 +2354,54 @@ function changeGranularity(details: { value: string | string[] | null }) {
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
 | `open` | `boolean` |  |
-| `value` | `string[]` | 选中集合，ISO 串；形状不随模式变。 |
+| `value` | `string[]` | 选中集合，ISO 串；形状不随模式变化。 |
 | `valueAsString` | `string \| null` | 首个选中值；无选中时为 null。 |
 | `selectionMode` | `CalendarPickerSelectionMode` |  |
 | `periodValue` | `CalendarPeriodValue \| null` | single 的规范化周期值；multiple 没有连续区间语义，返回 null。 |
 | `focusedValue` | `string` | 生效聚焦日（三路收口后的结果），恒非空。日历展示哪个月由它决定。 |
-| `granularity` | `CalendarGranularity` | 作者要挑的粒度。 |
-| `activeView` | `CalendarView` | 面板此刻钻到了哪一层。 |
+| `granularity` | `CalendarGranularity` | 作者选择的粒度。 |
+| `activeView` | `CalendarView` | 面板当前所在的层级。 |
 | `disabled` | `boolean` |  |
 | `readOnly` | `boolean` |  |
-| `invalid` | `boolean` | 校验失败：作者标的或越界。 |
-| `canClear` | `boolean` | 清空按钮此刻可不可按。 |
+| `invalid` | `boolean` | 校验失败：作者标记的或越界。 |
+| `canClear` | `boolean` | 清空按钮当前是否可按。 |
+| `tags` | `DatePickerTagMeta[]` | 多选时可见的标签（受 maxTagCount 截断），与 value 同序；单选恒为空数组。 |
+| `overflowCount` | `number` | 被 maxTagCount 折叠的标签数。 |
+| `overflowText` | `string` | +N 标签显示的文字（由 translations.overflowTag 计算）；没有折叠的标签时为空串。 |
+| `deselect` | `(value: string) => void` | 多选时摘掉一个选中值。 |
 | `setOpen` | `(next: boolean) => void` |  |
 | `setValue` | `(next: string[]) => void` |  |
 | `clear` | `() => void` |  |
-| `setActiveView` | `(next: CalendarView) => void` | 直接钻到某一层。 |
-| `presets` | `readonly DatePickerPresetState[]` | 快捷选项逐条的样子，数据顺序。没给 presets 时为空数组。 |
-| `showTime` | `boolean` | showTime 生效（开了且是单选模式）。 |
-| `timeColumns` | `readonly TimePickerColumn<DatePickerTimeUnit>[]` | 时间列（时/分[/秒]）；没开 showTime 时为空数组。 |
-| `timeValue` | `string \| null` | 当前时间段（'HH:mm[:ss]'）；还没有值时为 null。 |
+| `setActiveView` | `(next: CalendarView) => void` | 直接切换到某一层级。 |
+| `presets` | `readonly DatePickerPresetState[]` | 快捷选项逐条的状态，数据顺序。未提供 presets 时为空数组。 |
+| `showTime` | `boolean` | showTime 生效（已开启且为单选模式）。 |
+| `timeColumns` | `readonly TimePickerColumn<DatePickerTimeUnit>[]` | 时间列（时 / 分[/ 秒][/ 上下午]），格按步进取样；未开启 showTime 时为空数组。 |
+| `timeValue` | `string \| null` | 当前时间段（'HH:mm[:ss]'）；尚无值时为 null。 |
+| `hourCycle` | `TimeHourCycle` | 时间列与时刻段实际生效的小时制。 |
+| `timeStep` | `ResolvedTimeStep` | 实际生效的按单位步进。 |
+| `getTimeItemText` | `(props: DatePickerTimeItemProps) => string` | 某一格显示的文字：数字列即格值，上下午列按 locale 给出「上午 / 下午」。各适配器都用它填字。 |
+| `isTimeItemDisabled` | `(props: DatePickerTimeItemProps) => boolean` | 某一格按不下去：落在 min / max 之外、被 isTimeUnavailable 判为不可用，或整个控件禁用。 |
 | `calendar` | `CalendarPickerApi<T>` | 内嵌日历：选日期、翻月、键盘导航都在它身上。 |
 | `field` | `DatePickerFieldApi<T>` | 内嵌分段输入。 |
 | `getRootProps` | `() => T['element']` |  |
 | `getLabelProps` | `() => T['element']` |  |
 | `getControlProps` | `() => T['element']` |  |
-| `getSegmentGroupProps` | `() => T['element']` | role=group 的分段容器，段位挂在它里面。 |
+| `getTagListProps` | `() => T['element']` | 标签行：多选时放在盒里，收纳可见标签与 +N 标签；没有选中时承载整条占位。单选时整体 hidden。 |
+| `getTagProps` | `(props: DatePickerTagProps) => T['element']` | 标签：一个选中值一个，即库内 tag 的 root（data-scope="tag"）：语气、尺寸与禁用从本控件传下，形态按盒的面派生，另带 data-value。 |
+| `getTagLabelProps` | `() => T['element']` | 标签文字所在的块（tag 的 label）：截断落在这一层；标签与 +N 共用。 |
+| `getOverflowTagProps` | `() => T['element']` | 被折叠的标签合成的一个：同样是 tag 的 root，显示 overflowText、带 data-count；没有折叠的标签时 hidden。 |
+| `getItemDeleteTriggerProps` | `(props: DatePickerTagProps) => T['button']` | 标签删除按钮：即所在标签那份 tag 的 close-trigger，可及名使用 translations.deleteItem。 不占 Tab 位、按下不夺焦；键盘在触发钮上按退格删掉最后一个。 |
+| `getSegmentGroupProps` | `() => T['element']` | role=group 的分段容器，段位挂在其中；多选时整体 hidden，选中值改由标签行呈现。 |
 | `getTriggerProps` | `() => T['button']` |  |
 | `getClearTriggerProps` | `() => T['button']` |  |
 | `getPositionerProps` | `() => T['element']` |  |
 | `getContentProps` | `() => T['element']` |  |
-| `getPresetGroupProps` | `() => T['element']` | 快捷选项列（role=listbox）；没给 presets 时带 hidden。 |
-| `getPresetProps` | `(props: DatePickerPresetProps) => T['element']` | 一条快捷选项（role=option）：点按把整份日期写进选中值。 |
+| `getPresetGroupProps` | `() => T['element']` | 快捷选项列（role=listbox）；未提供 presets 时带 hidden。 |
+| `getPresetProps` | `(props: DatePickerPresetProps) => T['element']` | 一条快捷选项（role=option）：点击把整份日期写入选中值。 |
 | `getCalendarProps` | `() => T['element']` | 内嵌日历的挂载点，同时充当日历的根节点。 |
-| `getTimeColumnProps` | `(props: DatePickerTimeColumnProps) => T['element']` | 时间列容器（时/分[/秒]各一列）；没开 showTime 时带 hidden。 |
-| `getTimeItemProps` | `(props: DatePickerTimeItemProps) => T['element']` | 时间选项：点按把该单位写进值（没有日期时以聚焦日为日期段起值）。 |
-| `getConfirmTriggerProps` | `() => T['button']` | 确认按钮：showTime 的收口；没开 showTime 时带 hidden。 |
+| `getTimeColumnProps` | `(props: DatePickerTimeColumnProps) => T['element']` | 时间列容器（时 / 分[/ 秒]各一列）；未开启 showTime 时带 hidden。 |
+| `getTimeItemProps` | `(props: DatePickerTimeItemProps) => T['element']` | 时间选项：点击把该单位写入值（没有日期时以聚焦日作为日期段起值）。 |
+| `getConfirmTriggerProps` | `() => T['button']` | 确认按钮：showTime 的收口；未开启 showTime 时带 hidden。 |
 
 ## 无障碍
 
@@ -1624,8 +2418,10 @@ function changeGranularity(details: { value: string | string[] | null }) {
 | `Enter` / `Space` | open, focus in grid | 选中聚焦日（由日历完成）；closeOnSelect 时收起浮层，多选不收起 |
 | `ArrowUp` / `ArrowDown` / `Home` / `End` | open, focus in 快捷选项列 | 在快捷选项之间移动焦点，到头回绕；不写值 |
 | `Enter` / `Space` | open, focus in 某条快捷选项 | 把这条快捷选项整份写进选中值；closeOnSelect 时收起浮层 |
-| `Alt+ArrowDown` | focus in 某一段, closed, not disabled | 展开浮层并把焦点送进去；触发钮是可选部件，键盘那条入口不能只挂在它身上 |
+| `Alt+ArrowDown` | focus in 某一段, closed, not disabled | 展开浮层并把焦点移入；触发按钮是可选部件，键盘入口不能只挂在它上面 |
+| `Backspace` | focus in trigger, multiple, 有选中值, not disabled/readOnly | 摘掉最后一个选中值（标签行末尾那一枚）；多选时段位不出现，触发钮就是键盘入口 |
 | `Enter` | focus in 某一段, open | 收起浮层。段位里敲出来的值不触发「选完即收」（那时人还在打字），这是那条路的收口手势 |
+| `Enter` / `Space` | held on trigger / confirm-trigger（not disabled）、clear-trigger（可清）、preset 或 time-item（open, not disabled/readOnly, 该条可按） | 按住期间该部件投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下，浮层收起时一并撤下。日历里的部件由 calendar-picker 自己投影 |
 
 ### ARIA
 
@@ -1658,6 +2454,7 @@ function changeGranularity(details: { value: string | string[] | null }) {
 | `time-column` | `aria-multiselectable` | 'false' |
 | `time-column` | `aria-orientation` | 'vertical' |
 | `time-column` | `role` | 'listbox' |
+| `time-item` | `aria-disabled` | 'true' \| 'false' |
 | `time-item` | `aria-selected` | 'true' \| 'false' |
 | `time-item` | `role` | 'option' |
 
@@ -1687,14 +2484,38 @@ function changeGranularity(details: { value: string | string[] | null }) {
 | `control` | `data-invalid` | ''（条件成立时才出现） |
 | `control` | `data-readonly` | ''（条件成立时才出现） |
 | `control` | `data-state` | 'open' \| 'closed' |
+| `control` | `data-variant` | props.variant |
+| `control` | `data-xh-field-chrome` | '' |
+| `control` | `data-xh-field-layout` | 'multi-tag' \| undefined |
+| `control` | `data-xh-field-size` | props.size |
+| `tag-list` | `data-disabled` | ''（条件成立时才出现） |
+| `tag-list` | `data-instant` | ''（条件成立时才出现） |
+| `tag-list` | `data-placeholder-shown` | ''（条件成立时才出现） |
+| `tag-list` | `data-placeholder-text` | props.placeholder \| undefined \| undefined |
+| `tag-list` | `data-xh-tag-list` | '' |
 | `segment-group` | `data-complete` | ''（条件成立时才出现） |
 | `segment-group` | `data-disabled` | ''（条件成立时才出现） |
 | `segment-group` | `data-empty` | ''（条件成立时才出现） |
 | `segment-group` | `data-invalid` | ''（条件成立时才出现） |
 | `segment-group` | `data-out-of-range` | ''（条件成立时才出现） |
+| `segment-group` | `data-placeholder-shown` | ''（条件成立时才出现） |
+| `segment-group` | `data-placeholder-text` | props.placeholder \| undefined |
 | `segment-group` | `data-readonly` | ''（条件成立时才出现） |
 | `trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `trigger` | `data-pressed` | ''（条件成立时才出现） |
 | `trigger` | `data-state` | 'open' \| 'closed' |
+| `trigger` | `data-xh-action-control` | '' |
+| `trigger` | `data-xh-action-display` | 'always' |
+| `trigger` | `data-xh-action-profile` | 'field-inset' |
+| `trigger` | `data-xh-action-size` | props.size |
+| `trigger` | `data-xh-action-variant` | 'ghost' |
+| `clear-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `clear-trigger` | `data-xh-action-control` | '' |
+| `clear-trigger` | `data-xh-action-display` | 'has-value' |
+| `clear-trigger` | `data-xh-action-has-value` | ''（条件成立时才出现） |
+| `clear-trigger` | `data-xh-action-profile` | 'field-inset' |
+| `clear-trigger` | `data-xh-action-size` | props.size |
+| `clear-trigger` | `data-xh-action-variant` | 'ghost' |
 | `positioner` | `data-hidden` | ''（条件成立时才出现） |
 | `positioner` | `data-placement` | 定位引擎算出的实际落位 |
 | `positioner` | `data-positioned` | ''（条件成立时才出现） |
@@ -1702,112 +2523,140 @@ function changeGranularity(details: { value: string | string[] | null }) {
 | `positioner` | `data-state` | 'open' \| 'closed' |
 | `positioner` | `data-tone` | props.tone |
 | `positioner` | `data-variant` | props.variant |
+| `content` | `data-instant` | ''（条件成立时才出现） |
 | `content` | `data-placement` | 定位引擎算出的实际落位 |
 | `content` | `data-state` | 'open' \| 'closed' |
 | `preset` | `data-disabled` | ''（条件成立时才出现） |
+| `preset` | `data-pressed` | ''（条件成立时才出现） |
 | `preset` | `data-state` | 'checked' \| 'unchecked' |
 | `preset` | `data-value` | v |
+| `preset` | `data-xh-collection-context` | 'overlay' |
+| `preset` | `data-xh-collection-item` | '' |
+| `preset` | `data-xh-collection-size` | props.size |
 | `calendar` | `data-disabled` | ''（条件成立时才出现） |
 | `calendar` | `data-readonly` | ''（条件成立时才出现） |
 | `calendar` | `data-state` | 'open' \| 'closed' |
 | `time-column` | `data-unit` | live[at]!.getAttribute('data-unit') as DatePickerTime… |
+| `time-item` | `data-disabled` | ''（条件成立时才出现） |
+| `time-item` | `data-pressed` | ''（条件成立时才出现） |
 | `time-item` | `data-state` | 'checked' \| 'unchecked' |
 | `time-item` | `data-unit` | live[at]!.getAttribute('data-unit') as DatePickerTime… |
 | `time-item` | `data-value` | v |
+| `time-item` | `data-xh-collection-context` | 'overlay' |
+| `time-item` | `data-xh-collection-item` | '' |
+| `time-item` | `data-xh-collection-size` | props.size |
+| `confirm-trigger` | `data-pressed` | ''（条件成立时才出现） |
+| `confirm-trigger` | `data-xh-action-control` | '' |
+| `confirm-trigger` | `data-xh-action-display` | 'always' |
+| `confirm-trigger` | `data-xh-action-profile` | 'text' |
+| `confirm-trigger` | `data-xh-action-size` | 'sm' |
+| `confirm-trigger` | `data-xh-action-variant` | 'solid' |
+| `confirm-trigger` | `data-xh-ink-surface` | '' |
+| `overflow-tag` | `data-count` | String(overflowCount) |
+| `tag` | `data-value` | v |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-date-picker-action-bg` | `clear-trigger`<br>`trigger` | `background` | `default`<br>`disabled` | `transparent` | date-picker 的 clear-trigger、trigger 部件 background 覆盖槽。 |
-| `--xh-date-picker-action-bg-active` | `clear-trigger`<br>`trigger` | `background` | `active`<br>`not(:disabled)`<br>`state=open` | `--xh-bg-subtle-active` | date-picker 的 clear-trigger、trigger 部件 background 覆盖槽。 |
-| `--xh-date-picker-action-bg-hover` | `clear-trigger`<br>`trigger` | `background` | `hover`<br>`not(:disabled)` | `--xh-bg-subtle-hover` | date-picker 的 clear-trigger、trigger 部件 background 覆盖槽。 |
+| `--xh-date-picker-action-bg` | `clear-trigger`<br>`trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | date-picker 的 clear-trigger、trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-date-picker-action-bg-active` | `clear-trigger`<br>`trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | date-picker 的 clear-trigger、trigger 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-action-bg-hover` | `clear-trigger`<br>`trigger` | `--xh-ink-surface`<br>`background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=open`<br>`xh-ink-surface` | `--xh-_action-variant-bg-hover` | date-picker 的 clear-trigger、trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
 | `--xh-date-picker-action-fg` | `clear-trigger`<br>`trigger` | `color` | `default` | `--xh-fg-muted` | date-picker 的 clear-trigger、trigger 部件 color 覆盖槽。 |
-| `--xh-date-picker-action-fg-hover` | `clear-trigger`<br>`trigger` | `color` | `hover`<br>`not(:disabled)`<br>`state=open` | `--xh-fg-default` | date-picker 的 clear-trigger、trigger 部件 color 覆盖槽。 |
+| `--xh-date-picker-action-fg-hover` | `clear-trigger`<br>`trigger` | `color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`state=open` | `--xh-fg-default` | date-picker 的 clear-trigger、trigger 部件 color 覆盖槽。 |
 | `--xh-date-picker-action-font-size` | `clear-trigger`<br>`trigger` | `font-size` | `default` | `--xh-text-secondary-size` | date-picker 的 clear-trigger、trigger 部件 font-size 覆盖槽。 |
-| `--xh-date-picker-action-radius` | `clear-trigger`<br>`trigger` | `border-radius` | `default` | `--xh-shape-control` | date-picker 的 clear-trigger、trigger 部件 border-radius 覆盖槽。 |
-| `--xh-date-picker-action-size` | `clear-trigger`<br>`trigger` | `block-size`<br>`inline-size` | `default` | `--xh-control-action-size` | date-picker 的 clear-trigger、trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-date-picker-action-radius` | `clear-trigger`<br>`trigger` | `border-radius` | `default` | `--xh-shape-inset` | date-picker 的 clear-trigger、trigger 部件 border-radius 覆盖槽。 |
+| `--xh-date-picker-action-size` | `clear-trigger`<br>`trigger` | `block-size`<br>`inline-size`<br>`min-inline-size` | `default`<br>`xh-action-profile=field-inset` | `--xh-_action-profile-visual-size` | date-picker 的 clear-trigger、trigger 部件 block-size、inline-size、min-inline-size 覆盖槽。 |
 | `--xh-date-picker-calendar-gap` | `calendar`<br>`time-column` | `gap`<br>`margin-block-start` | `default` | `--xh-space-2` | date-picker 的 calendar、time-column 部件 gap、margin-block-start 覆盖槽。 |
-| `--xh-date-picker-column-divider` | `calendar`<br>`preset-group`<br>`time-column` | `background`<br>`border-block-end`<br>`border-inline-end`<br>`border-inline-start` | `@media (min-width: 768px)`<br>`default`<br>`has(+ [data-part='time-column'])` | `--xh-material-frosted-separator` | date-picker 的 calendar、preset-group、time-column 部件 background、border-block-end、border-inline-end、border-inline-start 覆盖槽。 |
-| `--xh-date-picker-confirm-trigger-bg` | `confirm-trigger` | `background` | `default` | `--xh-_date-picker-accent` | date-picker 的 confirm-trigger 部件 background 覆盖槽。 |
-| `--xh-date-picker-confirm-trigger-bg-active` | `confirm-trigger` | `background` | `active` | `--xh-_date-picker-accent-active` | date-picker 的 confirm-trigger 部件 background 覆盖槽。 |
-| `--xh-date-picker-confirm-trigger-bg-hover` | `confirm-trigger` | `background` | `hover` | `--xh-_date-picker-accent-hover` | date-picker 的 confirm-trigger 部件 background 覆盖槽。 |
-| `--xh-date-picker-confirm-trigger-fg` | `confirm-trigger` | `color` | `default` | `--xh-_date-picker-accent-fg` | date-picker 的 confirm-trigger 部件 color 覆盖槽。 |
-| `--xh-date-picker-confirm-trigger-h` | `confirm-trigger` | `block-size` | `default` | `--xh-control-h-sm` | date-picker 的 confirm-trigger 部件 block-size 覆盖槽。 |
-| `--xh-date-picker-confirm-trigger-px` | `confirm-trigger` | `padding-inline` | `default` | `--xh-control-px-sm` | date-picker 的 confirm-trigger 部件 padding-inline 覆盖槽。 |
+| `--xh-date-picker-column-divider` | `calendar`<br>`preset-group`<br>`time-column` | `background`<br>`border-block-end`<br>`border-inline-end`<br>`border-inline-start` | `@media (min-width: 768px)`<br>`default`<br>`has(+ [data-part='time-column'])` | `--xh-material-solid-separator` | date-picker 的 calendar、preset-group、time-column 部件 background、border-block-end、border-inline-end、border-inline-start 覆盖槽。 |
+| `--xh-date-picker-confirm-trigger-bg` | `confirm-trigger` | `--xh-ink-surface`<br>`background-color` | `default`<br>`xh-ink-surface` | `--xh-_action-variant-bg-rest` | date-picker 的 confirm-trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-date-picker-confirm-trigger-bg-active` | `confirm-trigger` | `background-color` | `disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-bg-pressed` | date-picker 的 confirm-trigger 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-confirm-trigger-bg-hover` | `confirm-trigger` | `background-color` | `disabled`<br>`hover`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])` | `--xh-_action-variant-bg-hover` | date-picker 的 confirm-trigger 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-confirm-trigger-fg` | `confirm-trigger` | `color` | `default`<br>`disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `--xh-_action-variant-fg-hover`<br>`--xh-_action-variant-fg-pressed`<br>`--xh-_action-variant-fg-rest` | date-picker 的 confirm-trigger 部件 color 覆盖槽。 |
+| `--xh-date-picker-confirm-trigger-h` | `confirm-trigger` | `block-size`<br>`inline-size` | `default`<br>`xh-action-profile=field-inset` | `--xh-_action-profile-visual-size` | date-picker 的 confirm-trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-date-picker-confirm-trigger-px` | `confirm-trigger` | `padding-inline` | `default` | `--xh-_action-profile-padding-inline` | date-picker 的 confirm-trigger 部件 padding-inline 覆盖槽。 |
 | `--xh-date-picker-confirm-trigger-radius` | `confirm-trigger` | `border-radius` | `default` | `--xh-shape-control` | date-picker 的 confirm-trigger 部件 border-radius 覆盖槽。 |
-| `--xh-date-picker-confirm-trigger-shadow` | `confirm-trigger` | `box-shadow` | `default` | `--xh-_date-picker-confirm-highlight` | date-picker 的 confirm-trigger 部件 box-shadow 覆盖槽。 |
-| `--xh-date-picker-content-backdrop` | `content` | `-webkit-backdrop-filter`<br>`backdrop-filter` | `default` | `none` | date-picker 的 content 部件 -webkit-backdrop-filter、backdrop-filter 覆盖槽。 |
+| `--xh-date-picker-confirm-trigger-shadow` | `confirm-trigger` | `box-shadow` | `default`<br>`disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`pressed` | `none` | date-picker 的 confirm-trigger 部件 box-shadow 覆盖槽。 |
 | `--xh-date-picker-content-bg` | `content` | `background` | `default` | `--xh-bg-surface` | date-picker 的 content 部件 background 覆盖槽。 |
-| `--xh-date-picker-content-border` | `content` | `border` | `default` | `--xh-border-subtle` | date-picker 的 content 部件 border 覆盖槽。 |
+| `--xh-date-picker-content-border` | `content` | `border` | `default` | `--xh-border-default` | date-picker 的 content 部件 border 覆盖槽。 |
 | `--xh-date-picker-content-fg` | `content` | `color` | `default` | `--xh-fg-default` | date-picker 的 content 部件 color 覆盖槽。 |
-| `--xh-date-picker-content-highlight` | `content` | `background` | `default` | `transparent` | date-picker 的 content 部件 background 覆盖槽。 |
-| `--xh-date-picker-content-px` | `content` | `padding-inline` | `@media (width < 768px)`<br>`default` | `--xh-space-2` | date-picker 的 content 部件 padding-inline 覆盖槽。 |
+| `--xh-date-picker-content-px` | `content` | `padding-inline` | `@media not all and (min-width: 768px)`<br>`default` | `--xh-space-2` | date-picker 的 content 部件 padding-inline 覆盖槽。 |
 | `--xh-date-picker-content-py` | `content` | `padding-block` | `default` | `--xh-space-2` | date-picker 的 content 部件 padding-block 覆盖槽。 |
-| `--xh-date-picker-content-radius` | `content` | `border-radius` | `default` | `--xh-shape-surface` | date-picker 的 content 部件 border-radius 覆盖槽。 |
-| `--xh-date-picker-content-shadow` | `content` | `box-shadow` | `default` | `--xh-material-frosted-shadow` | date-picker 的 content 部件 box-shadow 覆盖槽。 |
-| `--xh-date-picker-control-bg` | `control` | `background` | `default` | `--xh-_date-picker-control-bg` | date-picker 的 control 部件 background 覆盖槽。 |
-| `--xh-date-picker-control-bg-disabled` | `control` | `background` | `disabled` | `--xh-bg-subtle` | date-picker 的 control 部件 background 覆盖槽。 |
-| `--xh-date-picker-control-bg-hover` | `control` | `background` | `disabled`<br>`hover`<br>`not([data-disabled], [data-readonly])`<br>`readonly` | `--xh-_date-picker-control-bg-hover` | date-picker 的 control 部件 background 覆盖槽。 |
-| `--xh-date-picker-control-bg-readonly` | `control` | `background` | `readonly` | `--xh-bg-subtle` | date-picker 的 control 部件 background 覆盖槽。 |
-| `--xh-date-picker-control-border` | `control` | `border` | `default` | `--xh-_date-picker-control-border` | date-picker 的 control 部件 border 覆盖槽。 |
-| `--xh-date-picker-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`state=open` | `--xh-_tone` | date-picker 的 control 部件 border-color 覆盖槽。 |
-| `--xh-date-picker-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`not([data-disabled], [data-invalid])` | `--xh-_date-picker-control-border-hover` | date-picker 的 control 部件 border-color 覆盖槽。 |
-| `--xh-date-picker-control-border-invalid` | `control` | `border-color` | `invalid` | `--xh-border-invalid` | date-picker 的 control 部件 border-color 覆盖槽。 |
-| `--xh-date-picker-control-fg` | `control` | `color` | `default` | `--xh-fg-default` | date-picker 的 control 部件 color 覆盖槽。 |
-| `--xh-date-picker-control-gap` | `control` | `gap` | `default` | `--xh-_date-picker-gap` | date-picker 的 control 部件 gap 覆盖槽。 |
-| `--xh-date-picker-control-h` | `control` | `block-size` | `default` | `--xh-_date-picker-control-h` | date-picker 的 control 部件 block-size 覆盖槽。 |
-| `--xh-date-picker-control-min-w` | `control`<br>`root` | `min-inline-size` | `default` | `--xh-control-min-w` | date-picker 的 control、root 部件 min-inline-size 覆盖槽。 |
-| `--xh-date-picker-control-px` | `control` | `padding-inline` | `default` | `--xh-_date-picker-control-px` | date-picker 的 control 部件 padding-inline 覆盖槽。 |
-| `--xh-date-picker-control-radius` | `control` | `border-radius` | `default` | `--xh-shape-surface` | date-picker 的 control 部件 border-radius 覆盖槽。 |
-| `--xh-date-picker-control-shadow` | `control` | `box-shadow` | `default` | `--xh-_date-picker-control-shadow` | date-picker 的 control 部件 box-shadow 覆盖槽。 |
-| `--xh-date-picker-font-size` | `segment-group` | `font-size` | `default` | `--xh-_date-picker-font-size` | date-picker 的 segment-group 部件 font-size 覆盖槽。 |
+| `--xh-date-picker-content-radius` | `content` | `border-radius` | `default` | `--xh-shape-overlay` | date-picker 的 content 部件 border-radius 覆盖槽。 |
+| `--xh-date-picker-content-shadow` | `content` | `box-shadow` | `default` | `--xh-elevation-floating` | date-picker 的 content 部件 box-shadow 覆盖槽。 |
+| `--xh-date-picker-control-bg` | `control` | `background-color` | `xh-field-chrome` | `--xh-_field-variant-bg-rest` | date-picker 的 control 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-control-bg-disabled` | `control` | `background-color` | `disabled`<br>`xh-field-chrome` | `--xh-_field-variant-bg-disabled` | date-picker 的 control 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-hover` | date-picker 的 control 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-control-bg-readonly` | `control` | `background-color` | `readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-read-only` | date-picker 的 control 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-control-border` | `control` | `border` | `xh-field-chrome` | `--xh-_field-variant-border-rest` | date-picker 的 control 部件 border 覆盖槽。 |
+| `--xh-date-picker-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`xh-field-chrome` | `--xh-_field-variant-border-focus` | date-picker 的 control 部件 border-color 覆盖槽。 |
+| `--xh-date-picker-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-border-hover` | date-picker 的 control 部件 border-color 覆盖槽。 |
+| `--xh-date-picker-control-border-invalid` | `control` | `border-color` | `invalid`<br>`xh-field-chrome` | `--xh-_field-variant-border-invalid` | date-picker 的 control 部件 border-color 覆盖槽。 |
+| `--xh-date-picker-control-fg` | `control` | `color` | `xh-field-chrome` | `--xh-fg-default` | date-picker 的 control 部件 color 覆盖槽。 |
+| `--xh-date-picker-control-gap` | `control` | `gap` | `xh-field-chrome` | `--xh-_date-picker-gap` | date-picker 的 control 部件 gap 覆盖槽。 |
+| `--xh-date-picker-control-h` | `control` | `block-size`<br>`min-block-size` | `has([data-xh-field-input][data-xh-field-layout='multi-tag'])`<br>`has([data-xh-field-input][data-xh-field-layout='single-line'])`<br>`has([data-xh-field-input][data-xh-field-layout='textarea'])`<br>`xh-field-chrome`<br>`xh-field-input`<br>`xh-field-layout=multi-tag`<br>`xh-field-layout=single-line`<br>`xh-field-layout=textarea` | `--xh-_date-picker-control-h` | date-picker 的 control 部件 block-size、min-block-size 覆盖槽。 |
+| `--xh-date-picker-control-max-h` | `control` | `max-block-size` | `xh-field-layout=multi-tag` | `--xh-viewport-h-sm` | date-picker 的 control 部件 max-block-size 覆盖槽。 |
+| `--xh-date-picker-control-min-w` | `control`<br>`root` | `min-inline-size` | `default`<br>`xh-field-chrome` | `--xh-control-min-w` | date-picker 的 control、root 部件 min-inline-size 覆盖槽。 |
+| `--xh-date-picker-control-px` | `control` | `padding-inline` | `xh-field-chrome` | `--xh-_date-picker-control-px` | date-picker 的 control 部件 padding-inline 覆盖槽。 |
+| `--xh-date-picker-control-radius` | `control` | `border-radius` | `xh-field-chrome` | `--xh-shape-control` | date-picker 的 control 部件 border-radius 覆盖槽。 |
+| `--xh-date-picker-control-shadow` | `control` | `box-shadow` | `xh-field-chrome` | `none` | date-picker 的 control 部件 box-shadow 覆盖槽。 |
+| `--xh-date-picker-control-w` | `root` | `inline-size`<br>`min-inline-size` | `default` | `--xh-control-w` | date-picker 的 root 部件 inline-size、min-inline-size 覆盖槽。 |
+| `--xh-date-picker-font-size` | `segment-group`<br>`tag-list` | `font-size` | `default` | `--xh-_date-picker-font-size` | date-picker 的 segment-group、tag-list 部件 font-size 覆盖槽。 |
 | `--xh-date-picker-gap` | `root` | `gap` | `default` | `--xh-space-1` | date-picker 的 root 部件 gap 覆盖槽。 |
-| `--xh-date-picker-icon-size` | `positioner`<br>`root` | `--xh-icon-size` | `default`<br>`is([data-part='root'], [data-part='positioner'])`<br>`size=lg`<br>`size=sm` | `--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | date-picker 的 positioner、root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-date-picker-icon-size` | `control`<br>`positioner`<br>`root` | `--xh-icon-size` | `default`<br>`is([data-part='root'], [data-part='positioner'])`<br>`size=lg`<br>`size=sm`<br>`xh-field-chrome` | `--xh-_field-size-glyph-size`<br>`--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | date-picker 的 control、positioner、root 部件 --xh-icon-size 覆盖槽。 |
 | `--xh-date-picker-label-fg` | `label` | `color` | `default` | `--xh-fg-default` | date-picker 的 label 部件 color 覆盖槽。 |
 | `--xh-date-picker-label-fg-disabled` | `label` | `color` | `disabled` | `--xh-fg-subtle` | date-picker 的 label 部件 color 覆盖槽。 |
-| `--xh-date-picker-label-font-size` | `label` | `font-size` | `default` | `--xh-_date-picker-label-font-size` | date-picker 的 label 部件 font-size 覆盖槽。 |
+| `--xh-date-picker-label-font-size` | `label` | `font-size` | `default` | `--xh-text-label-size` | date-picker 的 label 部件 font-size 覆盖槽。 |
 | `--xh-date-picker-label-font-weight` | `label` | `font-weight` | `default` | `--xh-text-label-weight` | date-picker 的 label 部件 font-weight 覆盖槽。 |
 | `--xh-date-picker-layer` | `positioner` | `z-index` | `default` | `--xh-_layer` | date-picker 的 positioner 部件 z-index 覆盖槽。 |
 | `--xh-date-picker-literal-fg` | `segment-group` | `color` | `not([data-scope])` | `--xh-fg-subtle` | date-picker 的 segment-group 部件 color 覆盖槽。 |
-| `--xh-date-picker-max-h` | `content` | `max-block-size` | `default` | `--xh-viewport-h-lg` | date-picker 的 content 部件 max-block-size 覆盖槽。 |
-| `--xh-date-picker-panel-divider` | `calendar` | `border-block-start`<br>`border-inline-start` | `@media (min-width: 768px)`<br>`default` | `--xh-material-frosted-separator` | date-picker 的 calendar 部件 border-block-start、border-inline-start 覆盖槽。 |
+| `--xh-date-picker-max-h` | `content` | `max-block-size` | `default` | `--xh-_date-picker-available-h` | date-picker 的 content 部件 max-block-size 覆盖槽。 |
+| `--xh-date-picker-panel-divider` | `calendar` | `border-block-start`<br>`border-inline-start` | `@media (min-width: 768px)`<br>`default` | `--xh-material-solid-separator` | date-picker 的 calendar 部件 border-block-start、border-inline-start 覆盖槽。 |
 | `--xh-date-picker-panel-gap` | `calendar`<br>`preset-group` | `padding-block-start`<br>`padding-inline-start` | `@media (min-width: 768px)`<br>`default` | `--xh-space-3` | date-picker 的 calendar、preset-group 部件 padding-block-start、padding-inline-start 覆盖槽。 |
-| `--xh-date-picker-preset-bg-hover` | `preset` | `background` | `disabled`<br>`is(:hover, :focus-visible)`<br>`not([data-disabled])` | `--xh-bg-subtle` | date-picker 的 preset 部件 background 覆盖槽。 |
+| `--xh-date-picker-placeholder-fg` | `segment-group`<br>`tag-list` | `color` | `placeholder-shown` | `--xh-fg-subtle` | date-picker 的 segment-group、tag-list 部件 color 覆盖槽。 |
+| `--xh-date-picker-preset-bg-hover` | `preset` | `background-color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle` | date-picker 的 preset 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-preset-bg-pressed` | `preset` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle-hover` | date-picker 的 preset 部件 background-color 覆盖槽。 |
 | `--xh-date-picker-preset-check-fg` | `preset` | `background-color` | `default` | `--xh-_date-picker-check-fg` | date-picker 的 preset 部件 background-color 覆盖槽。 |
-| `--xh-date-picker-preset-check-size` | `preset` | `block-size`<br>`inline-size`<br>`padding-inline-end` | `default` | `--xh-glyph-size-sm` | date-picker 的 preset 部件 block-size、inline-size、padding-inline-end 覆盖槽。 |
-| `--xh-date-picker-preset-fg-disabled` | `preset` | `background-color`<br>`color` | `disabled` | `--xh-fg-disabled` | date-picker 的 preset 部件 background-color、color 覆盖槽。 |
-| `--xh-date-picker-preset-fg-selected` | `preset` | `color` | `state=checked` | `inherit` | date-picker 的 preset 部件 color 覆盖槽。 |
+| `--xh-date-picker-preset-check-size` | `preset` | `block-size`<br>`inline-size`<br>`padding-inline-end` | `default` | `--xh-control-indicator-size` | date-picker 的 preset 部件 block-size、inline-size、padding-inline-end 覆盖槽。 |
+| `--xh-date-picker-preset-fg-disabled` | `preset` | `background-color`<br>`color` | `default`<br>`disabled` | `--xh-fg-disabled` | date-picker 的 preset 部件 background-color、color 覆盖槽。 |
+| `--xh-date-picker-preset-fg-selected` | `preset` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-fg-default` | date-picker 的 preset 部件 color 覆盖槽。 |
 | `--xh-date-picker-preset-group-gap` | `preset-group` | `gap` | `default` | `--xh-list-option-gap` | date-picker 的 preset-group 部件 gap 覆盖槽。 |
 | `--xh-date-picker-preset-group-h` | `preset-group` | `max-block-size` | `default` | `--xh-viewport-h-lg` | date-picker 的 preset-group 部件 max-block-size 覆盖槽。 |
 | `--xh-date-picker-preset-group-padding` | `preset-group` | `padding` | `default` | `--xh-space-1` | date-picker 的 preset-group 部件 padding 覆盖槽。 |
 | `--xh-date-picker-preset-px` | `preset` | `inset-inline-end`<br>`padding-inline`<br>`padding-inline-end` | `default` | `--xh-space-3` | date-picker 的 preset 部件 inset-inline-end、padding-inline、padding-inline-end 覆盖槽。 |
 | `--xh-date-picker-preset-py` | `preset` | `padding-block` | `default` | `--xh-space-1` | date-picker 的 preset 部件 padding-block 覆盖槽。 |
-| `--xh-date-picker-preset-radius` | `preset` | `border-radius` | `default` | `--xh-shape-control` | date-picker 的 preset 部件 border-radius 覆盖槽。 |
+| `--xh-date-picker-preset-radius` | `preset` | `border-radius` | `default` | `--xh-shape-inset` | date-picker 的 preset 部件 border-radius 覆盖槽。 |
+| `--xh-date-picker-tag-list-gap` | `tag-list` | `gap` | `xh-tag-list` | `--xh-space-1` | date-picker 的 tag-list 部件 gap 覆盖槽。 |
 | `--xh-date-picker-time-column-gap` | `time-column` | `gap` | `default` | `0` | date-picker 的 time-column 部件 gap 覆盖槽。 |
-| `--xh-date-picker-time-column-h` | `time-column` | `block-size` | `default` | `--xh-viewport-h-md` | date-picker 的 time-column 部件 block-size 覆盖槽。 |
+| `--xh-date-picker-time-column-h` | `time-column` | `block-size` | `default` | `--xh-overlay-calendar-column-h` | date-picker 的 time-column 部件 block-size 覆盖槽。 |
 | `--xh-date-picker-time-column-min-w` | `time-column` | `min-inline-size` | `default` | `--xh-overlay-column-min-w` | date-picker 的 time-column 部件 min-inline-size 覆盖槽。 |
-| `--xh-date-picker-time-column-min-w-mobile` | `time-column` | `min-inline-size` | `@media (width < 768px)` | `2.75rem` | date-picker 的 time-column 部件 min-inline-size 覆盖槽。 |
+| `--xh-date-picker-time-column-min-w-mobile` | `time-column` | `min-inline-size` | `@media not all and (min-width: 768px)` | `2.75rem` | date-picker 的 time-column 部件 min-inline-size 覆盖槽。 |
 | `--xh-date-picker-time-column-offset` | `time-column` | `margin-block-start` | `default` | `--xh-control-h-sm` | date-picker 的 time-column 部件 margin-block-start 覆盖槽。 |
 | `--xh-date-picker-time-column-padding` | `time-column` | `padding-block` | `default` | `--xh-space-1` | date-picker 的 time-column 部件 padding-block 覆盖槽。 |
 | `--xh-date-picker-time-column-px` | `time-column` | `padding-inline` | `default` | `0` | date-picker 的 time-column 部件 padding-inline 覆盖槽。 |
-| `--xh-date-picker-time-column-px-mobile` | `time-column` | `padding-inline` | `@media (width < 768px)` | `0` | date-picker 的 time-column 部件 padding-inline 覆盖槽。 |
-| `--xh-date-picker-time-item-bg-hover` | `time-column`<br>`time-item` | `background` | `is(:hover, :focus-visible)`<br>`not([aria-disabled='true'])` | `--xh-bg-subtle` | date-picker 的 time-column、time-item 部件 background 覆盖槽。 |
+| `--xh-date-picker-time-column-px-mobile` | `time-column` | `padding-inline` | `@media not all and (min-width: 768px)` | `0` | date-picker 的 time-column 部件 padding-inline 覆盖槽。 |
+| `--xh-date-picker-time-item-bg-hover` | `time-item` | `background-color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle` | date-picker 的 time-item 部件 background-color 覆盖槽。 |
+| `--xh-date-picker-time-item-bg-pressed` | `time-item` | `background-color` | `disabled`<br>`error`<br>`is(:active, [data-pressed])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-bg-subtle-hover` | date-picker 的 time-item 部件 background-color 覆盖槽。 |
 | `--xh-date-picker-time-item-check-fg` | `time-item` | `background-color` | `default` | `--xh-_date-picker-check-fg` | date-picker 的 time-item 部件 background-color 覆盖槽。 |
-| `--xh-date-picker-time-item-check-size` | `time-item` | `block-size`<br>`inline-size`<br>`inset-inline-end`<br>`padding-inline` | `@media (width < 768px)`<br>`default` | `--xh-_date-picker-time-item-check-size` | date-picker 的 time-item 部件 block-size、inline-size、inset-inline-end、padding-inline 覆盖槽。 |
-| `--xh-date-picker-time-item-fg-selected` | `time-item` | `color` | `state=checked` | `--xh-_date-picker-time-item-fg-selected` | date-picker 的 time-item 部件 color 覆盖槽。 |
-| `--xh-date-picker-time-item-h` | `time-item` | `block-size` | `default` | `--xh-control-h-sm` | date-picker 的 time-item 部件 block-size 覆盖槽。 |
+| `--xh-date-picker-time-item-check-size` | `time-item` | `block-size`<br>`inline-size`<br>`inset-inline-end`<br>`padding-inline` | `@media not all and (min-width: 768px)`<br>`default` | `--xh-_date-picker-time-item-check-size` | date-picker 的 time-item 部件 block-size、inline-size、inset-inline-end、padding-inline 覆盖槽。 |
+| `--xh-date-picker-time-item-fg` | `time-item` | `color` | `default`<br>`disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-material-frosted-fg` | date-picker 的 time-item 部件 color 覆盖槽。 |
+| `--xh-date-picker-time-item-fg-selected` | `time-item` | `color` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-date-picker-time-item-fg` | date-picker 的 time-item 部件 color 覆盖槽。 |
+| `--xh-date-picker-time-item-font-size` | `time-item` | `font-size` | `default` | `--xh-_date-picker-font-size` | date-picker 的 time-item 部件 font-size 覆盖槽。 |
+| `--xh-date-picker-time-item-font-weight-selected` | `time-item` | `font-weight` | `disabled`<br>`error`<br>`highlighted`<br>`hover`<br>`is(:active, [data-pressed])`<br>`is(:focus-visible, [data-highlighted])`<br>`is([aria-selected='true'], [data-selected])`<br>`not([aria-disabled='true'], [data-disabled], [aria-busy='true'], [data-error])`<br>`pressed`<br>`selected`<br>`xh-collection-context=overlay` | `--xh-font-weight-regular` | date-picker 的 time-item 部件 font-weight 覆盖槽。 |
+| `--xh-date-picker-time-item-h` | `time-item` | `block-size` | `default` | `auto` | date-picker 的 time-item 部件 block-size 覆盖槽。 |
 | `--xh-date-picker-time-item-px` | `time-item` | `inset-inline-end`<br>`padding-inline` | `default` | `--xh-space-0_5` | date-picker 的 time-item 部件 inset-inline-end、padding-inline 覆盖槽。 |
-| `--xh-date-picker-time-item-py` | `time-item` | `padding-block` | `default` | `0` | date-picker 的 time-item 部件 padding-block 覆盖槽。 |
-| `--xh-date-picker-time-item-radius` | `time-item` | `border-radius` | `default` | `--xh-shape-control` | date-picker 的 time-item 部件 border-radius 覆盖槽。 |
+| `--xh-date-picker-time-item-py` | `time-item` | `padding-block` | `default` | `--xh-_date-picker-item-py` | date-picker 的 time-item 部件 padding-block 覆盖槽。 |
+| `--xh-date-picker-time-item-radius` | `time-item` | `border-radius` | `default` | `--xh-shape-inset` | date-picker 的 time-item 部件 border-radius 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
 
-关键帧 `xh-overlay-slide-in` · `xh-overlay-slide-out` 随皮肤自带，不引用别处文件里的名字；`background` · `border-color` · `color` · `opacity` · `outline-color` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 指示与换位 · 出现（锚定列表） · 出现（无锚定弹出）（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-fade-out` · `xh-overlay-slide-in` · `xh-overlay-slide-out` · `xh-pop-in` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立；`opacity` · `translate` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 皮肤之外还有一段：退场由适配器的退场闸门把关，动画播完才真收起。
 
@@ -1815,7 +2664,7 @@ function changeGranularity(details: { value: string | string[] | null }) {
 
 ### 响应式
 
-皮肤按视口分档：`min-width: 768px` · `width < 768px`。
+皮肤按视口分档：`min-width: 768px`。
 
 ### RTL
 

@@ -1,8 +1,8 @@
 来源：https://ui.docs.xihanfun.com/components/avatar-group
 
-# AvatarGroup 头像组 `alpha`
+# AvatarGroup 头像组
 
-把若干头像叠成一排，超出上限的收成一个计数。
+将若干头像叠成一排，超出上限的部分收为一个计数。
 
 <div class="xh-resource-links">
   <a href="https://github.com/XiHanFun/XiHan.UI/tree/dev/ui/packages/engine/headless/src/avatar-group" target="_blank" rel="noreferrer">Headless</a>
@@ -14,7 +14,7 @@
 
 ## 用法
 
-一排叠放的头像：后一枚压在前一枚上，被压住的边由一圈底色分开
+一排叠放的头像：后一个压在前一个上，被压住的边由一圈底色分开
 
 ```vue
 <script setup lang="ts">
@@ -74,7 +74,7 @@ const members = [
 
 ### 上限与溢出计数
 
-摆到上限为止，其余收成一枚「+N」；裁到几枚、N 写多少由作者定，组件只给这一枚身份与位置
+放置到上限为止，其余收为一个「+N」；截到几个、N 写多少由作者决定，组件只提供该项的身份与位置
 
 ```vue
 <script setup lang="ts">
@@ -131,7 +131,7 @@ const rest = members.length - shown.length;
 
 ### 尺寸
 
-直径、字号与叠放量在组上写一次，沿自定义属性流给组内每一枚，「+N」跟着一起换
+直径、字号与叠放量在组上写一次，沿自定义属性下发给组内每个头像，「+N」随之更换
 
 ```vue
 <script setup lang="ts">
@@ -222,7 +222,7 @@ const shown = ["曦", "寒", "懿"];
 
 ### 使用者令牌
 
-直径、叠放量、分隔那圈底色都留了槽位，写在组上就整组换掉
+直径、叠放量、分隔用的底色都保留了槽位，写在组上即整组更换
 
 ```vue
 <script setup lang="ts">
@@ -286,35 +286,209 @@ const tokens = {
 </xh-avatar-group>
 ```
 
+### 「+N」展开其余成员
+
+计数那一枚要能点开时换成按钮，作浮层的触发器：浮层里列出没摆出来的人，排成一行的只留前几位
+
+```vue
+<script setup lang="ts">
+import {
+  XhAvatarFallback,
+  XhAvatarGroupRoot,
+  XhAvatarRoot,
+  XhButton,
+  XhListItem,
+  XhListItemContent,
+  XhListItemDescription,
+  XhListItemMedia,
+  XhListItemTitle,
+  XhListRoot,
+  XhPopoverContent,
+  XhPopoverPositioner,
+  XhPopoverRoot,
+  XhPopoverTitle,
+  XhPopoverTrigger,
+} from "@xihan-ui/vue";
+
+const members = [
+  { initial: "曦", name: "曦寒", role: "负责人" },
+  { initial: "寒", name: "寒松", role: "前端" },
+  { initial: "懿", name: "懿安", role: "设计" },
+  { initial: "承", name: "承泽", role: "后端" },
+  { initial: "临", name: "临川", role: "测试" },
+  { initial: "旭", name: "旭东", role: "运维" },
+  { initial: "言", name: "言蹊", role: "产品" },
+  { initial: "知", name: "知远", role: "数据" },
+];
+const max = 4;
+
+const shown = members.slice(0, max);
+const rest = members.slice(max);
+</script>
+
+<template>
+  <XhAvatarGroupRoot :max="max">
+    <XhAvatarRoot v-for="m in shown" :key="m.name">
+      <XhAvatarFallback>{{ m.initial }}</XhAvatarFallback>
+    </XhAvatarRoot>
+
+    <!-- 计数那一枚换成按钮：直径、圆形与字号跟着组走 -->
+    <XhPopoverRoot placement="bottom-start">
+      <XhPopoverTrigger as-child>
+        <XhButton
+          variant="subtle"
+          icon-only
+          :aria-label="`还有 ${rest.length} 位成员`"
+          style="--xh-button-h: var(--xh-avatar-size); --xh-button-radius: var(--xh-shape-circle); --xh-button-font-size: var(--xh-avatar-font-size)"
+        >
+          +{{ rest.length }}
+        </XhButton>
+      </XhPopoverTrigger>
+      <XhPopoverPositioner>
+        <XhPopoverContent>
+          <XhPopoverTitle>还有 {{ rest.length }} 位成员</XhPopoverTitle>
+          <XhListRoot size="sm">
+            <XhListItem v-for="m in rest" :key="m.name">
+              <XhListItemMedia>
+                <XhAvatarRoot size="sm">
+                  <XhAvatarFallback>{{ m.initial }}</XhAvatarFallback>
+                </XhAvatarRoot>
+              </XhListItemMedia>
+              <XhListItemContent>
+                <XhListItemTitle>{{ m.name }}</XhListItemTitle>
+                <XhListItemDescription>{{ m.role }}</XhListItemDescription>
+              </XhListItemContent>
+            </XhListItem>
+          </XhListRoot>
+        </XhPopoverContent>
+      </XhPopoverPositioner>
+    </XhPopoverRoot>
+  </XhAvatarGroupRoot>
+</template>
+```
+
+```html
+<xh-avatar-group max="4">
+  <div data-xh-part="root">
+    <xh-avatar>
+      <span data-xh-part="root">
+        <span data-xh-part="fallback">曦</span>
+      </span>
+    </xh-avatar>
+    <xh-avatar>
+      <span data-xh-part="root">
+        <span data-xh-part="fallback">寒</span>
+      </span>
+    </xh-avatar>
+    <xh-avatar>
+      <span data-xh-part="root">
+        <span data-xh-part="fallback">懿</span>
+      </span>
+    </xh-avatar>
+    <xh-avatar>
+      <span data-xh-part="root">
+        <span data-xh-part="fallback">承</span>
+      </span>
+    </xh-avatar>
+
+    <!-- 计数那一枚换成浮层的触发器：宿主摆成圆形的一枚，叠放与描圈照常落在它身上 -->
+    <xh-popover placement="bottom-start" style="display: inline-flex; border-radius: var(--xh-shape-circle)">
+      <button data-xh-part="trigger" aria-label="还有 4 位成员" style="inline-size: var(--xh-avatar-size); block-size: var(--xh-avatar-size); padding: 0; border: 0; border-radius: var(--xh-shape-circle); background: var(--xh-bg-subtle); color: var(--xh-fg-default); font: inherit; font-size: var(--xh-avatar-font-size); cursor: pointer">+4</button>
+      <div data-xh-part="positioner">
+        <div data-xh-part="content">
+          <h3 data-xh-part="title">还有 4 位成员</h3>
+          <xh-list size="sm" style="display: contents">
+            <ul data-xh-part="root">
+              <li data-xh-part="item">
+                <div data-xh-part="item-media">
+                  <xh-avatar size="sm">
+                    <span data-xh-part="root">
+                      <span data-xh-part="fallback">临</span>
+                    </span>
+                  </xh-avatar>
+                </div>
+                <div data-xh-part="item-content">
+                  <div data-xh-part="item-title">临川</div>
+                  <div data-xh-part="item-description">测试</div>
+                </div>
+              </li>
+              <li data-xh-part="item">
+                <div data-xh-part="item-media">
+                  <xh-avatar size="sm">
+                    <span data-xh-part="root">
+                      <span data-xh-part="fallback">旭</span>
+                    </span>
+                  </xh-avatar>
+                </div>
+                <div data-xh-part="item-content">
+                  <div data-xh-part="item-title">旭东</div>
+                  <div data-xh-part="item-description">运维</div>
+                </div>
+              </li>
+              <li data-xh-part="item">
+                <div data-xh-part="item-media">
+                  <xh-avatar size="sm">
+                    <span data-xh-part="root">
+                      <span data-xh-part="fallback">言</span>
+                    </span>
+                  </xh-avatar>
+                </div>
+                <div data-xh-part="item-content">
+                  <div data-xh-part="item-title">言蹊</div>
+                  <div data-xh-part="item-description">产品</div>
+                </div>
+              </li>
+              <li data-xh-part="item">
+                <div data-xh-part="item-media">
+                  <xh-avatar size="sm">
+                    <span data-xh-part="root">
+                      <span data-xh-part="fallback">知</span>
+                    </span>
+                  </xh-avatar>
+                </div>
+                <div data-xh-part="item-content">
+                  <div data-xh-part="item-title">知远</div>
+                  <div data-xh-part="item-description">数据</div>
+                </div>
+              </li>
+            </ul>
+          </xh-list>
+        </div>
+      </div>
+    </xh-popover>
+  </div>
+</xh-avatar-group>
+```
+
 ## 设计指引
 
 ### 何时使用
 
-- 表示"这几个人参与了这件事"，且个体身份不需要逐一确认。
+- 表示一组参与者，且不需要逐一确认个体身份。
 
 ### 何时不用
 
-- 需要逐个识别或操作：排成[列表](./list)。
-- 只有一个人。
+- 需要逐个识别或操作时，排成[列表](./list)。
+- 只有一个人时，直接使用头像。
 
 ### 特性
 
-- `max` 决定显示几个，其余落进 `overflow-item` 计数。
-- 尺寸写在组上，组内头像一并跟着换。
+- `max` 决定显示数量，其余进入 `overflow-item` 计数。
+- 尺寸写在组上，组内头像一并跟随。
 
 ### 组合
 
-- 里面放[头像](./avatar)；溢出计数点开可以是一张[气泡卡片](./popover)里的完整名单。
+- 组内放置[头像](./avatar)；溢出计数可以打开一张[气泡卡片](./popover)显示完整名单。
 
 ### 最佳实践
 
-- 溢出计数要能点开看到完整名单。
-- 每个头像都配[文字提示](./tooltip)给出姓名。
+- 溢出计数应能打开查看完整名单。
+- 每个头像配[文字提示](./tooltip)给出姓名。
 
 ### 反模式
 
-- 叠得太密以致看不出有几个人。
-- 上限设得太大，一排头像占满整行。
+- 叠放过密，无法分辨人数。
+- 上限过大，一排头像占满整行。
 
 ## API 参考
 
@@ -331,8 +505,8 @@ const tokens = {
 
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `max` | `number` |  | 展示上限：这一组打算摆出几枚，其余收进 overflow-item 那一枚。 头像由作者渲染，所以裁到几枚、「+N」里的 N 写多少都在作者手里； 组件把这个上限如实落成根上的 data-max。 |
-| `size` | `Size` |  | 尺寸：sm / md / lg，落到根上沿继承流下发给组内每一枚。 |
+| `max` | `number` |  | 展示上限：本组展示的头像数量，其余收进 overflow-item。 头像由作者渲染，因此裁切数量与 +N 中的 N 都由作者决定； 组件把这个上限如实写入根上的 data-max。 |
+| `size` | `Size` |  | 尺寸：sm / md / lg，写入根上并沿继承流下发给组内每一个头像。 |
 
 ### connect API
 
@@ -360,16 +534,16 @@ const tokens = {
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
 | `--xh-avatar-group-font-size` | `overflow-item`<br>`root` | `--xh-avatar-font-size`<br>`font-size` | `default`<br>`size=lg`<br>`size=sm` | `--xh-control-caption-lg`<br>`--xh-control-caption-md`<br>`--xh-control-caption-sm` | avatar-group 的 overflow-item、root 部件 --xh-avatar-font-size、font-size 覆盖槽。 |
 | `--xh-avatar-group-font-weight` | `overflow-item` | `font-weight` | `default` | `--xh-font-weight-medium` | avatar-group 的 overflow-item 部件 font-weight 覆盖槽。 |
-| `--xh-avatar-group-overflow-item-bg` | `overflow-item` | `background` | `default` | `--xh-bg-muted` | avatar-group 的 overflow-item 部件 background 覆盖槽。 |
+| `--xh-avatar-group-overflow-item-bg` | `overflow-item` | `background` | `default` | `--xh-bg-muted-opaque` | avatar-group 的 overflow-item 部件 background 覆盖槽。 |
 | `--xh-avatar-group-overflow-item-fg` | `overflow-item` | `color` | `default` | `--xh-fg-muted` | avatar-group 的 overflow-item 部件 color 覆盖槽。 |
 | `--xh-avatar-group-overlap` | `root` | `margin-inline-start` | `default`<br>`size=lg`<br>`size=sm` | `--xh-space-2`<br>`--xh-space-2_5`<br>`--xh-space-3` | avatar-group 的 root 部件 margin-inline-start 覆盖槽。 |
-| `--xh-avatar-group-radius` | `overflow-item` | `border-radius` | `default` | `--xh-shape-pill` | avatar-group 的 overflow-item 部件 border-radius 覆盖槽。 |
+| `--xh-avatar-group-radius` | `overflow-item` | `border-radius` | `default` | `--xh-shape-circle` | avatar-group 的 overflow-item 部件 border-radius 覆盖槽。 |
 | `--xh-avatar-group-ring` | `root` | `box-shadow` | `default` | `--xh-bg-surface` | avatar-group 的 root 部件 box-shadow 覆盖槽。 |
 | `--xh-avatar-group-size` | `overflow-item`<br>`root` | `--xh-avatar-size`<br>`block-size`<br>`inline-size` | `default`<br>`size=lg`<br>`size=sm` | `--xh-control-h-lg`<br>`--xh-control-h-md`<br>`--xh-control-h-sm` | avatar-group 的 overflow-item、root 部件 --xh-avatar-size、block-size、inline-size 覆盖槽。 |
 <!-- xh-component-tokens:end -->

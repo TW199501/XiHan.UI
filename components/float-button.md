@@ -1,6 +1,6 @@
 来源：https://ui.docs.xihanfun.com/components/float-button
 
-# FloatButton 浮动按钮 `alpha`
+# FloatButton 浮动按钮
 
 用于在视口边缘提供持续可见的操作入口。
 
@@ -96,11 +96,11 @@ import { XhFloatButtonList, XhFloatButtonRoot, XhFloatButtonTrigger, XhIcon } fr
 <script setup lang="ts">
 import { XhFloatButtonList, XhFloatButtonRoot, XhFloatButtonTrigger } from "@xihan-ui/vue";
 
-const variants = [undefined, "solid", "subtle", "outline", "ghost"] as const;
+const variants = ["outline", "solid", "subtle", "ghost"] as const;
 </script>
 
 <template>
-  <XhFloatButtonRoot v-for="variant in variants" :key="variant ?? 'glass'" style="position: static" :variant="variant">
+  <XhFloatButtonRoot v-for="variant in variants" :key="variant" style="position: static" :variant="variant">
     <XhFloatButtonTrigger />
     <XhFloatButtonList />
   </XhFloatButtonRoot>
@@ -108,7 +108,6 @@ const variants = [undefined, "solid", "subtle", "outline", "ghost"] as const;
 ```
 
 ```html
-<xh-float-button><div data-xh-part="root" style="position: static"><button data-xh-part="trigger"></button><div data-xh-part="list"></div></div></xh-float-button>
 <xh-float-button variant="solid"><div data-xh-part="root" style="position: static"><button data-xh-part="trigger"></button><div data-xh-part="list"></div></div></xh-float-button>
 <xh-float-button variant="subtle"><div data-xh-part="root" style="position: static"><button data-xh-part="trigger"></button><div data-xh-part="list"></div></div></xh-float-button>
 <xh-float-button variant="outline"><div data-xh-part="root" style="position: static"><button data-xh-part="trigger"></button><div data-xh-part="list"></div></div></xh-float-button>
@@ -140,6 +139,60 @@ const sizes = ["sm", "md", "lg"] as const;
 <xh-float-button size="lg"><div data-xh-part="root" style="position: static"><button data-xh-part="trigger"></button><div data-xh-part="list"></div></div></xh-float-button>
 ```
 
+### 拖动与贴边
+
+按住页面右侧的触发器拖到别处，松手贴到近的那条边；位置按比例记，宿主存下来下次照样落在原处
+
+```vue
+<script setup lang="ts">
+import type { FloatButtonPosition } from "@xihan-ui/headless";
+import { MessageCircleIcon, ShareIcon } from "@xihan-ui/icons";
+import { XhFloatButtonList, XhFloatButtonRoot, XhFloatButtonTrigger, XhIcon } from "@xihan-ui/vue";
+import { ref } from "vue";
+
+const position = ref<FloatButtonPosition>({ edge: "inline-end", ratio: 0.75 });
+</script>
+
+<template>
+  <p>当前位置：{{ JSON.stringify(position) }}</p>
+  <XhFloatButtonRoot v-model:position="position" draggable>
+    <XhFloatButtonTrigger />
+    <XhFloatButtonList>
+      <button type="button" aria-label="消息"><XhIcon :icon="MessageCircleIcon" /></button>
+      <button type="button" aria-label="分享"><XhIcon :icon="ShareIcon" /></button>
+    </XhFloatButtonList>
+  </XhFloatButtonRoot>
+</template>
+```
+
+```html
+<p>当前位置：<span id="float-button-draggable-position"></span></p>
+<xh-float-button id="float-button-draggable" button-draggable>
+  <div data-xh-part="root">
+    <button data-xh-part="trigger"></button>
+    <div data-xh-part="list">
+      <button type="button" aria-label="消息"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></button>
+      <button type="button" aria-label="分享"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51 8.59 10.49"/></svg></button>
+    </div>
+  </div>
+</xh-float-button>
+
+<script type="module">
+  // 位置是对象，只走 property：设初值、每次落定写回
+  const button = document.getElementById("float-button-draggable");
+  const text = document.getElementById("float-button-draggable-position");
+  const show = (position) => {
+    text.textContent = JSON.stringify(position);
+  };
+  button.position = { edge: "inline-end", ratio: 0.75 };
+  show(button.position);
+  button.addEventListener("position-change", (event) => {
+    button.position = event.detail.position;
+    show(event.detail.position);
+  });
+</script>
+```
+
 ## 设计指引
 
 ### 何时使用
@@ -156,11 +209,16 @@ const sizes = ["sm", "md", "lg"] as const;
 ### 特性
 
 - 支持四个视口角与安全区偏移。
+- `draggable` 打开后可按住触发器拖到别处：移动过激活距离才跟手，不到这个距离仍是一次点按；起拖时展开的动作组先收起，拖完补派的点击不开合。
+- 松手按 `snap` 贴边：`inline`（缺省）贴左右两边里近的那条，`block` 贴上下两边，`nearest` 贴四条边里最近的，`none` 停在放手处；甩一下就贴到甩去的那一边。贴过去由弹簧带着松手速度落定，减弱动效下直接到位。
+- 位置由 `position` / `defaultPosition` 给出：贴边写 `{ edge, ratio }`（如 `{ edge: 'inline-end', ratio: 0.75 }` 贴行尾一侧、中心在视口 75% 高处），停在一点写像素坐标 `{ x, y }`；不给时停在 `placement` 那一角。贴边位置按比例记，视口尺寸变了仍贴在同一侧、同一比例上；离两端不足 `offset` 时收回，并与安全区取大的一头。展开组恒朝页面中间长。
+- 拖动落定后才发一次 `onPositionChange`（Vue 为 `position-change` / `v-model:position`）；要记住位置，就在这里存，下次作为 `defaultPosition` 传回。Web Components 的开关是 `button-draggable`：`draggable` 是 HTML 全局属性，写上会让宿主变成原生拖放源。
 - 支持点击或悬停展开；键盘与触控始终使用点击。
 - Escape、层外点击和再次触发均可收起。
 - 收起后动作项退出 Tab 序列。
-- 默认使用通透玻璃表面，显式变体使用对应语义表面。
+- 触发器走 Action Control floating 档：默认 48px 圆形、图标 24px，按下缩放并换底；默认（outline）使用磨砂浮动表面，solid / subtle / ghost 使用对应语义表面。
 - 原生按钮动作项自动继承触发器的尺寸与外观。
+- 应用设为 `data-material="liquid"` 时，默认（outline）的触发器与原生按钮动作项换成液态面并结成一组：展开时动作从触发器里分离，收起时融回后再隐藏；彼此靠近的部分边缘相连。按住触发器时液面随手指形变。减弱动效下不分离、不形变。
 
 ### 组合
 
@@ -171,7 +229,8 @@ const sizes = ["sm", "md", "lg"] as const;
 
 - 为每个图标按钮提供可访问名称。
 - 将操作数量控制在 2 至 5 个。
-- 使用 `offset` 避开系统手势区。
+- 使用 `offset` 避开系统手势区；拖动与贴边同样离视口四边留出这段距离。
+- 位置只是外观上的偏好，拖动不承载功能：键盘与读屏用户不需要移动它也能用全部动作。
 
 ### 反模式
 
@@ -195,17 +254,22 @@ const sizes = ["sm", "md", "lg"] as const;
 | 属性 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `defaultOpen` | `boolean` |  |  |
-| `dir` | `Direction` |  | 文字方向，只作用于排版；作者没给就不写。 |
+| `defaultPosition` | `FloatButtonPosition` |  | 初始位置，例如 `{ edge: 'inline-end', ratio: 0.75 }`：贴右边（LTR）、中心在视口 75% 高处。 |
+| `dir` | `Direction` |  | 文字方向，只作用于排版；作者未提供时不写入。 |
 | `disabled` | `boolean` |  |  |
+| `draggable` | `boolean` |  | 能否用指针拖着触发器移动，默认 false。按下后移动过激活距离才算拖动，不到这个距离仍是一次点按。 |
 | `expandTrigger` | `FloatButtonExpandTrigger` |  | 展开方式，默认 click。 |
-| `offset` | `number` |  | 距那两条边的距离（px），默认 24。 |
+| `offset` | `number` |  | 距两条边的距离（px），默认 24。 |
 | `onOpenChange` | `(details: CollapsibleOpenChangeDetails) => void` |  | open 变化意图；受控时是唯一出口，非受控时随内部转移一并通知。 |
+| `onPositionChange` | `(details: FloatButtonPositionChangeDetails) => void` |  | 拖动落定后的新位置：贴边时给贴边位置（按比例，换个视口尺寸照样成立），snap 为 none 时给像素坐标。 落定才通知一次，拖动途中不发；要记住位置就在这里存。 |
 | `open` | `boolean` |  |  |
-| `placement` | `FloatButtonPlacement` |  | 钉在哪一角，默认 bottom-end。 |
-| `size` | `Size` |  | 尺寸：sm / md / lg，缺省与 lg 同档——悬浮钮要够得着，起步就比行内按钮大一号。 |
+| `placement` | `FloatButtonPlacement` |  | 固定在哪一角，默认 bottom-end。 |
+| `position` | `FloatButtonPosition` |  | 位置。提供即受控：拖动只发 onPositionChange，宿主写回才落到新位置。 |
+| `size` | `Size` |  | 尺寸：sm / md / lg，默认与 lg 同档：悬浮按钮需要易于触达，起始即比行内按钮大一档。 |
+| `snap` | `FloatButtonSnap` |  | 松手后贴向哪里，默认 inline（贴左右两边里近的那条）。 |
 | `tone` | `Tone` |  | 颜色：brand / neutral / success / warning / danger / info。 |
 | `translations` | `Partial<FloatButtonTranslations>` |  |  |
-| `variant` | `ActionVariant` |  | 变体：solid / subtle / outline / ghost。 |
+| `variant` | `ActionVariant` |  | 变体：solid / subtle / outline / ghost，默认 outline（缺省中性，描边 + 磨砂面；solid 才品牌实心）。 |
 
 ### 事件
 
@@ -214,6 +278,7 @@ const sizes = ["sm", "md", "lg"] as const;
 | 事件 | 载荷 | 说明 |
 | --- | --- | --- |
 | `open-change` | `CollapsibleOpenChangeDetails` | 展开状态变化；detail 为 `{ open: boolean }` |
+| `position-change` | `FloatButtonPositionChangeDetails` | 拖动落定后的新位置；detail 为 `{ position: FloatButtonPosition }` |
 
 ### 插槽
 
@@ -222,6 +287,14 @@ const sizes = ["sm", "md", "lg"] as const;
 | Vue 组件 | 插槽 | 载荷 | 说明 |
 | --- | --- | --- | --- |
 | `XhFloatButtonRoot` | `default` | `FloatButtonRootSlotProps` |  |
+
+### React 适配器 props
+
+只列各组件自己声明的那些：继承自 `ComponentPropsWithRef` 的 DOM 属性不在其中，根组件上与上面 Props 表同名的也不重复列。Vue 的对应物是上面的插槽表。
+
+| React 组件 | 属性 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `XhFloatButtonRoot` | `children` | `SlotChildren<FloatButtonRootSlotProps>` |  |  |
 
 ### 状态
 
@@ -237,9 +310,9 @@ const sizes = ["sm", "md", "lg"] as const;
 
 **状态**：`open` · `closed`
 
-**事件**：`OPEN` · `CLOSE` · `TOGGLE` · `DISABLE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE`
+**事件**：`OPEN` · `CLOSE` · `TOGGLE` · `DISABLE` · `CONTROLLED.OPEN` · `CONTROLLED.CLOSE` · `PRESS.START` · `PRESS.END` · `DRAG.START` · `DRAG.MOVE` · `DRAG.END` · `CLICK.SWALLOW` · `VIEWPORT.RESIZE`
 
-**判据**：`isDisabled` · `isOpenControlled`
+**判据**：`isDisabled` · `isOpenControlled` · `canPress` · `canDrag`
 
 ### connect API
 
@@ -247,8 +320,11 @@ const sizes = ["sm", "md", "lg"] as const;
 
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
-| `open` | `boolean` | 展开的那一组此刻露不露面。 |
+| `open` | `boolean` | 展开的动作组当前是否显示。 |
 | `setOpen` | `(next: boolean) => void` |  |
+| `position` | `FloatButtonPosition \| null` | 提交了的位置；null 表示停在 placement 那一角。 |
+| `setPosition` | `(next: FloatButtonPosition) => void` | 改位置：受控时只发 onPositionChange。 |
+| `dragging` | `boolean` | 正被拖着。 |
 | `getRootProps` | `() => T['element']` |  |
 | `getTriggerProps` | `() => T['button']` |  |
 | `getListProps` | `() => T['element']` |  |
@@ -262,6 +338,7 @@ const sizes = ["sm", "md", "lg"] as const;
 | 按键 | 生效条件 | 行为 |
 | --- | --- | --- |
 | `Enter` / `Space` | focus in trigger, not disabled | 展开 / 收起 list；悬停展开时这条路照样在，触摸与键盘都靠它 |
+| `Enter` / `Space` | held in trigger, not disabled | 按住期间投影 data-pressed，与指针 :active 同一副按压面；抬起或失焦撤下 |
 | `Escape` | open，无论焦点是否仍在整组内 | 只收起当前 LayerRegistry 的栈顶层；更晚打开的 Drawer / Popover 先处理自己的 Escape |
 | `Tab` / `Shift+Tab` | open | 走进展开的那一组；收起时 list 带 hidden，里面的按钮一并退出 Tab 序列 |
 
@@ -281,7 +358,9 @@ const sizes = ["sm", "md", "lg"] as const;
 
 ### 皮肤
 
-`@xihan-ui/styles/float-button.css` 使用 `[data-scope="float-button"][data-part="root"]` 部件选择器，位于 `xihan.components` 与 `xihan.motion` 层。覆盖样式使用 `xihan.overrides`。
+`@xihan-ui/styles/float-button.css` 使用 `[data-scope="float-button"][data-part="root"]` 部件选择器，位于 `xihan.components` 层。覆盖样式使用 `xihan.overrides`。
+
+`forced-colors: active` 下另有一套规则：颜色交给系统，边框与状态标记改用系统色关键字。
 
 ### 数据属性
 
@@ -290,46 +369,64 @@ const sizes = ["sm", "md", "lg"] as const;
 | 部件 | 属性 | 值 |
 | --- | --- | --- |
 | `root` | `data-disabled` | ''（条件成立时才出现） |
-| `root` | `data-placement` | props.placement |
+| `root` | `data-draggable` | ''（条件成立时才出现） |
+| `root` | `data-dragging` | ''（条件成立时才出现） |
+| `root` | `data-edge` | edge?.edge |
+| `root` | `data-moving` | ''（条件成立时才出现） |
+| `root` | `data-placement` | floatButtonPlacementOf(position, context.get('viewpor… \| props.placement |
+| `root` | `data-point` | ''（条件成立时才出现） |
 | `root` | `data-size` | props.size |
 | `root` | `data-state` | 'open' \| 'closed' |
 | `root` | `data-tone` | props.tone |
 | `root` | `data-variant` | props.variant |
 | `trigger` | `data-disabled` | ''（条件成立时才出现） |
+| `trigger` | `data-pressed` | ''（条件成立时才出现） |
 | `trigger` | `data-state` | 'open' \| 'closed' |
-| `list` | `data-placement` | props.placement |
+| `trigger` | `data-xh-action-control` | '' |
+| `trigger` | `data-xh-action-display` | 'always' |
+| `trigger` | `data-xh-action-profile` | 'floating' |
+| `trigger` | `data-xh-action-size` | props.size |
+| `trigger` | `data-xh-action-variant` | props.variant |
+| `trigger` | `data-xh-ink-surface` | ''（条件成立时才出现） |
+| `trigger` | `data-xh-liquid` | '' |
+| `trigger` | `data-xh-material` | 'frosted' \| undefined |
+| `list` | `data-instant` | ''（条件成立时才出现） |
+| `list` | `data-placement` | floatButtonPlacementOf(position, context.get('viewpor… \| props.placement |
 | `list` | `data-state` | 'open' \| 'closed' |
+| `list` | `data-xh-liquid` | '' |
 
 <!-- xh-component-tokens:start -->
 ### CSS 变量
 
-本组件公开覆盖槽由独立皮肤的实际消费位生成；缺省来源、作用部件和状态均与 CSS 同源。
+本组件公开覆盖槽由独立皮肤的实际消费位生成；默认来源、作用部件和状态均与 CSS 同源。
 
-| 变量 | 部件 | CSS 属性 | 状态 | 缺省来源 | 说明 |
+| 变量 | 部件 | CSS 属性 | 状态 | 默认来源 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| `--xh-float-button-bg` | `list`<br>`trigger` | `background-color` | `default`<br>`not([data-scope])` | `--xh-_float-button-bg` | float-button 的 list、trigger 部件 background-color 覆盖槽。 |
-| `--xh-float-button-bg-active` | `list`<br>`trigger` | `background-color` | `active`<br>`disabled`<br>`not(:disabled)`<br>`not([data-disabled])`<br>`not([data-scope])` | `--xh-_float-button-bg-active` | float-button 的 list、trigger 部件 background-color 覆盖槽。 |
-| `--xh-float-button-bg-hover` | `list`<br>`trigger` | `background-color` | `@media (hover: hover)`<br>`disabled`<br>`hover`<br>`not(:disabled)`<br>`not([data-disabled])`<br>`not([data-scope])` | `--xh-_float-button-bg-hover` | float-button 的 list、trigger 部件 background-color 覆盖槽。 |
-| `--xh-float-button-border` | `list`<br>`trigger` | `border` | `default`<br>`not([data-scope])` | `--xh-_float-button-border` | float-button 的 list、trigger 部件 border 覆盖槽。 |
-| `--xh-float-button-border-hover` | `list`<br>`trigger` | `border-color` | `@media (hover: hover)`<br>`disabled`<br>`hover`<br>`not(:disabled)`<br>`not([data-disabled])`<br>`not([data-scope])` | `--xh-_float-button-border-hover` | float-button 的 list、trigger 部件 border-color 覆盖槽。 |
-| `--xh-float-button-fg` | `list`<br>`root`<br>`trigger` | `--xh-_ring-color`<br>`color` | `default`<br>`disabled`<br>`focus-visible`<br>`not([data-scope])`<br>`variant=solid` | `--xh-_float-button-fg` | float-button 的 list、root、trigger 部件 --xh-_ring-color、color 覆盖槽。 |
+| `--xh-float-button-bg` | `list`<br>`root`<br>`trigger` | `--xh-ink-surface`<br>`background-color` | `@media (forced-colors: none)`<br>`default`<br>`disabled`<br>`focus-visible`<br>`material=liquid`<br>`not([data-scope])`<br>`variant=outline`<br>`where([data-material='liquid'])`<br>`xh-ink-surface`<br>`xh-liquid`<br>`xh-liquid-goo` | `--xh-_action-variant-bg-disabled`<br>`--xh-_action-variant-bg-focus-visible`<br>`--xh-_action-variant-bg-rest`<br>`--xh-_float-button-bg`<br>`--xh-_material-bg`<br>`--xh-_material-bg-focus`<br>`transparent` | float-button 的 list、root、trigger 部件 --xh-ink-surface、background-color 覆盖槽。 |
+| `--xh-float-button-bg-active` | `list`<br>`root`<br>`trigger` | `background-color` | `@media (forced-colors: none)`<br>`active`<br>`disabled`<br>`is(:active, [data-pressed])`<br>`loading`<br>`material=liquid`<br>`not(:disabled)`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-scope])`<br>`pressed`<br>`variant=outline`<br>`where([data-material='liquid'])`<br>`xh-liquid`<br>`xh-liquid-goo` | `--xh-_action-variant-bg-pressed`<br>`--xh-_float-button-bg-active`<br>`--xh-_material-bg-pressed`<br>`--xh-material-liquid-fg` | float-button 的 list、root、trigger 部件 background-color 覆盖槽。 |
+| `--xh-float-button-bg-hover` | `list`<br>`root`<br>`trigger` | `background-color` | `@media (forced-colors: none)`<br>`@media (forced-colors: none) and (hover: hover)`<br>`@media (hover: hover)`<br>`disabled`<br>`hover`<br>`loading`<br>`material=liquid`<br>`not(:disabled)`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-scope])`<br>`variant=outline`<br>`where([data-material='liquid'])`<br>`xh-liquid`<br>`xh-liquid-goo` | `--xh-_action-variant-bg-hover`<br>`--xh-_float-button-bg-hover`<br>`--xh-_material-bg-hover`<br>`--xh-material-liquid-fg` | float-button 的 list、root、trigger 部件 background-color 覆盖槽。 |
+| `--xh-float-button-border` | `list`<br>`root`<br>`trigger` | `border`<br>`border-color` | `@media (forced-colors: none)`<br>`default`<br>`disabled`<br>`focus-visible`<br>`material=liquid`<br>`not([data-scope])`<br>`variant=outline`<br>`where([data-material='liquid'])`<br>`xh-liquid`<br>`xh-liquid-goo` | `--xh-_action-variant-border-disabled`<br>`--xh-_action-variant-border-focus-visible`<br>`--xh-_action-variant-border-rest`<br>`--xh-_float-button-border`<br>`--xh-_material-border`<br>`transparent` | float-button 的 list、root、trigger 部件 border、border-color 覆盖槽。 |
+| `--xh-float-button-border-hover` | `list`<br>`root`<br>`trigger` | `border-color` | `@media (forced-colors: none)`<br>`@media (forced-colors: none) and (hover: hover)`<br>`@media (hover: hover)`<br>`disabled`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`material=liquid`<br>`not(:disabled)`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-scope])`<br>`pressed`<br>`variant=outline`<br>`where([data-material='liquid'])`<br>`xh-liquid`<br>`xh-liquid-goo` | `--xh-_action-variant-border-hover`<br>`--xh-_action-variant-border-pressed`<br>`--xh-_float-button-border-hover`<br>`--xh-_material-border`<br>`transparent` | float-button 的 list、root、trigger 部件 border-color 覆盖槽。 |
+| `--xh-float-button-fg` | `list`<br>`root`<br>`trigger` | `color` | `@media (forced-colors: none)`<br>`default`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`material=liquid`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-scope])`<br>`pressed`<br>`variant=outline`<br>`where([data-material='liquid'])`<br>`xh-liquid-goo` | `--xh-_action-variant-fg-focus-visible`<br>`--xh-_action-variant-fg-hover`<br>`--xh-_action-variant-fg-pressed`<br>`--xh-_action-variant-fg-rest`<br>`--xh-_float-button-fg`<br>`--xh-_material-fg`<br>`--xh-material-liquid-fg` | float-button 的 list、root、trigger 部件 color 覆盖槽。 |
 | `--xh-float-button-gap` | `list`<br>`root` | `gap` | `default` | `--xh-space-2` | float-button 的 list、root 部件 gap 覆盖槽。 |
-| `--xh-float-button-icon-size` | `root` | `--xh-icon-size` | `default` | `--xh-glyph-size-text` | float-button 的 root 部件 --xh-icon-size 覆盖槽。 |
+| `--xh-float-button-icon-size` | `root`<br>`trigger` | `--xh-icon-size` | `default` | `--xh-_action-profile-glyph-size`<br>`--xh-_float-button-glyph-size` | float-button 的 root、trigger 部件 --xh-icon-size 覆盖槽。 |
 | `--xh-float-button-layer` | `root` | `z-index` | `default` | `--xh-_layer` | float-button 的 root 部件 z-index 覆盖槽。 |
-| `--xh-float-button-radius` | `list`<br>`root`<br>`trigger` | `border-radius` | `default` | `--xh-shape-pill` | float-button 的 list、root、trigger 部件 border-radius 覆盖槽。 |
-| `--xh-float-button-shadow` | `list`<br>`trigger` | `box-shadow` | `default`<br>`not([data-scope])` | `--xh-_float-button-shadow` | float-button 的 list、trigger 部件 box-shadow 覆盖槽。 |
-| `--xh-float-button-size` | `list`<br>`trigger` | `block-size`<br>`inline-size` | `default` | `--xh-_float-button-size` | float-button 的 list、trigger 部件 block-size、inline-size 覆盖槽。 |
+| `--xh-float-button-radius` | `list`<br>`trigger` | `border-radius` | `default` | `--xh-_action-profile-radius`<br>`--xh-shape-circle` | float-button 的 list、trigger 部件 border-radius 覆盖槽。 |
+| `--xh-float-button-shadow` | `*`<br>`list`<br>`root`<br>`trigger` | `--xh-_liquid-goo-shadow`<br>`box-shadow` | `default`<br>`disabled`<br>`focus-visible`<br>`hover`<br>`is(:active, [data-pressed])`<br>`loading`<br>`not([data-disabled])`<br>`not([data-loading])`<br>`not([data-scope])`<br>`pressed`<br>`variant=outline`<br>`xh-liquid-goo-layer` | `--xh-_float-button-shadow`<br>`--xh-_material-shadow`<br>`--xh-material-liquid-shadow`<br>`none` | float-button 的 *、list、root、trigger 部件 --xh-_liquid-goo-shadow、box-shadow 覆盖槽。 |
+| `--xh-float-button-size` | `list`<br>`root`<br>`trigger` | `block-size`<br>`bottom`<br>`inline-size`<br>`inset-block-end`<br>`inset-block-start`<br>`inset-inline-end`<br>`inset-inline-start`<br>`left`<br>`top` | `default`<br>`edge=block`<br>`edge=inline`<br>`moving`<br>`placement`<br>`placement=-end`<br>`placement=-start`<br>`placement=bottom`<br>`placement=top`<br>`point`<br>`xh-action-profile=floating` | `--xh-_action-profile-visual-size`<br>`--xh-_float-button-size` | float-button 的 list、root、trigger 部件 block-size、bottom、inline-size、inset-block-end、inset-block-start、inset-inline-end、inset-inline-start、left、top 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
 
-关键帧 `xh-pop-in` 随皮肤自带，不引用别处文件里的名字；`background` · `background-color` · `border-color` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
+动效角色：按压 · 状态 · 切换 · 出现（锚定面板） · 出现（无锚定弹出）（见[动效规范](../design/motion#角色)）。
+
+共享关键帧 `xh-pop-in` · `xh-pop-out` 由 `family/motion.css` 提供，皮肤 `@import` 它，单独引入仍成立；`background-color` · `border-color` · `rotate` · `scale` 走 `transition` 过渡。时长与缓动读[动效令牌](../guide/motion)，改令牌即改全局节奏。
 
 系统开启减弱动效时由令牌层统一收敛，皮肤不另作判断。
 
 ### 响应式
 
-皮肤另按输入能力分档：`hover: hover` · `pointer: coarse`——同一份皮肤在触屏与带指针的设备上不一样，与视口宽度无关。
+皮肤另按输入能力分档：`hover: hover`：同一份皮肤在触屏与带指针的设备上不一样，与视口宽度无关。
 
 ### RTL
 
