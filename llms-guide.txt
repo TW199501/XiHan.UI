@@ -1,634 +1,7 @@
-# 曦寒视图组件 · 核心概念与运行时
+# 曦寒视图组件 · 核心概念、适配器与运行时
 
-共 30 页：核心概念、两个适配器的接法、以及命令式服务与运行时。
+共 30 页。核心概念、两个适配器的接法、以及命令式服务与运行时。
 索引见 https://ui.docs.xihanfun.com/llms.txt
-
----
-
-来源：https://ui.docs.xihanfun.com/adapters/react
-
-# React 适配器
-
-`@xihan-ui/react` 是无头内核的 React 外壳。它负责三件事：把状态机接入 React 的渲染周期、把部件封装为组件、把 `connect` 产出的 props 展开到元素上。它不实现任何组件逻辑。
-
-依赖：`react` 与 `react-dom` 是 peer 依赖，下限 19。当前版本只支持 React 19：状态机要求宿主提交完当前帧、DOM 落定之后再运行回调，`flushSync` 与 `useSyncExternalStore` 的行为是这条契约的基础。
-
-覆盖进度：已覆盖全部组件，与 Vue 侧一致。
-登记在 `ui/tooling/scripts/react-coverage.json`，多项门禁按它决定核对哪些组件：登记多余会核对不存在的组件，登记缺失会静默漏检，两种情况都判失败。
-
-## 组件命名
-
-与 Vue 侧同名：每个部件一个组件，一律 `Xh` 前缀 + 组件名 + 部件名。
-
-```tsx
-import { XhDialogContent, XhDialogRoot, XhDialogTitle, XhDialogTrigger } from "@xihan-ui/react";
-```
-
-只有一个部件的组件不带部件后缀（`XhButton`、`XhSwitch`）。没有必须安装的 provider，按名称 import 即可。
-
-## 受控与非受控
-
-传受控属性即受控，只传 `default*` 即非受控。变更回调是普通的 React 回调，没有第二套事件：
-
-受控：
-
-```tsx
-<XhDialogRoot open={open} onOpenChange={({ open }) => setOpen(open)} />;
-```
-
-非受控：
-
-```tsx
-<XhDialogRoot defaultOpen />;
-```
-
-`default*` 只在首次渲染时读取，之后修改不影响当前值，只改变表单重置的落点；要换初值就换 `key`。三端的取法见[初值的读取时机](../guide/machine#初值的读取时机)。
-
-载荷与 Vue 侧的明细对象相同：`{ open }`、`{ value }`、`{ checked }`。Vue 侧额外发出裸值事件是为了 `v-model`，React 没有这层语法，只保留明细一种。
-
-受控属性每帧读取：状态机不缓存上一次的值，浮层打开时修改 `closeOnEscape` 立即生效。
-
-## 带载荷的插槽写成函数式 children
-
-派生值由这一层计算，作者通过函数式 children 接收：
-
-```tsx
-<XhSelectRoot value={value} onValueChange={({ value }) => setValue(value)}>
-  {({ hasValue, valueText }) => (hasValue ? valueText : "请选择")}
-</XhSelectRoot>;
-```
-
-类型是 `SlotChildren<P>`：传节点也可以，传函数才能获得载荷。每个组件的载荷类型（如 `SelectRootSlotProps`）都一并导出。
-
-## asChild
-
-要把部件的行为落到自定义元素上，传 `asChild` 并提供单个子元素：
-
-```tsx
-<XhDialogTrigger asChild>
-  <MyButton>打开</MyButton>
-</XhDialogTrigger>;
-```
-
-同名事件先运行作者处理器；作者调用 `preventDefault()` 后，不再运行部件内部动作。这条规则同时适用于写在部件和 `asChild` 子元素上的处理器。普通回调仍保留全部参数，ref 的登记和清理不受事件取消影响。
-
-`asChild` 必须包含恰好一个可挂载子元素，Fragment 会展开后检查，仅忽略空白和条件占位。零个或多个元素、元素旁并列的非空文本或数字都会明确报错，不会生成默认按钮或丢弃可见内容。迁移时请把内容放到一个实际宿主中；确实需要默认按钮时移除 `asChild`。ref 遵循 React 19 的普通 props 合同。
-
-## 组合式函数
-
-不使用现成结构时直接获取 `api`：
-
-```tsx
-const { api, service } = useDialog({ open, onOpenChange });
-```
-
-`api` 每次渲染重新求值，随状态机状态变化。上下文类型（如 `DialogContext`）也导出，便于向下透传 `api` 时标注类型。父子部件之间的 context 是内部实现，不对外开放。
-
-## 全局配置
-
-`XhConfigProvider` 向下提供 locale、文案覆盖、尺寸、浮层落点与八轴视觉环境：
-
-```tsx
-<XhConfigProvider config={{ locale: "zh-CN", size: "sm" }}>
-  <App />
-</XhConfigProvider>;
-```
-
-视觉环境必须显式绑定 DOM 根，不推测 Provider 对应的元素。嵌套 Provider 自动继承外层控制器，局部 motion 只投影当前根，不修改全局 JS override：
-
-```tsx
-<XhConfigProvider config={{
-  visualEnvironment: {
-    root: workspaceElement,
-    initial: { mode: "dark", density: "compact", motion: "reduce" },
-  },
-}}
->
-  <Workspace />
-</XhConfigProvider>;
-```
-
-配置经代理提供给部件 props：作者未传的属性从配置中取，传了的以作者为准。代理实现了 `ownKeys` 与 `getOwnPropertyDescriptor`：`{ ...props }` 展开在 React 中很常见，只有 `get` 陷阱的代理一经展开就退化为空对象，配置默认值会静默消失。
-
-## 状态机接入 React
-
-内部只有一层薄适配。`createReactRuntime()` 实现 `ReactiveRuntime` 的五个接口：
-
-| 接口 | React 实现 |
-| --- | --- |
-| `cell` | 闭包存值 + 受控语义（受控时值从 `prop()` 读取，内部值不写）；写入递增版本号，经 `useSyncExternalStore` 触发重渲染 |
-| `track` | 拉式：每次提交后逐项比对依赖，变化时才触发 |
-| `flush` | `flushSync` 强制一次提交，回调在 DOM 落定之后运行 |
-| `onMount` / `onCleanup` | `useLayoutEffect` 的挂载与清理 |
-
-`track` 是拉式的，与 Vue 侧不同。Vue 的 `watch` 挂在响应式源上，源变化即通知；React 中 props 的变化不经过任何可订阅的源，它是下一次渲染函数的入参。推式实现在这里永远收不到 props 变化：102 个状态机中的 `track` 与 97 个 `watch` 块会全部静默失效且不报错。
-
-`useMachine(machine, getProps, options)` 封装了它。props 传的是 getter：每次渲染读取，状态机读到的始终是当前帧的值。
-
-getter 的求值带一份记忆，钥匙有两把：渲染轮次与机器版本号。前者盖住组件 props 与渲染期赋值的 ref，后者是「任意一台机器的 cell 变过一次」的全局计数，盖住那些从别的机器现读的派生 props（取色器里内嵌的滑杆、分页里内嵌的页长下拉）。连接层一趟要读十几个 prop，两把钥匙都没动时它们共用同一份展开结果；任一动了当场作废。因此 getter 应当只读这两类来源。确实要在同一拍生效、等不到下一轮渲染的状态（气泡确认的挂起态就是一例）落 ref 之后调一次 `invalidateMachineProps()` 让记忆作废，别默默地读。
-
-## 部分处理器挂为原生监听器
-
-`connect` 按 DOM 语义编写，有两类处理器无法通过 React 的合成事件层：
-
-- `pointerenter` / `pointerleave` 不冒泡。React 的同名合成事件由 `pointerover` / `pointerout` 合成，直接派发到节点上的事件无法到达。
-- `stopImmediatePropagation()` 在 `SyntheticEvent` 上不存在，调用会抛错。载入态的按钮依靠它拦截同节点上作者的处理器。
-
-这类 props 由适配器改为真实的 DOM 监听器，行为与另外两个适配器一致。
-
-这一条由门禁保证：`check-native-events` 逐组件核对 `connect` 派发了哪些不冒泡的事件、React 侧是否逐个摘出，摘出 `connect` 未派发的名称同样判失败。`onFocusIn` / `onFocusOut` 不在其列：它们经 `reactNormalize` 归到 React 的 `onFocus` / `onBlur`，这两个合成事件挂的正是冒泡的 `focusin` / `focusout`。
-
-## 行为原语
-
-`@xihan-ui/react/behavior` 是单独的子入口，提供行为原语的 React 包装：滚动锁、悬停意图、滚动观察、贴底、连续输入检索五项：
-
-```tsx
-import { useHoverIntent, useScrollLock, useScrollTracker, useStickToBottom, useTypeahead } from "@xihan-ui/react/behavior";
-```
-
-自建浮层时才需要。不使用的应用不需要把它计入主入口的体积。
-
-`useHoverIntent` 在布局提交期读取 `getTriggerEl()`，因此已渲染元素的 ref 已就位，下一次指针输入不会落在旧节点上。本次提交未渲染 trigger 时释放绑定；节点更替或 `openDelay`、`closeDelay`、`buffer` 改变时重建。content getter 和两个意图回调只更新已提交引用，不会因普通闭包更替取消挂起的计时。需要显式标注选项时，从这个子入口导入 `UseHoverIntentOptions`，不借用 core 的元素快照类型。
-
-`useScrollLock` 在布局 effect 中加锁，首帧绘制前就生效，服务端不执行 DOM 副作用。锁跟随 active 而不是配置对象身份；关闭再开启时读取最新配置，StrictMode 清理与重建保持一致。
-
-## 背景层
-
-React 侧的视觉适配也位于单独的子入口，不引入就不会把 WebGL 引擎打进包：
-
-```tsx
-import { useBackground, XhBackground } from "@xihan-ui/react/backgrounds";
-```
-
-`@xihan-ui/backgrounds` 是可选 peer，使用前先安装；不使用视觉效果的应用安装本包也不会引入引擎。
-
-`XhBackground` 是独立视觉组件，children 浮在效果之上；`useBackground` 提供画面实例，它返回的 `ref` 挂到哪个元素上，效果就铺在哪个元素上。Vue 侧另有第三种写法 `v-background`，React 没有对应物：指令是 Vue 特有的介质，挂 `ref` 是同一件事。
-
-两种用法见[背景层](../guide/backgrounds#在-react-里用)。
-
-## 命令式服务
-
-对话框、通知、顶部进度条三个服务从组件树之外调用，自带宿主树；轻提示是通知服务的 `preset: "toast"`：
-
-```ts
-import { createNotificationService } from "@xihan-ui/react";
-
-const toast = createNotificationService({ preset: "toast" });
-toast.success("已保存");
-```
-
-行为与命令面见[命令式服务](../runtime/services)。React 侧有一处实现差别：`createRoot().render()` 是排队的，而 Vue 的 `app.mount()` 同步完成，因此首帧提交由 `flushSync` 包裹：服务创建后紧接着发出的命令（拦截器中常见）不会因为宿主尚未渲染而丢失。
-
-宿主树在组件树之外，无法接入组件树中的 `XhConfigProvider`。需要与应用同语言时，通过 `config` 选项提供，或之后用 `setConfig` 更新。
-
-## 声音层
-
-`@xihan-ui/react/sound` 是单独的子入口。`withNotificationSound` / `withDialogSound` 为上述两个命令式服务配置声音，调用点不需要修改；`useSoundOnPress` 为单个元素配置声音，返回值挂到该元素的 `ref` 上：
-
-```tsx
-import { setSoundPlayer, useSoundOnPress, withNotificationSound } from "@xihan-ui/react/sound";
-```
-
-Vue 侧由 `v-sound` 指令完成同一件事。React 没有指令介质，改为返回 ref 回调的 hook；两侧的服务包装名与选项完全同名同形。默认映射与开关见[声音层](../guide/sound#在-react-里用)。
-
-## 服务端渲染
-
-- `createReactRuntime()` 的 `isServer` 由 `typeof window === 'undefined'` 判定，服务端不挂事件、不读媒体查询；
-- scope 的基名取自 `useId`，同一棵树两端一致，不会 hydration 不匹配；
-- 主题属性建议在服务端就渲染到 `<html>` 上，见[设计令牌与主题](../guide/theme#服务端渲染)。
-
-## 与另外两个适配器的关系
-
-三个适配器运行同一个状态机、同一份 `connect`，输出的 DOM 属性完全一致：跨适配器一致性测试逐帧比对归一化快照，无法消除的差异即判失败。React 侧另有一道服务端渲染一致性判据。
-
-## 相关
-
-- [组件参考](../components/)：全部组件与部件
-- [connect 与属性产出](../guide/connect)
-- [Vue 适配器](./vue)
-- [Web Components 适配器](./web-components)
-
----
-
-来源：https://ui.docs.xihanfun.com/adapters/vue
-
-# Vue 适配器
-
-`@xihan-ui/vue` 是无头内核的 Vue 3 外壳。它负责三件事：把状态机接入 Vue 的响应式、把部件封装为组件、把 `connect` 产出的 props 展开到 vnode 上。它不实现任何组件逻辑。
-
-依赖：`vue` 是 peer 依赖（由项目提供）；`@xihan-ui/backgrounds` 与 `@xihan-ui/sound` 是可选 peer，不使用视觉效果或音效时不需要安装。
-
-## 组件命名
-
-每个部件一个组件，一律 `Xh` 前缀 + 组件名 + 部件名：
-
-```ts
-import {
-  XhAccordionContent,
-  XhAccordionHeader,
-  XhAccordionIndicator,
-  XhAccordionItem,
-  XhAccordionRoot,
-  XhAccordionTrigger,
-} from "@xihan-ui/vue";
-```
-
-只有一个部件的组件不带部件后缀（`XhButton`、`XhSwitch`、`XhBadge`）。全部导出组件按组件分组列在[组件参考](../components/)。
-
-没有插件，不需要 `app.use()`。按名称 import 即可，`sideEffects: false` 让打包器移除未使用的部分。
-
-## 配置与视觉环境
-
-`provideXhConfig` 接收响应式配置。八轴视觉环境必须显式给出对应 DOM 根；嵌套 provide 自动接父控制器，局部 motion 不改全局 JS override：
-
-```ts
-provideXhConfig({
-  locale: "zh-CN",
-  visualEnvironment: {
-    root: workspaceElement,
-    initial: { mode: "dark", density: "compact", motion: "reduce" },
-  },
-});
-```
-
-物理 Portal 会由 Core 从该根桥接已解析八轴到实例壳，Vue 适配器不复制视觉状态。
-
-## 事件与 v-model
-
-值类组件同时发两个事件：
-
-<!-- eslint-skip -->
-
-```ts
-emits: {
-  'value-change': (details: PayloadOf<AccordionProps, 'onValueChange'>) => true,
-  'update:value': (value: PayloadOf<AccordionProps, 'onValueChange'>['value']) => true,
-}
-```
-
-| 事件 | 载荷 | 用途 |
-| --- | --- | --- |
-| `value-change` | 完整明细对象，如 `{ value }` | 需要全部上下文时 |
-| `update:value` | 裸值 | 供 `v-model` 使用 |
-
-```vue
-<template>
-  <!-- 双向绑定 -->
-  <XhAccordionRoot v-model:value="panels" multiple />
-
-  <!-- 或自行处理明细 -->
-  <XhAccordionRoot :value="panels" @value-change="onChange" />
-</template>
-```
-
-具体的绑定名按组件而定：开关是 `v-model:checked`，浮层是 `v-model:open`，输入框是 `v-model:value`。
-
-## 原生属性透传与严格模板检查
-
-组件上没声明成 prop 的属性按 Vue 的属性透传落到根元素上：给 `XhFormRoot` 写 `id`，外部的提交按钮就能用 `form="…"` 关联到这张表单；`class`、`style`、`aria-*`、`data-*` 同理。组件的类型只列出自己的 prop，没有把根元素的原生属性并进来——把几百个原生属性并进每个组件，会让 prop 表与类型提示都淹没在里面。
-
-开启 vue-tsc 的 `strictTemplates`（或单开 `checkUnknownProps`）后，这类透传属性会被报成未知属性。在项目的 `env.d.ts` 里扩一次 `ComponentCustomProps` 即可，组件自己的 prop 照常受检，拼错的属性名仍然会报：
-
-<!-- eslint-skip -->
-
-```ts
-// env.d.ts
-import type { HTMLAttributes } from 'vue'
-
-declare module 'vue' {
-  interface ComponentCustomProps extends Omit<HTMLAttributes, 'class' | 'style'> {}
-}
-```
-
-这条扩充对项目里所有组件生效（第三方组件同样放行原生属性），由项目自己决定是否开启。表单、按钮等元素专有的属性（`novalidate`、`form`）不在通用原生属性里，需要时把对应的 `FormHTMLAttributes`、`ButtonHTMLAttributes` 一并并进去。
-
-升级时同样建议开启 `checkUnknownProps` 与 `checkUnknownEvents`：移除或改名的属性不会报错，只会被当成原生属性透传到根元素上而静默失效，这两项检查能把它们一次扫出来。
-
-## asChild 与事件取消
-
-支持 `asChild` 的部件可以把行为接到作者提供的单个子节点上。Fragment 会展开后检查，仅忽略空白、注释和条件占位；零个或多个可挂载子节点、元素旁并列的非空文本或数字都会明确报错，不会生成默认按钮或丢弃可见内容。需要默认按钮时移除 `asChild`，组合多个内容时提供一个实际宿主节点。
-
-作者写在部件或子节点上的事件处理器先执行；调用 `preventDefault()` 后，部件内部动作不再执行。作者的处理器数组仍按原顺序运行，`stopImmediatePropagation()` 仍可停止同节点后续处理器。普通回调保留全部参数，ref 的登记和清理不受事件取消影响。
-
-## 受控与非受控
-
-传受控属性即受控，只传 `default*` 即非受控：
-
-```vue
-<template>
-  <XhSwitch v-model:checked="wifi" />      <!-- 受控 -->
-  <XhSwitch :default-checked="false" />     <!-- 非受控 -->
-</template>
-```
-
-受控时组件不会自行改变：它只发出变更意图，由使用者写回新值后才真正改变。这条语义收在状态机的 `cell` 与 `watch` 中，不由各组件自行判断。详见[状态机运行时](../guide/machine#受控与非受控-cell)。
-
-`default*` 只在 setup 时读取一次，之后修改不影响当前值，只改变表单重置的落点；要换初值就换 `key`。三端的取法见[初值的读取时机](../guide/machine#初值的读取时机)。
-
-## 作用域插槽
-
-根组件通过作用域插槽提供命令式方法：
-
-```vue
-<template>
-  <XhDialogRoot v-slot="{ setOpen }">
-    <XhDialogTrigger>打开</XhDialogTrigger>
-    <XhDialogContent>
-      <XhButton @click="setOpen(false)">取消</XhButton>
-    </XhDialogContent>
-  </XhDialogRoot>
-</template>
-```
-
-### 载荷有类型
-
-插槽载荷都写进了组件的 `SlotsType`，`vue-tsc` 可以捕获两类拼写错误：
-
-```vue
-<template>
-  <XhTabsRoot :collection="tabs">
-    <!-- ✓ node 是 TabsNodeMeta，字段可补全 -->
-    <template #panel="node">{{ node.label }}</template>
-  </XhTabsRoot>
-</template>
-```
-
-两类拼写错误分别如下：
-
-```vue
-<template>
-  <!-- ✗ TS2551: Property 'lable' does not exist on type 'TabsNodeMeta'. Did you mean 'label'? -->
-  <XhTabsRoot :collection="tabs">
-    <template #panel="node">{{ node.lable }}</template>
-  </XhTabsRoot>
-
-  <!-- ✗ TS2339: 组件没有这个插槽 -->
-  <XhTabsRoot :collection="tabs">
-    <template #panle>…</template>
-  </XhTabsRoot>
-</template>
-```
-
-载荷类型本身也从主入口导出（命名如 `TabsPanelSlotProps`、`StepsRootSlotProps`），需要把插槽内容拆成子组件时可以直接用于标注 props。
-
-插槽键在类型上一律可选：组件内部按作者是否编写该插槽决定是否按 `collection` 铺开默认结构，键若非可选，该判断在类型上恒为真。
-
-不使用现成 DOM 结构时，直接使用 `api` 自行渲染：
-
-```vue
-<script setup lang="ts">
-import { useAccordion } from "@xihan-ui/vue";
-
-const { api } = useAccordion(
-  { multiple: true, defaultValue: ["a"] },
-  details => console.log(details.value), // onValueChange
-);
-</script>
-
-<template>
-  <section v-bind="api.getRootProps()">
-    <article v-bind="api.getItemProps({ value: 'a' })">
-      <h3 v-bind="api.getHeaderProps({ value: 'a' })">
-        <button v-bind="api.getTriggerProps({ value: 'a' })">第一节</button>
-      </h3>
-      <div v-bind="api.getContentProps({ value: 'a' })">内容</div>
-    </article>
-  </section>
-</template>
-```
-
-`api` 是一个 `ComputedRef`，随状态机状态变化重新求值。纯展示型组件（如 `XhBadge` 等没有状态机的组件）不提供组合式函数。
-
-上下文类型（`AccordionContext` 等）也一并导出，便于向下透传 `api` 时标注类型。父子组件之间的 provide / inject 是内部实现，不对外开放；自定义结构请直接用组合式函数获取 `api`，不接入现成组件的上下文。
-
-## 状态机接入 Vue 响应式
-
-内部只有一层薄适配。`createVueRuntime()` 实现 `ReactiveRuntime` 的五个接口：
-
-| 接口 | Vue 实现 |
-| --- | --- |
-| `cell` | `shallowRef` + 受控语义（受控时值从 `prop()` 读，内部 ref 不写） |
-| `track` | `watch(deps, fn, { flush: 'pre' })` |
-| `flush` | `nextTick` |
-| `onMount` / `onCleanup` | `onMounted` / `onBeforeUnmount`（不在组件内则立即执行 / 忽略） |
-
-`useMachine(machine, props, scope)` 封装了它。props 传的是 getter 而不是对象，因此在模板中原地修改某个 prop 也能生效。
-
-getter 的求值放在一个 `computed` 里：连接层每读一个 prop 都会经过它，依赖没动时复用同一份展开结果（状态机的身份缓存跟着命中），依赖一动就产出新对象，身份缓存照旧失效。失效面与组件自己的重渲一致，getter 因此必须只读响应式来源——组件 props、`attrs`、ref、注入的上下文、全局配置。读普通变量或普通数组的长度不会让它重算；那类来源本来也驱动不了 `computed(() => connectX(...))` 的重算，只是以前靠每次重新展开碰巧读到过新值。
-
-## 行为原语
-
-`@xihan-ui/vue/behavior` 单独提供滚动锁、悬停意图、滚动观察、贴底和连敲检索的 Vue 包装。`useHoverIntent` 到 mounted 后才读取模板 ref，并持续观察 trigger 与三个计时参数；trigger 暂时为 `null` 时释放旧绑定，节点重新出现后再建立。content getter 与回调现读当前响应式选项，不会因浮层内容挂载或普通闭包换代重启安全三角。选项对象本身也可传 ref 或 getter；显式类型使用该子入口的 `UseHoverIntentOptions`。
-
-`useScrollLock` 在组件 mounted 后才读取模板 ref，并以 post watcher 跟随 active；释放时先清本地句柄，清理抛错后再次激活仍可建立。active 为真期间不因配置对象更新重锁，关闭再开启才读取新配置。
-
-## 背景层
-
-Vue 侧的视觉适配位于单独的子入口，不引入就不会把 WebGL 引擎打进包：
-
-```ts
-import { useBackground, vBackground, XhBackground } from "@xihan-ui/vue/backgrounds";
-```
-
-三种用法见[背景层](../guide/backgrounds#在-vue-里用)。
-
-## 声音层
-
-同样是单独的子入口。`withNotificationSound` / `withDialogSound` 为命令式反馈服务配置声音，调用点不需要修改；`v-sound` 为单个元素配置声音：
-
-```ts
-import { setSoundPlayer, vSound, withNotificationSound } from "@xihan-ui/vue/sound";
-```
-
-默认映射与开关见[声音层](../guide/sound#在-vue-里用)。
-
-## 服务端渲染
-
-- `createVueRuntime()` 的 `isServer` 由 `typeof window === 'undefined'` 判定，服务端不挂事件、不读媒体查询；
-- id 由 `createVueIdGenerator()` 生成，同一棵树两端一致，不会 hydration 不匹配；
-- 主题属性建议在服务端就渲染到 `<html>` 上，见[设计令牌与主题](../guide/theme#服务端渲染)。
-
-## 与 Web Components 适配器的关系
-
-两者运行同一个状态机、同一份 `connect`，输出的 DOM 属性完全一致：跨适配器一致性测试逐帧比对归一化快照，无法消除的差异即判失败。
-
-Vue 项目使用本适配器；需要在多个框架或无框架页面中复用同一套组件时使用[自定义元素](./web-components)。两者可以在同一页面共存。
-
-## 相关
-
-- [组件参考](../components/)：全部组件与部件
-- [connect 与属性产出](../guide/connect)
-- [Web Components 适配器](./web-components)
-
----
-
-来源：https://ui.docs.xihanfun.com/adapters/web-components
-
-# Web Components 适配器
-
-`@xihan-ui/web-components` 把同一套无头内核封装为原生自定义元素。它采用一种不常见的形态：Light DOM 行为宿主。元素本身不渲染任何结构，结构由作者编写，元素只负责发现角色节点并写入属性与事件。
-
-响应式基类为自研（`XhReactiveElement`），不依赖任何第三方运行时。
-
-## 注册
-
-```ts
-import { defineXhElements } from "@xihan-ui/web-components/define";
-
-defineXhElements(); // 注册全部 144 个 xh-* 元素
-```
-
-主入口的 `import` 本身不注册，必须显式调用这一行。注册是幂等的：同版本重复调用直接返回；同标签不同版本，或标签已被非 XiHan.UI 代码占用，都会抛错而不是静默覆盖。无 `customElements` 的环境（SSR）静默跳过。
-
-背景层单独注册，不引入就不会把 WebGL 引擎打进包：
-
-```ts
-import { defineXhBackground } from "@xihan-ui/web-components/backgrounds";
-
-defineXhBackground();
-```
-
-## 配置与视觉环境
-
-`<xh-config>` 本身就是 Light DOM 局部 scope，八轴一次声明后会投影为 Core Portal 能桥接的标准属性：
-
-```html
-<xh-config
-  mode="dark"
-  brand="acme"
-  density="compact"
-  direction="rtl"
-  contrast="more"
-  motion="reduce"
-  transparency="reduce"
->
-  <my-workspace></my-workspace>
-</xh-config>
-```
-
-局部 `motion` 只降低该子树的 CSS 动效，不隐式调用全局 `setMotionOverride`。应用根需要同时驱动 JS 动画时，用 `setXhConfig({ visualEnvironment: { root, initial, motionSink } })` 显式绑定；详见[设计令牌与主题](../guide/theme)。
-
-## 结构由作者编写
-
-```html
-<xh-dialog>
-  <button data-xh-part="trigger">打开对话框</button>
-  <div data-xh-part="backdrop"></div>
-  <div data-xh-part="positioner">
-    <div data-xh-part="content">
-      <h3 data-xh-part="title">确认操作</h3>
-      <p data-xh-part="description">这条操作不可撤销。</p>
-      <button data-xh-part="close-trigger" aria-label="关闭">✕</button>
-    </div>
-  </div>
-</xh-dialog>
-```
-
-接线后元素会向这些节点写入 `data-scope` / `data-part` / `aria-*` / `data-state` 与事件处理器，在 DevTools 中可以直接查看。
-
-::: tip 为什么是 Light DOM 而不是 Shadow DOM
-Shadow DOM 会封闭结构：无法更换标签、无法插入自定义节点、外部 CSS 无法进入、表单关联和 `aria-*` 跨边界引用都需要额外机制。本库的定位是行为可复用、外观完全由使用者决定，Light DOM 与之匹配。
-
-代价是需要自行编写结构，因此必备部件的校验必须存在。
-:::
-
-## 部件契约校验
-
-元素接线时比对作者编写的 DOM 与组件解剖，三种问题报告到[诊断通道](../guide/diagnostics)：
-
-| 码 | 级别 | 触发条件 |
-| --- | --- | --- |
-| `wc.missing-part` | error | 缺必备角色节点，该部件不会被接线 |
-| `wc.unknown-part` | warn | 角色节点的 part 名不在组件解剖内 |
-| `wc.wrong-part-tag` | error | 角色节点用的标签不满足要求 |
-
-第三条只登记写错即静默失效的情况。例如表单字段的 `label` 必须是原生 `<label>`，写成 `<div>` 会使 `for` 关联失效、点击标签不再聚焦控件，而页面看起来一切正常。
-
-部分宿主会把内嵌部件的 DOM 铺在自己的 Light DOM 中接线（日期选择器之于日期输入与日历），这些角色节点由内嵌部件管理，通过契约中的 `delegates` 登记，不会被当作未知节点报警。
-
-## 属性
-
-属性遵循自定义元素惯例：kebab-case 的 HTML attribute ↔ camelCase 的 JS property。
-
-```html
-<xh-dialog default-open modal="false" role="alertdialog">
-```
-
-```ts
-const dialog = document.querySelector("xh-dialog");
-dialog.open = true; // 受控
-dialog.closeOnEscape = false;
-```
-
-布尔属性使用三态转换器：属性缺席 = `undefined`（使用组件默认值），`="false"` = `false`，其余 = `true`。这个区分是必要的：`modal` 的默认值是 `true`，缺席与 `="false"` 不能区分时就无法关闭它。
-
-数组与对象形态的初值只能走 property，而脚本常常排在元素连接之后才执行。状态第一次被写入之前，给 `default*` 赋值都算数：
-
-```ts
-const calendar = document.querySelector("xh-calendar-picker");
-calendar.defaultValue = ["2026-09-18"]; // 元素早已连接，照样按这一天选中
-```
-
-写入（用户交互、方法调用、表单重置）之后再改 `default*` 不影响当前值，只改变表单重置的落点，与 Vue / React 一致，见[初值的读取时机](../guide/machine#初值的读取时机)。
-
-## 事件
-
-组件的变更以 `CustomEvent` 派发，`bubbles: true, composed: true`，事件名是 kebab-case：
-
-```ts
-document.querySelector("xh-dialog")
-  .addEventListener("open-change", (e) => {
-    console.log(e.detail.open); // { open: boolean }
-  });
-```
-
-`detail` 即无头内核中的明细对象，与 Vue 适配器的 `value-change` 载荷完全一致。
-
-## 生命周期
-
-一台状态机对应一个控制器：
-
-- `connectedCallback` → 写回升级前赋在实例上的属性，再创建状态机并 mount（旧状态机已停止时从 `initialState` 重建）；
-- 每次更新 → 状态尚未被写入而 `default*` 变了时，按新的初值重建状态机；再运行依赖追踪；
-- `disconnectedCallback` → unmount。
-
-角色节点的进出由 `MutationObserver` 监视，但只在确实有角色节点进出时才重新接线：业务内容（图表、虚拟列表、面板内的业务 DOM）的增删与部件集合无关。这条判断同时避免了一条死循环：角色节点若本身是会在属性变化时改写自身子节点的自定义元素，“宿主重新接线 → 写属性 → 该节点改子节点 → 再次命中观察器”会形成环。
-
-属性观察同理只监视 `value` / `disabled` / `aria-disabled` 三个作者编写的声明，不监视状态机每帧写入的 `aria-*` / `data-*`，全量观察等于自我触发。
-
-## 收起态
-
-浮层关闭时使用内联 `style.display` 而不只依靠 `hidden` 属性：作者层若为该部件声明了 `display`，会覆盖 UA 的 `[hidden] { display: none }`，只靠 `hidden` 无法收起。
-
-展开时恢复作者原本的内联值而不是清为空串：后者会把作者写在该节点上的 `style="display:grid"` 一并清除，且无法恢复。
-
-## 多级菜单的 Portal 所有权
-
-`<xh-menu submenu>` 仍由作者在父 Menu、ContextMenu 或 Menubar 的 Light DOM 中声明。展开时只有它的 `positioner` 会搬到所属 Document 的 `#xh-portal-root`：父菜单的磨砂 `backdrop-filter` 因此不会把 fixed 子层困在局部包含块。每层有自己的无盒 Portal 壳，壳会桥接触发条目祖先上的主题、品牌、密度、对比度、动效与文字方向。
-
-搬运不会转移行为所有权。子菜单宿主继续观察并接线 positioner 里的动态部件，父宿主通过内部逻辑 owner 给 trigger 补齐父层 item 身份；末级选择按叶到根关闭，并只由根派发一次 `select`。关闭、断连或 trigger 换代时，positioner 会恢复到原占位。展开期间应持有部件引用或从 `ownerDocument` 查询，不能假设 `submenu.querySelector(...)` 仍能找到已搬走的 positioner。
-
-## 升级前
-
-自定义元素在 JS 到达之前不会升级，这段时间 `data-scope` / `data-part` 尚未写入，浮层内容会以裸文本出现在页面流中。`@xihan-ui/styles` 的 `undefined.css` 用 `:not(:defined)` 配合作者编写的 `data-xh-part` 先收起浮层子树，见[皮肤与样式分层](../guide/styling#升级前的形态)。
-
-## 自定义元素清单
-
-包内附带 `custom-elements.json`（CEM 格式），包含 144 个元素的标签名、属性、事件、CSS part。编辑器与框架的自定义元素支持可以直接读取它获得补全与类型提示。
-
-清单由构建生成，`pnpm gate:cem` 会重新生成后比对，修改元素后未重新生成会被拦截。
-
-## 与 Vue 适配器的关系
-
-两者运行同一个状态机、同一份 `connect`，输出的 DOM 属性完全一致。文档站每个组件页的示例多套写法并排，便于逐帧对照。
-
-在同一页面共存没有问题：诊断通道是全局的、层栈按文档共享，两套适配器的浮层会正确叠放在同一层栈中。
-
-## 相关
-
-- [组件参考](../components/)：每个组件的标签名与必备部件
-- [解剖与部件契约](../guide/anatomy)
-- [诊断通道](../guide/diagnostics)
 
 ---
 
@@ -692,7 +65,7 @@ export const accordionKeyboard: KeyboardTable = {
 2. 建立消隐层（Esc、点击外部、焦点移出）；
 3. 建立焦点域（捕获、回绕、归还）；
 4. 锁定滚动；
-5. 推迟一帧为背景添加 `inert`。
+5. 宿主提交浮层节点后，为背景添加 `aria-hidden`；没有遮罩的层另在定位层里垫一块透明底板拦下指针。
 
 顺序不可调换，细节见[行为原语](./behavior)。
 
@@ -2009,7 +1382,7 @@ lock.dispose();
 
 同一 Document 的并行锁共享同一个规范化目标，混用不同目标会明确失败；最后一把锁释放后，下一次获取可以使用新目标。每轮保存双轴滚动位置、内联样式值与优先级及原 gutter 变量。初始化失败逆序回滚，最终释放先终结状态再尝试全部恢复；业务期间主动改写的样式不会被旧锁覆盖。页面位置按 instant 行为恢复，避免受 smooth 滚动影响。
 
-加锁期间让出来的滚动条宽度写在文档根的 `--xh-scroll-lock-gutter` 上，供 `fixed` 定位的元素让位：
+加锁期间让出来的滚动条宽度写在文档根的 `--xh-scroll-lock-gutter` 上，供 `fixed` 定位的元素让位。没让出宽度（页面没有滚动条、或已用 `scrollbar-gutter: stable` 预留）且根上原本没有这个变量时不写——根上的自定义属性一变整份文档都要重算样式，所以消费时总要带 `0px` 回退值：
 
 ```css
 .my-fixed-header {
@@ -2033,15 +1406,17 @@ const restore = hideOutside(() => [
 });
 ```
 
-给 `body` 下除目标与豁免节点外的直接子元素加 `inert`，背景内容对读屏与键盘一并消失。
+沿每个目标到 `body` 的祖先链，给链上每一层里既不在链上、也不豁免的兄弟加 `aria-hidden="true"`，背景内容从无障碍树里消失；实时区域（`aria-live`、`role="status"` / `alert` / `log`）与脚本、样式这类节点不藏，模态开着时播报照旧。焦点还留在被藏起的背景里时照 `inert` 的样子放掉（`blur()`），之后再往背景里塞焦点由焦点域拉回。
 
-第一个参数是函数而不是数组：施加 `inert` 的时机横跨整个展开期（`MutationObserver` 观察后续新增到 `body` 的节点），晚于调用时刻挂载的节点也必须能计入目标。目标必须包含全部分支节点，以及栈中位于自己之上的层（`config.layerRegistry.elementsAbove(layer)`），漏传会把 portal 出去的嵌套浮层一起设为 inert：可见但无法操作。
+只打 `aria-hidden`、不打 `inert`：`inert` 会让浏览器把被罩住的整棵子树（通常是整个应用根）的样式重算一遍，几千个节点的页面上开、关各要几十毫秒；`aria-hidden` 不进样式计算，开销与页面大小无关。键盘由焦点域收在浮层里，指针由遮罩（或模态底板）拦下。
+
+第一个参数是函数而不是数组：藏起背景的时机横跨整个展开期（`MutationObserver` 观察后续新增到 `body` 的节点），晚于调用时刻挂载的节点也必须能计入目标。目标必须包含全部分支节点，以及栈中位于自己之上的层（`config.layerRegistry.elementsAbove(layer)`），漏传会把 portal 出去的嵌套浮层一起藏起：看得见，读屏却跳过。
 
 第二个参数必须同时提供 Scope 和计算 `elementsAbove` 的同一份 `LayerRegistry`，通常直接传 `RuntimeConfig`。`hideOutside` 只订阅该实例的层栈变化，并校验注册表的 `ownerDocument` 与 Scope Document 相同；自定义注册表、iframe 与画中画窗口都不再暗中切换到按 Document 获取的默认注册表。
 
 带 `data-xh-inert-exempt` 的元素默认豁免。
 
-`hideOutside` 的目标、`body`、层栈、`MutationObserver` 与 inert 引用计数严格属于 Scope 的同一 Document。iframe 与画中画窗口中的后挂节点会由各自 Window 的观察器重新计算；从其他窗口 adopt 进来的豁免节点也按当前所属 Document 生效。注册表或目标来自其他 Document、Document 没有活动 Window 或宿主缺少 `MutationObserver` 时会明确报错，初始化失败不会留下半施加的 inert 状态。
+`hideOutside` 的目标、`body`、层栈、`MutationObserver` 与 `aria-hidden` 引用计数严格属于 Scope 的同一 Document。iframe 与画中画窗口中的后挂节点会由各自 Window 的观察器重新计算；从其他窗口 adopt 进来的豁免节点也按当前所属 Document 生效。注册表或目标来自其他 Document、Document 没有活动 Window 或宿主缺少 `MutationObserver` 时会明确报错，初始化失败不会留下半施加的 `aria-hidden`。
 
 ## 进出场
 
@@ -2062,7 +1437,9 @@ export interface PresenceHandle {
 
 关闭时先同步触发 `onBeforeExit`，动画探测器在此申领租约；所有租约归还之前 `rendered` 保持 `true`，DOM 不移除。退场中途又被打开则取消旧租约，不卸载。租约不设猜测时限：CSS 观察器等待浏览器实际创建的有限动画对象完成或取消，同名的多个动画也分别计入；没有实际动画对象时不等待，无限装饰动画不阻塞退出。减弱动效下退场关键帧去掉位移、只剩 120ms 淡出，租约照样等它播完。自定义动画租约由创建方明确完成或取消。
 
-Dialog 与共用其机器的 Drawer 在逻辑关闭时立即给内容设置 `inert` 和 `aria-hidden`，保持浮层登记、滚动锁与背景失活直到内容及遮罩完成退场，然后通知 `onExitComplete`（Vue/Web Components 为 `exit-complete`）。退场中重开保留原资源，旧完成不影响新状态；必要时通过原焦点域的 `reactivate()` 恢复域内焦点，不重复派发挂载自动聚焦通知。卸载立即释放资源，不等 CSS。
+Dialog 与共用其机器的 Drawer 在逻辑关闭时立即给内容设置 `inert` 和 `aria-hidden`，浮层登记与滚动锁保留到内容及遮罩完成退场，然后通知 `onExitComplete`（Vue/Web Components 为 `exit-complete`）。退场中重开保留原资源，旧完成不影响新状态；必要时通过原焦点域的 `reactivate()` 恢复域内焦点，不重复派发挂载自动聚焦通知。卸载立即释放资源，不等 CSS。
+
+模态浮层（Dialog、Drawer、Command、ImageViewer、模态 Popover）的背景失活由两件事组成，都不碰背景节点的样式：背景打 `aria-hidden`（`hideOutside`），对读屏隐藏；没有遮罩的层（模态 Popover，或没放遮罩的对话框）在自己的定位层里垫一块铺满视口的透明底板（`data-xh-modal-underlay`，`z-index: -1`，画在本层自己的层叠上下文里），点在底板上即层外交互，由消解层照常收起，背景上的控件收不到这次点击。两件事都与页面大小无关，展开时随宿主提交当场施加；关闭时当场撤下，再把焦点归还触发器，焦点不会落进还对读屏藏着的背景。之后又重开即补回；没有退场动画、资源当场释放时背景失活随之撤下。
 
 适配器必须在 `data-state` 已提交到 DOM 之后才调用 `update(open)`：先改属性再让 CSS 过渡开始，顺序颠倒时动画不会播放。
 
@@ -2512,6 +1889,7 @@ export const DIAGNOSTIC_CODES = {
   overlayStackingTrap: "overlay.stacking-trap", // 浮层的祖先建了层叠上下文，浮层的层号被困在其中
   scrollbarMissingScrollable: "scrollbar.missing-scrollable", // 滚动条挂载时找不到它要管的滚动容器
   overlayMissingAnchor: "overlay.missing-anchor", // 浮层展开了却没有锚点，位置无从算起
+  portalUnreadableStylesheet: "portal.unreadable-stylesheet", // 有跨域样式表没以 CORS 加载，Portal 视觉桥的样式索引作废，浮层同步退回整表枚举
   chartMissingName: "chart.missing-name", // 图表没有可及名：caption 部件、aria-label、aria-labelledby 都没有
   chartUnknownField: "chart.unknown-field", // 系列引用的字段在数据里不存在
   chartDuplicateSeries: "chart.duplicate-series", // 两个系列的 id 相同
@@ -2736,11 +2114,11 @@ checkbox、cascader、checkbox-group、color-field、color-picker、color-slider
 
 # 国际化
 
-默认行为：组件内建的文本是英文，其余全部跟随 `locale`，`locale` 未提供时跟随宿主浏览器。
+默认行为：组件自己不写文案，界面文字一律取语言包，没配语言包时取英文语言包 `enUS`；其余全部跟随 `locale`，`locale` 未提供时跟随宿主浏览器。
 
 具体为四条：
 
-- 内建文案（关闭按钮的读屏名称、分页的翻页说明、上传区的提示、色阶两端的 `Less` / `More` 等）一律英文，切换语言经 `translations`。
+- 文案（关闭按钮的读屏名称、分页的翻页说明、上传区的提示、色阶两端的 `Less` / `More`、表单校验报错、对话框服务的按钮、快捷键的键名与键帽字等）一律取自语言包。库附带十种常用语言的[内建语言包](#内建语言包)，整份交给全局配置即可；个别说法经 `translations` 覆盖。
 - 日期时间类组件的月份名、星期名、段位顺序、周首日与默认格式串全部由 `locale` 决定，不写死。
 - `locale` 的解析链是实例 props → 全局配置 → 宿主的 `navigator.language` → `en-US`，`calendar` / `date-picker` / `date-field` / `heatmap` / `time` 都使用它。因此中文浏览器中不做任何配置也显示中文日期；服务端渲染期或显式 Scope 没有活动 Window 时读不到宿主语言，使用 `en-US`，不借用其他页面的 Window。
 - 例外一处：`time-picker` / `time-field` 的小时制不从宿主推断。`hourCycle` 与 `locale` 都未提供时始终为 24 小时制，需要 12 小时制时提供其中之一。
@@ -2753,7 +2131,69 @@ checkbox、cascader、checkbox-group、color-field、color-picker、color-slider
 要固定为一种排法，显式传入 `locale`（实例上传入，或全局配置一次），不依赖默认值。
 :::
 
-各适配器都有一处全局出口，语义一致：Vue 侧是 `provideXhConfig`（走 provide/inject，可按子树覆盖），自定义元素侧是 `setXhConfig`（模块级，整个文档一份）。
+各适配器都有一处全局出口，语义一致：Vue 侧是 `provideXhConfig`（走 provide/inject，可按子树覆盖），React 侧是 `XhConfigProvider`（同样可按子树覆盖），自定义元素侧是 `setXhConfig`（模块级，整个文档一份）。
+
+## 内建语言包
+
+每个适配器都有一个 `locale` 子入口，导出十份语言包：
+
+| 导出名 | 语言 | `locale` |
+| --- | --- | --- |
+| `zhCN` | 简体中文 | `zh-CN` |
+| `zhTW` | 繁體中文（台灣） | `zh-TW` |
+| `enUS` | English | `en-US` |
+| `jaJP` | 日本語 | `ja-JP` |
+| `koKR` | 한국어 | `ko-KR` |
+| `frFR` | Français | `fr-FR` |
+| `deDE` | Deutsch | `de-DE` |
+| `esES` | Español | `es-ES` |
+| `ptBR` | Português (Brasil) | `pt-BR` |
+| `ruRU` | Русский | `ru-RU` |
+
+一份语言包就是一份全局配置 `{ locale, translations }`，整份交给全局出口：
+
+```ts
+// Vue：应用根组件的 setup 中
+import { provideXhConfig } from "@xihan-ui/vue";
+import { zhCN } from "@xihan-ui/vue/locale";
+
+provideXhConfig(zhCN);
+```
+
+```tsx
+// React：包在应用根上
+import { XhConfigProvider } from "@xihan-ui/react";
+import { zhCN } from "@xihan-ui/react/locale";
+
+<XhConfigProvider config={zhCN}>
+  <App />
+</XhConfigProvider>;
+```
+
+```ts
+// 自定义元素：注册元素之后调用一次
+import { setXhConfig } from "@xihan-ui/web-components";
+import { zhCN } from "@xihan-ui/web-components/locale";
+
+setXhConfig(zhCN);
+```
+
+- 语言包同时带着 `locale`，日期时间类组件的月份名、星期名与周首日随之切换。只想换文案、日期仍跟随宿主浏览器时，只交 `translations`：`provideXhConfig({ translations: zhCN.translations })`。
+- 还要配其他项时先展开再加：`provideXhConfig({ ...zhCN, size: "sm" })`。个别文案要换成自己的说法，在实例上写对应的 `translations` 键即可，它压在语言包之上；要在全局改，用各适配器导出的 `mergeXhConfig(zhCN, { translations: { dialog: { close: "关掉" } } })` 合并出一份新配置再交出去。
+- `enUS` 与其余九份同形，是完整的英文语言包。组件没配语言包时用的就是它；运行时从其他语言切回英文时也交它。
+- 语言包放在子入口而不是主入口：每份都是一整张文案表，只引入用到的那几份，其余由打包器摇掉。
+
+语言包覆盖组件的每一条文案。以下几类刻意不收，因为它们没有缺省，或缺省取自实例自己的内容，语言包给了就不只是换语言，而是改了行为：
+
+- 作者自写的可见文字与标签：`approval` 的 `approve` / `deny` / `notePlaceholder`、`clipboard.copy`、`download-trigger.trigger`、`mention.input`、`menu.content`、`prompt-input.input`、`question-flow` 的 `notePlaceholder` / `skip` / `continue` / `send`、`rating.item`、`steps.list`、`tool-call.ranFor`、`tour` 的 `next` / `finish`。这些需要时在实例上提供。
+- 条目自己的名字：拖拽播报里的 `item`（`sortable` / `table` / `tabs` / `tree`）缺省取条目的文字。
+- 由 `Intl` 按 `locale` 给出的说法：`timestamp.justNow`。
+
+表单校验报错的模板在 `translations.form` 里（`{name}` 换成字段名，`{min}` / `{max}` 换成规则界限）：规则自己的 `message` 最优先，表单的 `validateMessages` 逐条压在语言包之上。
+
+同理，实例自己的内容优先于任何 `translations`：直角坐标图数据表的列名先取轴标题，轴没有标题时才用 `keyLabel` / `valueLabel`；热力图发散色阶的对照条两端恒写数值，`legendLow` / `legendHigh` 只换顺序色阶两端的词。
+
+要补一种语言，以任一份内建语言包为样板写一份同形的 `XhLocale` 对象，交给全局出口的方式不变。
 
 ## 全局注入一次
 
@@ -2772,7 +2212,7 @@ provideXhConfig({
 });
 ```
 
-取值优先级从高到低：实例 props → 全局注入 → 组件内建默认（文案为英文，`locale` 再向宿主浏览器读取一次）。`translations` 按键合并：全局提供整包，个别实例只覆盖需要修改的键。
+取值优先级从高到低：实例 props → 全局注入 → 英文语言包 `enUS`（`locale` 则向宿主浏览器读取一次）。`translations` 按键合并：全局提供整包，个别实例只覆盖需要修改的键。
 
 ## 运行时切语言
 
@@ -2780,14 +2220,14 @@ provideXhConfig({
 
 ```ts
 import { provideXhConfig } from "@xihan-ui/vue";
+import { enUS, zhCN } from "@xihan-ui/vue/locale";
 import { computed, ref } from "vue";
-import { enUS, zhCN } from "./locales";
 
 const lang = ref<"zh" | "en">("zh");
 provideXhConfig(computed(() => (lang.value === "zh" ? zhCN : enUS)));
 ```
 
-语言包是一个普通对象（`XhConfig` 类型），按组件名收纳各自的 `Translations`；每个组件页的 Props 表列有它的文案键。
+语言包是一个普通对象（`XhLocale`，可直接当 `XhConfig` 用），按组件名收纳各自的 `Translations`；每个组件页的 Props 表列有它的文案键。
 
 ## 接受 locale 的组件
 
@@ -2806,17 +2246,16 @@ provideXhConfig(computed(() => (lang.value === "zh" ? zhCN : enUS)));
 ## 作用域与边界
 
 - 注入走 Vue 的 provide/inject：在应用根 provide 即全应用默认，也可以只在某个子树 provide 以局部切换语言。
-- `createNotificationService` / `createDialogService` 自带宿主应用，无法接入组件树中的注入。它们的按钮文案使用各自创建时的选项（`okText` 默认 `OK`、`cancelText` 默认 `Cancel`、`translations`），需要整个服务与应用同语言时通过 `config` 传入：
+- `createNotificationService` / `createDialogService` 自带宿主应用，无法接入组件树中的注入。它们的按钮与报错文字先取创建时的选项（`okText` / `cancelText` / `actionErrorText`），没给的取服务 `config` 里 `translations.dialog` 的 `ok` / `cancel` / `actionError`，再退英文语言包。需要整个服务与应用同语言时通过 `config` 传入：
 
   ```ts
-  const dialog = createDialogService({
-    config: { locale: "zh-CN", translations: { dialog: { close: "关闭" } } },
-    okText: "确定",
-    cancelText: "取消",
-  });
+  import { zhCN } from "@xihan-ui/vue/locale";
+
+  // 确定 / 取消与失败提示都随 zhCN 换成中文；个别服务要别的说法时再传 okText 等选项
+  const dialog = createDialogService({ config: zhCN });
   ```
 
-  `config` 是一份普通的 `XhConfig`，服务会在自己的子树中 `provideXhConfig` 一次；未提供时使用内建默认。
+  `config` 是一份普通的 `XhConfig`，内建语言包可直接传入，服务会在自己的子树中 `provideXhConfig` 一次；未提供时用英文语言包。自定义元素侧的服务没有 `config`，按宿主所在处的 `setXhConfig` 取。
 - 不注入时组件按原路径运行，没有额外开销。
 - 自定义元素无法接入 Vue 的注入，使用它自己的全局出口，见下文。
 
@@ -2843,10 +2282,12 @@ setXhConfig({
 });
 ```
 
-取值优先级与 Vue 侧一致：元素上的 property → `setXhConfig` 的全局值 → 组件内建默认（文案为英文，`locale` 再向宿主浏览器读取一次），`translations` 逐键合并。切换语言时再次调用，已挂载的元素随之重渲染：
+取值优先级与 Vue 侧一致：元素上的 property → `setXhConfig` 的全局值 → 英文语言包 `enUS`（`locale` 则向宿主浏览器读取一次），`translations` 逐键合并。切换语言时再次调用，已挂载的元素随之重渲染：
 
 ```ts
-setXhConfig({ locale: "en-US", translations: enUS });
+import { enUS } from "@xihan-ui/web-components/locale";
+
+setXhConfig(enUS);
 ```
 
 两处差别：
@@ -4740,6 +4181,8 @@ glide(440, 880, 0.12); // 滑音：120ms 从 440 滑到 880
 
 `@xihan-ui/styles` 是纯 CSS 包：不依赖任何 JS 包，也不被任何 JS 包依赖。它可以脱离 JS 层单独使用，也可以整体替换为自定义皮肤。
 
+皮肤源文件按 `[data-scope='x'][data-part='y']` 书写，发布产物把其中的 `[data-scope='x']` 换成挂载类 `.xh-scope-x`：浏览器按类名给规则分桶，几千条皮肤规则不再挤进 `data-scope` 一个属性桶。两者特异性相同，适配器渲染的每个角色节点都同时带 `data-scope` 与对应的挂载类。脱离 JS 层、自己书写标记时，带 `data-scope="x"` 的节点要一并写上 `class="xh-scope-x"`，否则皮肤不命中；覆盖样式照常用部件选择器。
+
 ## 层序
 
 CSS 的级联顺序由 `@layer` 声明的首次出现顺序决定，与 `@import` 顺序无关。层序声明单独放在一个文件中：
@@ -5363,7 +4806,7 @@ pnpm gate --keep-going       # 失败不停，跑完汇总失败的步骤；可�
 
 改了哪一块先跑对应模块，提交前再跑一次全量。
 
-`pnpm gate` 运行 130 项结构检查，它们检查的是判据无法覆盖的问题：静默失效、悬空承诺、未被命名的决策：
+`pnpm gate` 运行 133 项结构检查，它们检查的是判据无法覆盖的问题：静默失效、悬空承诺、未被命名的决策：
 
 | 门禁 | 拦截内容 |
 | --- | --- |
@@ -5426,7 +4869,7 @@ pnpm gate:family  # 逐家族豁免表只减不增（条目数快照 + 键集合
 pnpm size
 ```
 
-46 条产物各有上限（gzip 后），超出即失败。预算一律按实测留一成余量。逐条限额的真源是 `ui/.size-limit.json`，具体数字以该文件为准。
+48 条产物各有上限（gzip 后），超出即失败。预算一律按实测留一成余量。逐条限额的真源是 `ui/.size-limit.json`，具体数字以该文件为准。
 
 
 ## 相关
@@ -5693,7 +5136,7 @@ Tooltip 等小型反白表面使用三支 compact 配方组合 M2 的边界、�
 作者只写这一个属性。组件挂载后由 `@xihan-ui/core/visual-environment` 的液态面接管，同一文档的部件共用一套监听，不需要额外安装或调用：
 
 - 按部件下层的计算底色与作者声明选色调：下层亮取浅色调、下层暗取深色调，部件随之成为黑墨或白墨域（相对亮度 0.179 ± 0.04 滞回，内容滚过分界附近不来回闪）。
-- 下层均匀且色调已知时换通透档（浅 0.24 / 深 0.34）；下层有文字、渐变、图片、视频、画布或读不到时留在可读下限，标签在任何下层上至少 4.5:1。模态打开、背景被设为 inert 而命中不到时同样按读不到处理。
+- 下层均匀且色调已知时换通透档（浅 0.24 / 深 0.34）；下层有文字、渐变、图片、视频、画布或读不到时留在可读下限，标签在任何下层上至少 4.5:1。页面里有被设为 `inert` 的内容（命中栈里没有它们）时同样按读不到处理。
 - 滚动、窗口缩放、图片加载完、过渡或动画播完、状态机驱动的平移落定（轮播翻页、看图惯性）时重读下层。
 - 细指针移动时 1px 边缘光转向指针；粗指针、无指针与减弱动效下固定左上（RTL 右上）。
 - Chromium 内核下距边缘 18px 以内折射下层；其余引擎、尺寸超过 640 × 120 或同一视口超过 3 个时只模糊不折射。
@@ -5775,15 +5218,15 @@ XiHan.UI 的公开面横跨五种介质：替换自带皮肤、手写 Light DOM 
 
 ## 一、JS / TS 导出面
 
-18 个包中 18 个出 JS 或类型入口，共 41 个带类型的入口。
+18 个包中 18 个出 JS 或类型入口，共 45 个带类型的入口。
 
 ### 受约束
 
 | 类别 | 数量 | 说明 |
 | --- | --- | --- |
 | 包名 | 18 | 把代码从一个包移到另一个包 = major |
-| `exports` 子路径 | 41 个 JS 入口 | 如 `@xihan-ui/vue/backgrounds`、`@xihan-ui/web-components/define`、`@xihan-ui/core/metadata`。没有 `./*` 通配，深路径引用（`.../dist/xxx.js`）会被 Node 与打包器拒绝，这些路径不是 API |
-| Vue 组件导出 `Xh*` | 1179（140 个家族） | `XhButton`、`XhSelectRoot`、`XhSelectItemIndicator` |
+| `exports` 子路径 | 45 个 JS 入口 | 如 `@xihan-ui/vue/backgrounds`、`@xihan-ui/web-components/define`、`@xihan-ui/core/metadata`。没有 `./*` 通配，深路径引用（`.../dist/xxx.js`）会被 Node 与打包器拒绝，这些路径不是 API |
+| Vue 组件导出 `Xh*` | 1180（140 个家族） | `XhButton`、`XhSelectRoot`、`XhSelectItemIndicator` |
 | Vue 组合式函数 `use<家族>` | 110 | `useSelect`、`useCombobox`。不使用库内部件、自行编写标记时的唯一入口 |
 | Vue 指令 | 2 | `vBackground`（`@xihan-ui/vue/backgrounds`）、`vSound`（`@xihan-ui/vue/sound`），两个子入口各依赖一个可选 peer |
 | 无头内核 `connect*` | 140 | `connectAccordion` 及其参数顺序、返回的 getter 名 |
@@ -5829,14 +5272,14 @@ XiHan.UI 的公开面横跨五种介质：替换自带皮肤、手写 Light DOM 
 | 类别 | 数量 | 档位 |
 | --- | --- | --- |
 | `data-scope` 取值（组件身份） | 140 | **受约束**（新增第 141 个组件是 minor） |
-| `data-part` 取值（部件名） | 367 个不同名字 / 1335 条「组件 × 部件」配对 | **受约束** |
-| `data-xh-part`（WC 作者书写的角色声明） | 属性名 1 个，取值即上面 367 个 | **受约束** |
+| `data-part` 取值（部件名） | 368 个不同名字 / 1342 条「组件 × 部件」配对 | **受约束** |
+| `data-xh-part`（WC 作者书写的角色声明） | 属性名 1 个，取值即上面 368 个 | **受约束** |
 | `meta.requiredParts`（必备部件） | 313 条 | **受约束**（加条目 = major），方向见下 |
 
 `data-scope` 的取值与三处完全同名，不做任何转换：headless 目录名、自定义元素标签 `xh-<scope>`、皮肤文件 `<scope>.css`。改动一处即四处同时破坏。
 
 ::: warning `data-xh-part`、`data-xh-scroll`、墨色域、液态下层与图表纹理的声明是 `data-xh-` 前缀里仅有的例外
-其余 `data-xh-*` 属性（`data-xh-scrollbar`、`data-xh-focus-guard`、`data-xh-inert-exempt` 等 65 个）是库自用标记，排除在承诺之外。例外都由作者书写：`data-xh-part` 是 Web Components 适配器唯一的作者输入 API；`data-xh-scroll` 只承诺「作者容器取得 reset 层的原生细条」（见[皮肤与样式分层](./styling#组件内滚动)），不进任何组件契约，删除或改名同样按公开面破坏处理；`data-xh-ink` 与 `data-xh-ink-margin` 写在作者自己的彩色区块上，声明底色极性与余量（见[色彩 · 彩色面与墨色域](/design/colors#彩色面与墨色域)），取值与语义按公开面承诺；`data-xh-backdrop` 与 `data-xh-backdrop-busy` 写在作者自己的图片、视频、画布区域上，声明液态面下层的明暗与杂乱（见[设计令牌与主题 · 液态材质](./theme#液态材质)），同样按公开面承诺；`data-xh-chart-patterns` 写在作者自己的祖先上，让其中的图表改用纹理区分系列（见[直角坐标图](../components/cartesian-chart)），同样按公开面承诺。作者书写 `data-xh-part="trigger"` 是声明，元素接线后在同一节点写入 `data-scope` + `data-part` 是事实。皮肤匹配后者，后者不应手写。
+其余 `data-xh-*` 属性（`data-xh-scrollbar`、`data-xh-focus-guard`、`data-xh-inert-exempt`、`data-xh-modal-underlay` 等 66 个）是库自用标记，排除在承诺之外。例外都由作者书写：`data-xh-part` 是 Web Components 适配器唯一的作者输入 API；`data-xh-scroll` 只承诺「作者容器取得 reset 层的原生细条」（见[皮肤与样式分层](./styling#组件内滚动)），不进任何组件契约，删除或改名同样按公开面破坏处理；`data-xh-ink` 与 `data-xh-ink-margin` 写在作者自己的彩色区块上，声明底色极性与余量（见[色彩 · 彩色面与墨色域](/design/colors#彩色面与墨色域)），取值与语义按公开面承诺；`data-xh-backdrop` 与 `data-xh-backdrop-busy` 写在作者自己的图片、视频、画布区域上，声明液态面下层的明暗与杂乱（见[设计令牌与主题 · 液态材质](./theme#液态材质)），同样按公开面承诺；`data-xh-chart-patterns` 写在作者自己的祖先上，让其中的图表改用纹理区分系列（见[直角坐标图](../components/cartesian-chart)），同样按公开面承诺。作者书写 `data-xh-part="trigger"` 是声明，元素接线后在同一节点写入 `data-scope` + `data-part` 是事实。皮肤匹配后者，后者不应手写。
 :::
 
 ### requiredParts 的方向是反的
@@ -5914,7 +5357,7 @@ brand  neutral  success  warning  danger  info
 | `@layer` 名与声明顺序 | 5 | `xihan.reset` → `xihan.tokens` → `xihan.motion` → `xihan.components` → `xihan.overrides`。改名、调序、增删中间层均为 major。`xihan.overrides` 刻意留空，专供使用方覆盖，不会作为未使用的层被清理 |
 | 全局令牌 · 原语层 | 115 | `--xh-color-brand-500`、`--xh-space-4`、`--xh-radius-md`。皮肤中不应直接使用它们，但接入品牌轴必须写 `--xh-color-brand-*`，因此它们是公开的 |
 | 全局令牌 · 语义层 | 302 | `--xh-bg-brand`、`--xh-fg-on-brand`、`--xh-control-h-md`、`--xh-shape-control`。主题定制的正门，见 [设计令牌与主题](./theme) |
-| 组件覆盖槽 | 4468（覆盖 140 个组件） | `--xh-button-bg`、`--xh-button-h`、`--xh-dialog-max-w`。全部写成 `var(--xh-x-y, 默认值)` 形态，在 `:root` 中设置即可修改该组件 |
+| 组件覆盖槽 | 4469（覆盖 140 个组件） | `--xh-button-bg`、`--xh-button-h`、`--xh-dialog-max-w`。全部写成 `var(--xh-x-y, 默认值)` 形态，在 `:root` 中设置即可修改该组件 |
 | 语气轴槽 | 12 | `--xh-_tone`、`--xh-_tone-on`、`--xh-_tone-hover`、`--xh-_tone-subtle`、`--xh-_tone-border` 等。这是自定义语气的唯一机制：写入 `[data-tone='premium'] { --xh-_tone: gold; --xh-_tone-on: #000 }`，读取这批槽的 64 份皮肤随之生效。虽然带下划线前缀，但按受约束处理 |
 | 关键帧名 | 42 | `xh-pop-in`、`xh-fade-out`、`xh-spin`。共享关键帧住在 `family/motion.css`（子入口 `@xihan-ui/styles/motion.css`），皮肤 `@import` 它；组件专属关键帧仍在各皮肤。在 `xihan.overrides` 层中重定义同名关键帧即可替换该段动画（关键帧名因此是公开面），所以改名与删名同样是 major |
 | 跨包内联属性 | 139 | 浮层定位共用的 `--xh-_<组件>-available-w` / `-available-h` / `-anchor-w` / `-arrow-x` / `-arrow-y`，指示条与滑块的几何 `--xh-_tabs-indicator-x`、`--xh-_radio-group-thumb-w`，值类比例 `--xh-_progress-value`、`--xh-_loading-bar-value`，浮动按钮的贴边与停点 `--xh-_float-button-offset`、`--xh-_float-button-ratio`、`--xh-_float-button-x`，图表提示框坐标 `--xh-_chart-tip-x`、`--xh-_chart-tip-y`，以及 `--xh-_truncate-lines`、`--xh-_color-picker-tag-color`、`--xh-_carousel-autoplay-duration` 等。由 headless 写入内联 `style`，皮肤必须读取。整套更换皮肤时若不读取这些值，浮层限高与箭头、选中指示、进度、文本截断、浮动按钮贴边或图表提示框会失效，且不报任何错误。core 写入的层级、动效与液态材质取值不在此列，见下方「排除」 |
@@ -5925,7 +5368,7 @@ brand  neutral  success  warning  danger  info
 
 | 类别 | 数量 | 排除原因 |
 | --- | --- | --- |
-| 其余 `--xh-_` 私有槽 | 791 | 皮肤内部的回退中转（`--xh-_bg`、`--xh-_bg-hover`、`--xh-_mention-py` 等），变体只改槽位、不重写规则依赖它。不应在外部设置它们。core 写入内联 `style` 的层级、动效与液态材质取值（`--xh-_layer`、`--xh-_stagger-index`、`--xh-_enter-from-opacity` 等）同属此档：层级的公开入口是 `--xh-<组件>-layer` 覆盖槽，私有值只作回落；后两类缺失时只少一段过渡或材质效果，组件功能不受影响 |
+| 其余 `--xh-_` 私有槽 | 804 | 皮肤内部的回退中转（`--xh-_bg`、`--xh-_bg-hover`、`--xh-_mention-py` 等），变体只改槽位、不重写规则依赖它。不应在外部设置它们。core 写入内联 `style` 的层级、动效与液态材质取值（`--xh-_layer`、`--xh-_stagger-index`、`--xh-_enter-from-opacity` 等）同属此档：层级的公开入口是 `--xh-<组件>-layer` 覆盖槽，私有值只作回落；后两类缺失时只少一段过渡或材质效果，组件功能不受影响 |
 | 令牌的取值 | — | `--xh-color-brand-500` 这个名字受约束，其对应的 `oklch()` 值不受约束。调色板随视觉迭代变化，这正是令牌存在的意义 |
 | `index.css` 的内部结构 | — | 它是生成的扁平文件：家族配方只内联一次、排在皮肤之前，皮肤段的顺序即源序。段标记注释（`/* styles/xxx.css */`）只作阅读定位，不是承诺 |
 | `index.unlayered.css` 的内部结构 | — | 它是同一源序的扁平镜像，不带 `@layer`。使用该入口时没有 `xihan.overrides` 覆盖槽位，层名承诺不适用 |
@@ -5942,12 +5385,12 @@ brand  neutral  success  warning  danger  info
 | --- | --- | --- |
 | 自定义元素标签 `xh-*` | 145（`defineXhElements()` 注册 144 + `xh-background`） | **受约束** |
 | 注册函数 | 2（`defineXhElements`、`defineXhBackground`） | **受约束** |
-| observed attribute | 1550 条声明 / 479 个不同名字 | **受约束**（具体元素上的具体属性名） |
+| observed attribute | 1555 条声明 / 479 个不同名字 | **受约束**（具体元素上的具体属性名） |
 | attribute 名词汇表本身 | 479 | **只增不减**（新组件复用 `size` / `tone` / `dir` 不算破坏） |
 | `CustomEvent` 名 | 121 个名字 / 277 条「元素 × 事件」 | **受约束** |
 | 事件传播语义 | `bubbles: true, composed: true`（262 处中 260 处） | **受约束**。取消冒泡会使祖先节点上的事件委托静默失效。例外是名为 `submit` 的事件（`xh-prompt-input` / `xh-question-flow`）：与原生表单提交同名，一律不冒泡，避免被祖先 `<form>` 视为自身的提交 |
 | 事件 `detail` 形状 | 221 个 `*Details` 类型 | **受约束**，等同于 headless 的同名类型 |
-| `attribute: false` 的 JS 字段 | 307 条（涉及 102 个字段名） | **受约束**。`collection`、`translations`、`validate`、`filter` 等只能通过 JS 赋值，HTML 中无法表达：不是每个 property 都有对应 attribute |
+| `attribute: false` 的 JS 字段 | 308 条（涉及 102 个字段名） | **受约束**。`collection`、`translations`、`validate`、`filter` 等只能通过 JS 赋值，HTML 中无法表达：不是每个 property 都有对应 attribute |
 | 命令式方法 | 157（分布在 60 个元素） | **受约束**，含参数与返回类型 |
 
 命令式方法全清单：
@@ -6117,7 +5560,7 @@ Web Components 侧不构成额外约束：全部 Light DOM，不使用 shadow DO
 
 | 包 | 说明 |
 | --- | --- |
-| `@xihan-ui/vue` | 1179 个组件、110 个组合式函数 |
+| `@xihan-ui/vue` | 1180 个组件、110 个组合式函数 |
 | `@xihan-ui/react` | 组件与 hooks（铺开中，公开面随批次增长） |
 | `@xihan-ui/web-components` | 145 个自定义元素 |
 | `@xihan-ui/headless` | `connect*` / `*Machine` / 各类公开类型；内部算子在排除清单里 |
@@ -6150,12 +5593,12 @@ Web Components 侧不构成额外约束：全部 Light DOM，不使用 shadow DO
 ### 已由门禁保证
 
 六种介质的改名即 major 已有门禁保证。`pnpm gate:surface` 运行的 `check-public-surface`
-以入库基线（`ui/tooling/public-surface.json`，18415 个名字）比对当前状态：
+以入库基线（`ui/tooling/public-surface.json`，18476 个名字）比对当前状态：
 基线中有而当前没有，即为删除或改名，构建失败。新增一律放行，因为新增是 minor。
 
-覆盖：包名与 210 条子入口、9526 个导出名、140 个 `data-scope` 与 1335 条部件配对、
-140 个组件的 2105 个 prop 名、314 种 `data-*`、33 个 `data-state` 取值、667 个令牌、
-5 个 `@layer` 名、4468 个组件覆盖槽、144 个自定义元素及其 attribute 与事件。
+覆盖：包名与 214 条子入口、9574 个导出名、140 个 `data-scope` 与 1342 条部件配对、
+140 个组件的 2110 个 prop 名、314 种 `data-*`、33 个 `data-state` 取值、667 个令牌、
+5 个 `@layer` 名、4469 个组件覆盖槽、144 个自定义元素及其 attribute 与事件。
 
 prop 名一维是后补的：在它加入之前，修改一个 prop 名（实测 `transfer` 的 `items` 改
 `collection`、`splitter` 的 `size` 改 `sizes`）其余门禁全程沉默。它的事实源是无头内核的
@@ -6198,6 +5641,633 @@ check 脚本未接入 `pnpm gate` 等同于未编写，死引用同样被拦截�
 | 「18 个包必须同版本」 | `check-version-lock` 门禁保证 18 个 package.json 同版本。运行期一侧只在 dev 有提示：三个适配器启动时调用 `checkLockstepVersion`，自身版本与 core 不一致时经诊断通道发出一条 `warn`；生产构建中跳过，且只比对适配器与 core 两个版本，不是全部 18 个 | 提升为 peer，或把运行期比对扩展到全部包 |
 
 本页内容与实际行为不符时按缺陷处理，请提交 issue。
+
+---
+
+来源：https://ui.docs.xihanfun.com/adapters/react
+
+# React 适配器
+
+`@xihan-ui/react` 是无头内核的 React 外壳。它负责三件事：把状态机接入 React 的渲染周期、把部件封装为组件、把 `connect` 产出的 props 展开到元素上。它不实现任何组件逻辑。
+
+依赖：`react` 与 `react-dom` 是 peer 依赖，下限 19。当前版本只支持 React 19：状态机要求宿主提交完当前帧、DOM 落定之后再运行回调，`flushSync` 与 `useSyncExternalStore` 的行为是这条契约的基础。
+
+覆盖进度：已覆盖全部组件，与 Vue 侧一致。
+登记在 `ui/tooling/scripts/react-coverage.json`，多项门禁按它决定核对哪些组件：登记多余会核对不存在的组件，登记缺失会静默漏检，两种情况都判失败。
+
+## 组件命名
+
+与 Vue 侧同名：每个部件一个组件，一律 `Xh` 前缀 + 组件名 + 部件名。
+
+```tsx
+import { XhDialogContent, XhDialogRoot, XhDialogTitle, XhDialogTrigger } from "@xihan-ui/react";
+```
+
+只有一个部件的组件不带部件后缀（`XhButton`、`XhSwitch`）。没有必须安装的 provider，按名称 import 即可。
+
+## 受控与非受控
+
+传受控属性即受控，只传 `default*` 即非受控。变更回调是普通的 React 回调，没有第二套事件：
+
+受控：
+
+```tsx
+<XhDialogRoot open={open} onOpenChange={({ open }) => setOpen(open)} />;
+```
+
+非受控：
+
+```tsx
+<XhDialogRoot defaultOpen />;
+```
+
+`default*` 只在首次渲染时读取，之后修改不影响当前值，只改变表单重置的落点；要换初值就换 `key`。三端的取法见[初值的读取时机](../guide/machine#初值的读取时机)。
+
+载荷与 Vue 侧的明细对象相同：`{ open }`、`{ value }`、`{ checked }`。Vue 侧额外发出裸值事件是为了 `v-model`，React 没有这层语法，只保留明细一种。
+
+受控属性每帧读取：状态机不缓存上一次的值，浮层打开时修改 `closeOnEscape` 立即生效。
+
+## 带载荷的插槽写成函数式 children
+
+派生值由这一层计算，作者通过函数式 children 接收：
+
+```tsx
+<XhSelectRoot value={value} onValueChange={({ value }) => setValue(value)}>
+  {({ hasValue, valueText }) => (hasValue ? valueText : "请选择")}
+</XhSelectRoot>;
+```
+
+类型是 `SlotChildren<P>`：传节点也可以，传函数才能获得载荷。每个组件的载荷类型（如 `SelectRootSlotProps`）都一并导出。
+
+## asChild
+
+要把部件的行为落到自定义元素上，传 `asChild` 并提供单个子元素：
+
+```tsx
+<XhDialogTrigger asChild>
+  <MyButton>打开</MyButton>
+</XhDialogTrigger>;
+```
+
+同名事件先运行作者处理器；作者调用 `preventDefault()` 后，不再运行部件内部动作。这条规则同时适用于写在部件和 `asChild` 子元素上的处理器。普通回调仍保留全部参数，ref 的登记和清理不受事件取消影响。
+
+`asChild` 必须包含恰好一个可挂载子元素，Fragment 会展开后检查，仅忽略空白和条件占位。零个或多个元素、元素旁并列的非空文本或数字都会明确报错，不会生成默认按钮或丢弃可见内容。迁移时请把内容放到一个实际宿主中；确实需要默认按钮时移除 `asChild`。ref 遵循 React 19 的普通 props 合同。
+
+## 组合式函数
+
+不使用现成结构时直接获取 `api`：
+
+```tsx
+const { api, service } = useDialog({ open, onOpenChange });
+```
+
+`api` 每次渲染重新求值，随状态机状态变化。上下文类型（如 `DialogContext`）也导出，便于向下透传 `api` 时标注类型。父子部件之间的 context 是内部实现，不对外开放。
+
+## 全局配置
+
+`XhConfigProvider` 向下提供 locale、文案覆盖、尺寸、浮层落点与八轴视觉环境：
+
+```tsx
+<XhConfigProvider config={{ locale: "zh-CN", size: "sm" }}>
+  <App />
+</XhConfigProvider>;
+```
+
+视觉环境必须显式绑定 DOM 根，不推测 Provider 对应的元素。嵌套 Provider 自动继承外层控制器，局部 motion 只投影当前根，不修改全局 JS override：
+
+```tsx
+<XhConfigProvider config={{
+  visualEnvironment: {
+    root: workspaceElement,
+    initial: { mode: "dark", density: "compact", motion: "reduce" },
+  },
+}}
+>
+  <Workspace />
+</XhConfigProvider>;
+```
+
+配置经代理提供给部件 props：作者未传的属性从配置中取，传了的以作者为准。代理实现了 `ownKeys` 与 `getOwnPropertyDescriptor`：`{ ...props }` 展开在 React 中很常见，只有 `get` 陷阱的代理一经展开就退化为空对象，配置默认值会静默消失。
+
+## 状态机接入 React
+
+内部只有一层薄适配。`createReactRuntime()` 实现 `ReactiveRuntime` 的五个接口：
+
+| 接口 | React 实现 |
+| --- | --- |
+| `cell` | 闭包存值 + 受控语义（受控时值从 `prop()` 读取，内部值不写）；写入递增版本号，经 `useSyncExternalStore` 触发重渲染 |
+| `track` | 拉式：每次提交后逐项比对依赖，变化时才触发 |
+| `flush` | `flushSync` 强制一次提交，回调在 DOM 落定之后运行 |
+| `onMount` / `onCleanup` | `useLayoutEffect` 的挂载与清理 |
+
+`track` 是拉式的，与 Vue 侧不同。Vue 的 `watch` 挂在响应式源上，源变化即通知；React 中 props 的变化不经过任何可订阅的源，它是下一次渲染函数的入参。推式实现在这里永远收不到 props 变化：102 个状态机中的 `track` 与 97 个 `watch` 块会全部静默失效且不报错。
+
+`useMachine(machine, getProps, options)` 封装了它。props 传的是 getter：每次渲染读取，状态机读到的始终是当前帧的值。
+
+getter 的求值带一份记忆，钥匙有两把：渲染轮次与机器版本号。前者盖住组件 props 与渲染期赋值的 ref，后者是「任意一台机器的 cell 变过一次」的全局计数，盖住那些从别的机器现读的派生 props（取色器里内嵌的滑杆、分页里内嵌的页长下拉）。连接层一趟要读十几个 prop，两把钥匙都没动时它们共用同一份展开结果；任一动了当场作废。因此 getter 应当只读这两类来源。确实要在同一拍生效、等不到下一轮渲染的状态（气泡确认的挂起态就是一例）落 ref 之后调一次 `invalidateMachineProps()` 让记忆作废，别默默地读。
+
+## 部分处理器挂为原生监听器
+
+`connect` 按 DOM 语义编写，有两类处理器无法通过 React 的合成事件层：
+
+- `pointerenter` / `pointerleave` 不冒泡。React 的同名合成事件由 `pointerover` / `pointerout` 合成，直接派发到节点上的事件无法到达。
+- `stopImmediatePropagation()` 在 `SyntheticEvent` 上不存在，调用会抛错。载入态的按钮依靠它拦截同节点上作者的处理器。
+
+这类 props 由适配器改为真实的 DOM 监听器，行为与另外两个适配器一致。
+
+这一条由门禁保证：`check-native-events` 逐组件核对 `connect` 派发了哪些不冒泡的事件、React 侧是否逐个摘出，摘出 `connect` 未派发的名称同样判失败。`onFocusIn` / `onFocusOut` 不在其列：它们经 `reactNormalize` 归到 React 的 `onFocus` / `onBlur`，这两个合成事件挂的正是冒泡的 `focusin` / `focusout`。
+
+## 行为原语
+
+`@xihan-ui/react/behavior` 是单独的子入口，提供行为原语的 React 包装：滚动锁、悬停意图、滚动观察、贴底、连续输入检索五项：
+
+```tsx
+import { useHoverIntent, useScrollLock, useScrollTracker, useStickToBottom, useTypeahead } from "@xihan-ui/react/behavior";
+```
+
+自建浮层时才需要。不使用的应用不需要把它计入主入口的体积。
+
+`useHoverIntent` 在布局提交期读取 `getTriggerEl()`，因此已渲染元素的 ref 已就位，下一次指针输入不会落在旧节点上。本次提交未渲染 trigger 时释放绑定；节点更替或 `openDelay`、`closeDelay`、`buffer` 改变时重建。content getter 和两个意图回调只更新已提交引用，不会因普通闭包更替取消挂起的计时。需要显式标注选项时，从这个子入口导入 `UseHoverIntentOptions`，不借用 core 的元素快照类型。
+
+`useScrollLock` 在布局 effect 中加锁，首帧绘制前就生效，服务端不执行 DOM 副作用。锁跟随 active 而不是配置对象身份；关闭再开启时读取最新配置，StrictMode 清理与重建保持一致。
+
+## 背景层
+
+React 侧的视觉适配也位于单独的子入口，不引入就不会把 WebGL 引擎打进包：
+
+```tsx
+import { useBackground, XhBackground } from "@xihan-ui/react/backgrounds";
+```
+
+`@xihan-ui/backgrounds` 是可选 peer，使用前先安装；不使用视觉效果的应用安装本包也不会引入引擎。
+
+`XhBackground` 是独立视觉组件，children 浮在效果之上；`useBackground` 提供画面实例，它返回的 `ref` 挂到哪个元素上，效果就铺在哪个元素上。Vue 侧另有第三种写法 `v-background`，React 没有对应物：指令是 Vue 特有的介质，挂 `ref` 是同一件事。
+
+两种用法见[背景层](../guide/backgrounds#在-react-里用)。
+
+## 命令式服务
+
+对话框、通知、顶部进度条三个服务从组件树之外调用，自带宿主树；轻提示是通知服务的 `preset: "toast"`：
+
+```ts
+import { createNotificationService } from "@xihan-ui/react";
+
+const toast = createNotificationService({ preset: "toast" });
+toast.success("已保存");
+```
+
+行为与命令面见[命令式服务](../runtime/services)。React 侧有一处实现差别：`createRoot().render()` 是排队的，而 Vue 的 `app.mount()` 同步完成，因此首帧提交由 `flushSync` 包裹：服务创建后紧接着发出的命令（拦截器中常见）不会因为宿主尚未渲染而丢失。
+
+宿主树在组件树之外，无法接入组件树中的 `XhConfigProvider`。需要与应用同语言时，通过 `config` 选项提供，或之后用 `setConfig` 更新。
+
+## 声音层
+
+`@xihan-ui/react/sound` 是单独的子入口。`withNotificationSound` / `withDialogSound` 为上述两个命令式服务配置声音，调用点不需要修改；`useSoundOnPress` 为单个元素配置声音，返回值挂到该元素的 `ref` 上：
+
+```tsx
+import { setSoundPlayer, useSoundOnPress, withNotificationSound } from "@xihan-ui/react/sound";
+```
+
+Vue 侧由 `v-sound` 指令完成同一件事。React 没有指令介质，改为返回 ref 回调的 hook；两侧的服务包装名与选项完全同名同形。默认映射与开关见[声音层](../guide/sound#在-react-里用)。
+
+## 服务端渲染
+
+- `createReactRuntime()` 的 `isServer` 由 `typeof window === 'undefined'` 判定，服务端不挂事件、不读媒体查询；
+- scope 的基名取自 `useId`，同一棵树两端一致，不会 hydration 不匹配；
+- 主题属性建议在服务端就渲染到 `<html>` 上，见[设计令牌与主题](../guide/theme#服务端渲染)。
+
+## 与另外两个适配器的关系
+
+三个适配器运行同一个状态机、同一份 `connect`，输出的 DOM 属性完全一致：跨适配器一致性测试逐帧比对归一化快照，无法消除的差异即判失败。React 侧另有一道服务端渲染一致性判据。
+
+## 相关
+
+- [组件参考](../components/)：全部组件与部件
+- [connect 与属性产出](../guide/connect)
+- [Vue 适配器](./vue)
+- [Web Components 适配器](./web-components)
+
+---
+
+来源：https://ui.docs.xihanfun.com/adapters/vue
+
+# Vue 适配器
+
+`@xihan-ui/vue` 是无头内核的 Vue 3 外壳。它负责三件事：把状态机接入 Vue 的响应式、把部件封装为组件、把 `connect` 产出的 props 展开到 vnode 上。它不实现任何组件逻辑。
+
+依赖：`vue` 是 peer 依赖（由项目提供）；`@xihan-ui/backgrounds` 与 `@xihan-ui/sound` 是可选 peer，不使用视觉效果或音效时不需要安装。
+
+## 组件命名
+
+每个部件一个组件，一律 `Xh` 前缀 + 组件名 + 部件名：
+
+```ts
+import {
+  XhAccordionContent,
+  XhAccordionHeader,
+  XhAccordionIndicator,
+  XhAccordionItem,
+  XhAccordionRoot,
+  XhAccordionTrigger,
+} from "@xihan-ui/vue";
+```
+
+只有一个部件的组件不带部件后缀（`XhButton`、`XhSwitch`、`XhBadge`）。全部导出组件按组件分组列在[组件参考](../components/)。
+
+没有插件，不需要 `app.use()`。按名称 import 即可，`sideEffects: false` 让打包器移除未使用的部分。
+
+## 配置与视觉环境
+
+`provideXhConfig` 接收响应式配置。八轴视觉环境必须显式给出对应 DOM 根；嵌套 provide 自动接父控制器，局部 motion 不改全局 JS override：
+
+```ts
+provideXhConfig({
+  locale: "zh-CN",
+  visualEnvironment: {
+    root: workspaceElement,
+    initial: { mode: "dark", density: "compact", motion: "reduce" },
+  },
+});
+```
+
+物理 Portal 会由 Core 从该根桥接已解析八轴到实例壳，Vue 适配器不复制视觉状态。
+
+## 事件与 v-model
+
+值类组件同时发两个事件：
+
+<!-- eslint-skip -->
+
+```ts
+emits: {
+  'value-change': (details: PayloadOf<AccordionProps, 'onValueChange'>) => true,
+  'update:value': (value: PayloadOf<AccordionProps, 'onValueChange'>['value']) => true,
+}
+```
+
+| 事件 | 载荷 | 用途 |
+| --- | --- | --- |
+| `value-change` | 完整明细对象，如 `{ value }` | 需要全部上下文时 |
+| `update:value` | 裸值 | 供 `v-model` 使用 |
+
+```vue
+<template>
+  <!-- 双向绑定 -->
+  <XhAccordionRoot v-model:value="panels" multiple />
+
+  <!-- 或自行处理明细 -->
+  <XhAccordionRoot :value="panels" @value-change="onChange" />
+</template>
+```
+
+具体的绑定名按组件而定：开关是 `v-model:checked`，浮层是 `v-model:open`，输入框是 `v-model:value`。
+
+## 原生属性透传与严格模板检查
+
+组件上没声明成 prop 的属性按 Vue 的属性透传落到根元素上：给 `XhFormRoot` 写 `id`，外部的提交按钮就能用 `form="…"` 关联到这张表单；`class`、`style`、`aria-*`、`data-*` 同理。组件的类型只列出自己的 prop，没有把根元素的原生属性并进来——把几百个原生属性并进每个组件，会让 prop 表与类型提示都淹没在里面。
+
+开启 vue-tsc 的 `strictTemplates`（或单开 `checkUnknownProps`）后，这类透传属性会被报成未知属性。在项目的 `env.d.ts` 里扩一次 `ComponentCustomProps` 即可，组件自己的 prop 照常受检，拼错的属性名仍然会报：
+
+<!-- eslint-skip -->
+
+```ts
+// env.d.ts
+import type { HTMLAttributes } from 'vue'
+
+declare module 'vue' {
+  interface ComponentCustomProps extends Omit<HTMLAttributes, 'class' | 'style'> {}
+}
+```
+
+这条扩充对项目里所有组件生效（第三方组件同样放行原生属性），由项目自己决定是否开启。表单、按钮等元素专有的属性（`novalidate`、`form`）不在通用原生属性里，需要时把对应的 `FormHTMLAttributes`、`ButtonHTMLAttributes` 一并并进去。
+
+升级时同样建议开启 `checkUnknownProps` 与 `checkUnknownEvents`：移除或改名的属性不会报错，只会被当成原生属性透传到根元素上而静默失效，这两项检查能把它们一次扫出来。
+
+## asChild 与事件取消
+
+支持 `asChild` 的部件可以把行为接到作者提供的单个子节点上。Fragment 会展开后检查，仅忽略空白、注释和条件占位；零个或多个可挂载子节点、元素旁并列的非空文本或数字都会明确报错，不会生成默认按钮或丢弃可见内容。需要默认按钮时移除 `asChild`，组合多个内容时提供一个实际宿主节点。
+
+作者写在部件或子节点上的事件处理器先执行；调用 `preventDefault()` 后，部件内部动作不再执行。作者的处理器数组仍按原顺序运行，`stopImmediatePropagation()` 仍可停止同节点后续处理器。普通回调保留全部参数，ref 的登记和清理不受事件取消影响。
+
+## 受控与非受控
+
+传受控属性即受控，只传 `default*` 即非受控：
+
+```vue
+<template>
+  <XhSwitch v-model:checked="wifi" />      <!-- 受控 -->
+  <XhSwitch :default-checked="false" />     <!-- 非受控 -->
+</template>
+```
+
+受控时组件不会自行改变：它只发出变更意图，由使用者写回新值后才真正改变。这条语义收在状态机的 `cell` 与 `watch` 中，不由各组件自行判断。详见[状态机运行时](../guide/machine#受控与非受控-cell)。
+
+`default*` 只在 setup 时读取一次，之后修改不影响当前值，只改变表单重置的落点；要换初值就换 `key`。三端的取法见[初值的读取时机](../guide/machine#初值的读取时机)。
+
+## 作用域插槽
+
+根组件通过作用域插槽提供命令式方法：
+
+```vue
+<template>
+  <XhDialogRoot v-slot="{ setOpen }">
+    <XhDialogTrigger>打开</XhDialogTrigger>
+    <XhDialogContent>
+      <XhButton @click="setOpen(false)">取消</XhButton>
+    </XhDialogContent>
+  </XhDialogRoot>
+</template>
+```
+
+### 载荷有类型
+
+插槽载荷都写进了组件的 `SlotsType`，`vue-tsc` 可以捕获两类拼写错误：
+
+```vue
+<template>
+  <XhTabsRoot :collection="tabs">
+    <!-- ✓ node 是 TabsNodeMeta，字段可补全 -->
+    <template #panel="node">{{ node.label }}</template>
+  </XhTabsRoot>
+</template>
+```
+
+两类拼写错误分别如下：
+
+```vue
+<template>
+  <!-- ✗ TS2551: Property 'lable' does not exist on type 'TabsNodeMeta'. Did you mean 'label'? -->
+  <XhTabsRoot :collection="tabs">
+    <template #panel="node">{{ node.lable }}</template>
+  </XhTabsRoot>
+
+  <!-- ✗ TS2339: 组件没有这个插槽 -->
+  <XhTabsRoot :collection="tabs">
+    <template #panle>…</template>
+  </XhTabsRoot>
+</template>
+```
+
+载荷类型本身也从主入口导出（命名如 `TabsPanelSlotProps`、`StepsRootSlotProps`），需要把插槽内容拆成子组件时可以直接用于标注 props。
+
+插槽键在类型上一律可选：组件内部按作者是否编写该插槽决定是否按 `collection` 铺开默认结构，键若非可选，该判断在类型上恒为真。
+
+不使用现成 DOM 结构时，直接使用 `api` 自行渲染：
+
+```vue
+<script setup lang="ts">
+import { useAccordion } from "@xihan-ui/vue";
+
+const { api } = useAccordion(
+  { multiple: true, defaultValue: ["a"] },
+  details => console.log(details.value), // onValueChange
+);
+</script>
+
+<template>
+  <section v-bind="api.getRootProps()">
+    <article v-bind="api.getItemProps({ value: 'a' })">
+      <h3 v-bind="api.getHeaderProps({ value: 'a' })">
+        <button v-bind="api.getTriggerProps({ value: 'a' })">第一节</button>
+      </h3>
+      <div v-bind="api.getContentProps({ value: 'a' })">内容</div>
+    </article>
+  </section>
+</template>
+```
+
+`api` 是一个 `ComputedRef`，随状态机状态变化重新求值。纯展示型组件（如 `XhBadge` 等没有状态机的组件）不提供组合式函数。
+
+上下文类型（`AccordionContext` 等）也一并导出，便于向下透传 `api` 时标注类型。父子组件之间的 provide / inject 是内部实现，不对外开放；自定义结构请直接用组合式函数获取 `api`，不接入现成组件的上下文。
+
+## 状态机接入 Vue 响应式
+
+内部只有一层薄适配。`createVueRuntime()` 实现 `ReactiveRuntime` 的五个接口：
+
+| 接口 | Vue 实现 |
+| --- | --- |
+| `cell` | `shallowRef` + 受控语义（受控时值从 `prop()` 读，内部 ref 不写） |
+| `track` | `watch(deps, fn, { flush: 'pre' })` |
+| `flush` | `nextTick` |
+| `onMount` / `onCleanup` | `onMounted` / `onBeforeUnmount`（不在组件内则立即执行 / 忽略） |
+
+`useMachine(machine, props, scope)` 封装了它。props 传的是 getter 而不是对象，因此在模板中原地修改某个 prop 也能生效。
+
+getter 的求值放在一个 `computed` 里：连接层每读一个 prop 都会经过它，依赖没动时复用同一份展开结果（状态机的身份缓存跟着命中），依赖一动就产出新对象，身份缓存照旧失效。失效面与组件自己的重渲一致，getter 因此必须只读响应式来源——组件 props、`attrs`、ref、注入的上下文、全局配置。读普通变量或普通数组的长度不会让它重算；那类来源本来也驱动不了 `computed(() => connectX(...))` 的重算，只是以前靠每次重新展开碰巧读到过新值。
+
+## 行为原语
+
+`@xihan-ui/vue/behavior` 单独提供滚动锁、悬停意图、滚动观察、贴底和连敲检索的 Vue 包装。`useHoverIntent` 到 mounted 后才读取模板 ref，并持续观察 trigger 与三个计时参数；trigger 暂时为 `null` 时释放旧绑定，节点重新出现后再建立。content getter 与回调现读当前响应式选项，不会因浮层内容挂载或普通闭包换代重启安全三角。选项对象本身也可传 ref 或 getter；显式类型使用该子入口的 `UseHoverIntentOptions`。
+
+`useScrollLock` 在组件 mounted 后才读取模板 ref，并以 post watcher 跟随 active；释放时先清本地句柄，清理抛错后再次激活仍可建立。active 为真期间不因配置对象更新重锁，关闭再开启才读取新配置。
+
+## 背景层
+
+Vue 侧的视觉适配位于单独的子入口，不引入就不会把 WebGL 引擎打进包：
+
+```ts
+import { useBackground, vBackground, XhBackground } from "@xihan-ui/vue/backgrounds";
+```
+
+三种用法见[背景层](../guide/backgrounds#在-vue-里用)。
+
+## 声音层
+
+同样是单独的子入口。`withNotificationSound` / `withDialogSound` 为命令式反馈服务配置声音，调用点不需要修改；`v-sound` 为单个元素配置声音：
+
+```ts
+import { setSoundPlayer, vSound, withNotificationSound } from "@xihan-ui/vue/sound";
+```
+
+默认映射与开关见[声音层](../guide/sound#在-vue-里用)。
+
+## 服务端渲染
+
+- `createVueRuntime()` 的 `isServer` 由 `typeof window === 'undefined'` 判定，服务端不挂事件、不读媒体查询；
+- id 由 `createVueIdGenerator()` 生成，同一棵树两端一致，不会 hydration 不匹配；
+- 主题属性建议在服务端就渲染到 `<html>` 上，见[设计令牌与主题](../guide/theme#服务端渲染)。
+
+## 与 Web Components 适配器的关系
+
+两者运行同一个状态机、同一份 `connect`，输出的 DOM 属性完全一致：跨适配器一致性测试逐帧比对归一化快照，无法消除的差异即判失败。
+
+Vue 项目使用本适配器；需要在多个框架或无框架页面中复用同一套组件时使用[自定义元素](./web-components)。两者可以在同一页面共存。
+
+## 相关
+
+- [组件参考](../components/)：全部组件与部件
+- [connect 与属性产出](../guide/connect)
+- [Web Components 适配器](./web-components)
+
+---
+
+来源：https://ui.docs.xihanfun.com/adapters/web-components
+
+# Web Components 适配器
+
+`@xihan-ui/web-components` 把同一套无头内核封装为原生自定义元素。它采用一种不常见的形态：Light DOM 行为宿主。元素本身不渲染任何结构，结构由作者编写，元素只负责发现角色节点并写入属性与事件。
+
+响应式基类为自研（`XhReactiveElement`），不依赖任何第三方运行时。
+
+## 注册
+
+```ts
+import { defineXhElements } from "@xihan-ui/web-components/define";
+
+defineXhElements(); // 注册全部 144 个 xh-* 元素
+```
+
+主入口的 `import` 本身不注册，必须显式调用这一行。注册是幂等的：同版本重复调用直接返回；同标签不同版本，或标签已被非 XiHan.UI 代码占用，都会抛错而不是静默覆盖。无 `customElements` 的环境（SSR）静默跳过。
+
+背景层单独注册，不引入就不会把 WebGL 引擎打进包：
+
+```ts
+import { defineXhBackground } from "@xihan-ui/web-components/backgrounds";
+
+defineXhBackground();
+```
+
+## 配置与视觉环境
+
+`<xh-config>` 本身就是 Light DOM 局部 scope，八轴一次声明后会投影为 Core Portal 能桥接的标准属性：
+
+```html
+<xh-config
+  mode="dark"
+  brand="acme"
+  density="compact"
+  direction="rtl"
+  contrast="more"
+  motion="reduce"
+  transparency="reduce"
+>
+  <my-workspace></my-workspace>
+</xh-config>
+```
+
+局部 `motion` 只降低该子树的 CSS 动效，不隐式调用全局 `setMotionOverride`。应用根需要同时驱动 JS 动画时，用 `setXhConfig({ visualEnvironment: { root, initial, motionSink } })` 显式绑定；详见[设计令牌与主题](../guide/theme)。
+
+## 结构由作者编写
+
+```html
+<xh-dialog>
+  <button data-xh-part="trigger">打开对话框</button>
+  <div data-xh-part="backdrop"></div>
+  <div data-xh-part="positioner">
+    <div data-xh-part="content">
+      <h3 data-xh-part="title">确认操作</h3>
+      <p data-xh-part="description">这条操作不可撤销。</p>
+      <button data-xh-part="close-trigger" aria-label="关闭">✕</button>
+    </div>
+  </div>
+</xh-dialog>
+```
+
+接线后元素会向这些节点写入 `data-scope` / `data-part` / `aria-*` / `data-state` 与事件处理器，在 DevTools 中可以直接查看。
+
+::: tip 为什么是 Light DOM 而不是 Shadow DOM
+Shadow DOM 会封闭结构：无法更换标签、无法插入自定义节点、外部 CSS 无法进入、表单关联和 `aria-*` 跨边界引用都需要额外机制。本库的定位是行为可复用、外观完全由使用者决定，Light DOM 与之匹配。
+
+代价是需要自行编写结构，因此必备部件的校验必须存在。
+:::
+
+## 部件契约校验
+
+元素接线时比对作者编写的 DOM 与组件解剖，三种问题报告到[诊断通道](../guide/diagnostics)：
+
+| 码 | 级别 | 触发条件 |
+| --- | --- | --- |
+| `wc.missing-part` | error | 缺必备角色节点，该部件不会被接线 |
+| `wc.unknown-part` | warn | 角色节点的 part 名不在组件解剖内 |
+| `wc.wrong-part-tag` | error | 角色节点用的标签不满足要求 |
+
+第三条只登记写错即静默失效的情况。例如表单字段的 `label` 必须是原生 `<label>`，写成 `<div>` 会使 `for` 关联失效、点击标签不再聚焦控件，而页面看起来一切正常。
+
+部分宿主会把内嵌部件的 DOM 铺在自己的 Light DOM 中接线（日期选择器之于日期输入与日历），这些角色节点由内嵌部件管理，通过契约中的 `delegates` 登记，不会被当作未知节点报警。
+
+## 属性
+
+属性遵循自定义元素惯例：kebab-case 的 HTML attribute ↔ camelCase 的 JS property。
+
+```html
+<xh-dialog default-open modal="false" role="alertdialog">
+```
+
+```ts
+const dialog = document.querySelector("xh-dialog");
+dialog.open = true; // 受控
+dialog.closeOnEscape = false;
+```
+
+布尔属性使用三态转换器：属性缺席 = `undefined`（使用组件默认值），`="false"` = `false`，其余 = `true`。这个区分是必要的：`modal` 的默认值是 `true`，缺席与 `="false"` 不能区分时就无法关闭它。
+
+数组与对象形态的初值只能走 property，而脚本常常排在元素连接之后才执行。状态第一次被写入之前，给 `default*` 赋值都算数：
+
+```ts
+const calendar = document.querySelector("xh-calendar-picker");
+calendar.defaultValue = ["2026-09-18"]; // 元素早已连接，照样按这一天选中
+```
+
+写入（用户交互、方法调用、表单重置）之后再改 `default*` 不影响当前值，只改变表单重置的落点，与 Vue / React 一致，见[初值的读取时机](../guide/machine#初值的读取时机)。
+
+## 事件
+
+组件的变更以 `CustomEvent` 派发，`bubbles: true, composed: true`，事件名是 kebab-case：
+
+```ts
+document.querySelector("xh-dialog")
+  .addEventListener("open-change", (e) => {
+    console.log(e.detail.open); // { open: boolean }
+  });
+```
+
+`detail` 即无头内核中的明细对象，与 Vue 适配器的 `value-change` 载荷完全一致。
+
+## 生命周期
+
+一台状态机对应一个控制器：
+
+- `connectedCallback` → 写回升级前赋在实例上的属性，再创建状态机并 mount（旧状态机已停止时从 `initialState` 重建）；
+- 每次更新 → 状态尚未被写入而 `default*` 变了时，按新的初值重建状态机；再运行依赖追踪；
+- `disconnectedCallback` → unmount。
+
+角色节点的进出由 `MutationObserver` 监视，但只在确实有角色节点进出时才重新接线：业务内容（图表、虚拟列表、面板内的业务 DOM）的增删与部件集合无关。这条判断同时避免了一条死循环：角色节点若本身是会在属性变化时改写自身子节点的自定义元素，“宿主重新接线 → 写属性 → 该节点改子节点 → 再次命中观察器”会形成环。
+
+属性观察同理只监视 `value` / `disabled` / `aria-disabled` 三个作者编写的声明，不监视状态机每帧写入的 `aria-*` / `data-*`，全量观察等于自我触发。
+
+## 收起态
+
+浮层关闭时使用内联 `style.display` 而不只依靠 `hidden` 属性：作者层若为该部件声明了 `display`，会覆盖 UA 的 `[hidden] { display: none }`，只靠 `hidden` 无法收起。
+
+展开时恢复作者原本的内联值而不是清为空串：后者会把作者写在该节点上的 `style="display:grid"` 一并清除，且无法恢复。
+
+## 多级菜单的 Portal 所有权
+
+`<xh-menu submenu>` 仍由作者在父 Menu、ContextMenu 或 Menubar 的 Light DOM 中声明。展开时只有它的 `positioner` 会搬到所属 Document 的 `#xh-portal-root`：父菜单的磨砂 `backdrop-filter` 因此不会把 fixed 子层困在局部包含块。每层有自己的无盒 Portal 壳，壳会桥接触发条目祖先上的主题、品牌、密度、对比度、动效与文字方向。
+
+搬运不会转移行为所有权。子菜单宿主继续观察并接线 positioner 里的动态部件，父宿主通过内部逻辑 owner 给 trigger 补齐父层 item 身份；末级选择按叶到根关闭，并只由根派发一次 `select`。关闭、断连或 trigger 换代时，positioner 会恢复到原占位。展开期间应持有部件引用或从 `ownerDocument` 查询，不能假设 `submenu.querySelector(...)` 仍能找到已搬走的 positioner。
+
+## 升级前
+
+自定义元素在 JS 到达之前不会升级，这段时间 `data-scope` / `data-part` 尚未写入，浮层内容会以裸文本出现在页面流中。`@xihan-ui/styles` 的 `undefined.css` 用 `:not(:defined)` 配合作者编写的 `data-xh-part` 先收起浮层子树，见[皮肤与样式分层](../guide/styling#升级前的形态)。
+
+## 自定义元素清单
+
+包内附带 `custom-elements.json`（CEM 格式），包含 144 个元素的标签名、属性、事件、CSS part。编辑器与框架的自定义元素支持可以直接读取它获得补全与类型提示。
+
+清单由构建生成，`pnpm gate:cem` 会重新生成后比对，修改元素后未重新生成会被拦截。
+
+## 与 Vue 适配器的关系
+
+两者运行同一个状态机、同一份 `connect`，输出的 DOM 属性完全一致。文档站每个组件页的示例多套写法并排，便于逐帧对照。
+
+在同一页面共存没有问题：诊断通道是全局的、层栈按文档共享，两套适配器的浮层会正确叠放在同一层栈中。
+
+## 相关
+
+- [组件参考](../components/)：每个组件的标签名与必备部件
+- [解剖与部件契约](../guide/anatomy)
+- [诊断通道](../guide/diagnostics)
 
 ---
 
