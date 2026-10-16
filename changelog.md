@@ -4,6 +4,59 @@
 
 本文件记录 XiHan.UI 各版本的变更。每条标注 **新增 / 修复 / 优化 / 调整 / 移除** 类别。只收录使用者可感知的变更，仓库自身的配置、CI、测试与门禁不列入。组件以 npm 包形式发布，升级前请留意「调整」类中的破坏性变更。
 
+## v4.2.0 (2026-10-15)
+
+JsonViewer 新增按需打开的工具条与原文着色，图表配色整体改为浅色调，并新增命令行与 MCP 服务端 `@xihan-ui/cli`。
+
+- **新增** JsonViewer 内建工具条 `tools`：展开 / 收起全部、树与原文切换、原文自动换行、复制原文，可铺出全部或只列几项；新增 `source`，原文档与复制按后端原文显示，超出安全整数的 ID 不再失真；`view` 补上 `defaultView` / `onViewChange`，新增 `wrap` / `defaultWrap` / `onWrapChange`
+- **新增** JsonViewer 原文档按类别着色，键名、字符串、数字、布尔、null 与标点与树档同一套颜色
+- **新增** `@xihan-ui/cli`：组件 API、文档、示例、令牌、design.md 与更新日志的离线知识库，附命令行与 stdio MCP 服务端；`setup` 为 Claude Code、Cursor、VS Code、Codex 写入钉住版本的配置与使用技能
+- **新增** 文档站新增「AI 辅助开发」一册：For Agents、MCP Server、CLI、LLMs.txt、design.md
+- **新增** 图标 `list-tree`；表格单元格行内内衬令牌 `--xh-table-cell-px-sm` / `-md` / `-lg`；顺序色阶两段的文字色令牌 `--xh-chart-on-sequential-low` / `-high`
+- **调整** 图表缺省分类色板、配色方案、有序色阶、涨跌色与亮色下的顺序、发散色阶改为浅色调，色块内文字换成深色；`validateCategoricalPalette`、`validateOrdinalRamp` 新增 `tone: 'light'`
+- **调整** 表格单元格与列头的行内内衬随尺寸档换档（sm 8 / md 12 / lg 16px），此前三档都是 16px
+- **调整** 多行文本字段自增高的上限槽改名为 `--xh-text-field-input-max-h`，旧槽 `--xh-text-field-control-max-h` 仍兜底生效
+- **修复** Descriptions 描边档：标签在左时同一列的标签按最长的那个对齐；有跨列或最后一行不满时格线不再错位，也不再与外框叠成两道
+- **修复** 树形表的父行收起之后能再展开
+- **修复** Separator 竖线在由内容撑高的横排里铺满行高，不再只剩 1em 贴在行顶
+- **修复** 多行文本 `autoSize` 顶到上限后只剩一层滚动，行数界限超过 12rem 不再被截掉
+
+## v4.1.0 (2026-10-13)
+
+看片工具条补齐复原钮图标，通知里的长串不再撑出滚动条。
+
+- **新增** 图标集 `undo`（U 形回转箭头），令牌 `--xh-glyph-mark-undo`
+- **调整** ImageViewer 复原钮不写内容时由皮肤画回转箭头，与其余工具钮一致（此前 Vue / React 显示「1:1」文字）；Web Components 写空的 `reset-trigger` 按钮即可
+- **修复** Notification 标题与说明里没有断点的长串（凭证号、令牌、文件路径）就地折行，不再顶出卡片或撑出横向滚动条
+
+## v4.0.1 (2026-10-12)
+
+修复 4.0.0 的几处回退。
+
+- **修复** 字段标题指向弹出式触发钮（Select、DatePicker 等）时只聚焦、不开合，下拉展开时点标题（含标题右侧空白）能收起
+- **修复** 字段直接放进 Form（不包 `XhFormFieldGroup`）时，辅助行同样算项距，行距不再翻倍
+- **修复** Web Components 字段族宿主的 `display: contents` 改由皮肤声明：写在样式表里的 `display` 生效，带 `hidden` 的宿主不再被掀开
+- **调整** 菜单与候选列表限高 `--xh-overlay-menu-max-h` 恢复为 20rem（紧凑 17rem）
+
+## v4.0.0 (2026-10-12)
+
+本版是一次全库视觉改版：控件高降一档、圆角收窄、字段改为淡底且聚焦不画环、浮层改为实体底，并新增图表配色方案、日期与时间选择器底栏和作用域禁用。多数变化只影响外观，少数缺省值、令牌与覆盖槽有改动，升级前请看升级须知。
+
+::: warning 升级须知
+- **缺省值**：Accordion `variant` 改为 `outline`、Tree `variant` 改为 `ghost`、Badge `tone` 改为 `danger`，日历的 `weekdayFormat` 改为 `narrow`，`LOADING_BAR_HEIGHT` 改为 3px；要保持原样请显式传值
+- **行为**：Fieldset 的禁用会压到整棵子树；NumberField 增减钮在精细指针下悬停或聚焦才显出；Web Components 的 20 个字段族宿主缺省 `display: contents`，写在宿主上的宽度与外边距请改写到 root 或用 `--xh-control-w`
+- **令牌**：控件高 sm / md / lg 为 28 / 32 / 36px（compact 24 / 28 / 32px），圆角 2 / 4 / 8px，浮层圆角 4px，标题 24 / 20 / 16px，`--xh-motion-scale-press` 为 1（主题写回 0.97 可恢复按下回弹）
+- **覆盖槽**：删除或改名 60 个，集中在字段聚焦环、Dialog、Slider 与日期时间面板；写过这些 `--xh-<组件>-*` 的项目请对照各包 CHANGELOG 迁移
+- **快照**：部分按钮的 `data-xh-action-size` 与动效时长有变化，视觉快照和按时长等待的测试需要更新
+:::
+
+- **新增** 图表配色方案：在祖先上写 `data-xh-chart-palette`，取 `monochrome` / `brand` / `muted`
+- **新增** DatePicker、DateRangePicker、TimePicker 的底栏部件 `footer`
+- **新增** 全局配置的 `disabled` 键，经 `provideXhConfig` / `XhConfigProvider` / `<xh-config>` 禁用整棵子树
+- **新增** Spinner 的 `orientation`；Web Components 嵌套宿主可用 `data-xh-part` 担任外层部件（目前支持 `xh-button`）；React `XhButton` 补上 `download`
+- **修复** 无层样式的排版、窄屏溢出、粗指针命中区与强制色下的显示，共二十余处
+- **优化** Notification 叠摞与退场、列表换位的动效；图表入场放慢到 960ms
+
 ## v3.2.0 (2026-10-06)
 
 本版新增十种常用语言的内建语言包（`locale` 子入口），组件不再自带英文，界面文字一律取语言包；Dialog 与 Drawer 新增 `unmountOnExit`，Select 新增 `lazyMount`，Carousel 与 ImageViewer 新增 `size`，浮动圆钮整体下移一档。另有一批面向大页面的性能优化：模态背景失活改为只打 `aria-hidden`，Portal 视觉桥只在浮层呈现期间存在，皮肤产物改以挂载类 `xh-scope-<组件名>` 领头。挂载类、浮动圆钮尺寸与模态背景的变化会影响自写标记、视觉快照与页内查找，升级前请看下方升级须知。

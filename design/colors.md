@@ -42,11 +42,14 @@
 
 | 档 | 浅色主题里的角色 | 深色主题里的角色 |
 | --- | --- | --- |
-| 0 / 50 | 面（`--xh-bg-surface`）与页面底（`--xh-bg-page`） | 反白前景 |
-| 100 – 300 | 淡底与三档边线（subtle 100 / default 200 / strong 300） | — |
-| 400 / 550 / 600 | 禁用字 / 次要字 / 正文次级 | — |
-| 700 / 800 | — | 装饰边（default 700）与淡底 |
-| 900 / 950 | 正文（950） | 面（900）与页面底（950） |
+| 0 | 面（`--xh-bg-surface`） | — |
+| 50 | — | 正文 |
+| 100 | 页面底（`--xh-bg-page`）：白面放在冷灰底上 | — |
+| 400 / 550 / 600 | 禁用字 / 次要字 / 正文次级 | 次要字 / — / 禁用字 |
+| 750 | — | 抬起的面（`--xh-bg-surface-raised`） |
+| 900 / 950 | 正文（900） | 面（900）与页面底（950） |
+
+淡底与三档边线不取这张表里的灰，取墨色按比例透明（浅色档淡底 4.7% / 10.2% / 16.9%、边线 subtle 4.7% / default 10.2% / strong 16.9%），见下文[彩色面与墨色域](#彩色面与墨色域)。
 
 ## 品牌色
 
@@ -90,7 +93,7 @@ danger 动作与 error 状态分开定义，不共用业务语义；状态色表
 
 <XhTokenTable
   kind="color"
-  :names="['--xh-bg-page', '--xh-bg-canvas', '--xh-bg-surface', '--xh-bg-surface-raised', '--xh-bg-subtle', '--xh-bg-subtle-hover', '--xh-bg-subtle-active', '--xh-bg-muted', '--xh-bg-subtle-opaque', '--xh-bg-subtle-hover-opaque', '--xh-bg-subtle-active-opaque', '--xh-bg-muted-opaque', '--xh-bg-brand', '--xh-bg-brand-hover', '--xh-bg-brand-active', '--xh-bg-brand-subtle', '--xh-bg-brand-subtle-hover', '--xh-bg-brand-subtle-active', '--xh-bg-overlay']"
+  :names="['--xh-bg-page', '--xh-bg-canvas', '--xh-bg-surface', '--xh-bg-surface-raised', '--xh-bg-subtle', '--xh-bg-subtle-hover', '--xh-bg-subtle-active', '--xh-bg-field', '--xh-bg-muted', '--xh-bg-subtle-opaque', '--xh-bg-subtle-hover-opaque', '--xh-bg-subtle-active-opaque', '--xh-bg-muted-opaque', '--xh-bg-brand', '--xh-bg-brand-hover', '--xh-bg-brand-active', '--xh-bg-brand-subtle', '--xh-bg-brand-subtle-hover', '--xh-bg-brand-subtle-active', '--xh-bg-overlay']"
   :notes="{
     '--xh-bg-page': '页面底：面之下那一层，铺满视口',
     '--xh-bg-canvas': '不透明画布：自动填充遮罩、色块选中环等必须不透明的地方；控件盒静息不再填它',
@@ -99,6 +102,7 @@ danger 动作与 error 状态分开定义，不共用业务语义；状态色表
     '--xh-bg-subtle': '淡底；白底上的 hover',
     '--xh-bg-subtle-hover': '白底上的 pressed；淡底上的 hover',
     '--xh-bg-subtle-active': '淡底上的 pressed，只留给按下',
+    '--xh-bg-field': '字段外壳静息的底：淡底兑一半；聚焦换回 surface',
     '--xh-bg-muted': '禁用实心钮退到的中性面',
     '--xh-bg-subtle-opaque': '淡底的不透明档：要盖住下层内容的面（吸顶表头、浮动钮、层叠头像）',
     '--xh-bg-subtle-hover-opaque': '淡底 hover 档的不透明档',
@@ -133,12 +137,12 @@ danger 动作与 error 状态分开定义，不共用业务语义；状态色表
   :names="['--xh-border-default', '--xh-border-default-opaque', '--xh-border-subtle', '--xh-border-strong', '--xh-border-control', '--xh-border-control-hover', '--xh-border-control-focus', '--xh-border-invalid', '--xh-ring-focus', '--xh-ring-invalid']"
   :notes="{
     '--xh-border-default': '一切根面外边与 raised 面描边',
-    '--xh-border-default-opaque': '装饰边的不透明档：压在任意内容上、必须自带浅框的部件（滑杆拇指）',
+    '--xh-border-default-opaque': '装饰边的不透明档：压在任意内容上、必须自带浅框的部件（取色滑杆的拇指）',
     '--xh-border-subtle': '只作内部分隔线',
-    '--xh-border-strong': '只作高对比档与刻意登记的强调边',
+    '--xh-border-strong': '只作高对比档与登记过的强调边：字段悬停边、勾选方框与单选圈的静息边',
     '--xh-border-control': '控件边界，缺省档与 border-default 同色；高对比档才加深到 3:1',
     '--xh-border-control-hover': '控件悬停边',
-    '--xh-border-control-focus': '聚焦边，与焦点环同色、不随语气',
+    '--xh-border-control-focus': '聚焦边，与焦点环同色、不随语气；字段聚焦只换这条边与底色，不画环',
     '--xh-ring-focus': '公共键盘焦点环，对画布、面与淡底都 ≥ 3:1',
   }"
 />
@@ -264,7 +268,7 @@ const surfaces = ["var(--xh-color-orange-500)", "var(--xh-color-teal-300)", "var
 ```
 
 - 没声明域的地方同样用墨色表达描边与淡底：墨色取主题极性（浅色档纯黑、深色档纯白），所以作者自己的彩色区块即使不声明，描边、分隔与淡底也是底色自身的深浅变体，只有文字需要声明域。置灰字属于文字，同样只在域里换成墨色。
-- 比例不手填，按「与原中性色对比度相等」求：描边在页面底、画布、缺省面与对话框面上各求一个比例取最大值，哪种面上都不比原来淡；淡底只按缺省面求，压在上面的字与焦点环对比度不降。浅色档描边约 10%、淡底约 4%，与原中性色一致；深色档描边 22%（卡片面上比原来略重）、淡底约 6%。
+- 比例不手填，按「与原中性色对比度相等」求：描边在页面底、画布、缺省面与对话框面上各求一个比例取最大值，哪种面上都不比原来淡；淡底只按缺省面求，压在上面的字与焦点环对比度不降。浅色档描边 10.2%、淡底 4.7%，与原中性色一致；深色档描边 22%（卡片面上比原来略重）、淡底 6.2%。
 - 淡底是半透明的，叠在别的淡底上会加深。要盖住下层内容的面（粘性表头、固定列、浮在内容上的钮）取 `-opaque` 档：同一比例的墨色叠在缺省面上的实色。
 - 放文字的彩色面避开相对亮度 0.15–0.24：neutral 950 与 neutral 50 在这一段都到不了 4.5:1，只有纯黑、纯白勉强达标。品牌色阶 500 落在其中，浅色档的品牌实心因此取 600。
 - 域内的品牌实心换成墨色实心，文字取 `--xh-ink-surface`（未提供时取与墨色相反的纯白 / 纯黑）；选中面换成墨色 12%。语气色保留自己的实心或淡底面。
@@ -301,21 +305,54 @@ const surfaces = ["var(--xh-color-orange-500)", "var(--xh-color-teal-300)", "var
 - 单系列用色槽 1；突出一个系列时，其余系列改用 `--xh-chart-deemphasis`。
 - 写在色块内部的数值用 `--xh-chart-on-categorical-N`，按对比度在纯白与最深的中性档之间取一个，对色块 ≥ 4.5:1；上面色块里的序号就是用它写的。
 
-色板不是手挑的。`packages/design/tokens/build/emit-chart-palette.mjs` 在基础色板上为 8 个色槽搜索色相、顺序与亮暗两套档位，同一份基础色板永远得到同一套结果；`check-chart-palette` 门禁再从 `tokens.css` 复验。基础色板同一档跨色相同一明度，所以色板必须跨档取值，相邻色槽之间才有明度差——色觉障碍读者主要靠明度差分辨颜色。亮暗两套各自校验，承载面取各自的 `--xh-bg-surface`：
+色板不是手挑的。`packages/design/tokens/build/emit-chart-palette.mjs` 在基础色板上为 8 个色槽搜索色相、顺序与亮暗两套档位，同一份基础色板永远得到同一套结果；`check-chart-palette` 门禁再从 `tokens.css` 复验。缺省色板是浅色调：每个色槽都是基础色板的一档往纯白里在 oklab 里按 90% / 75% / 60% / 45% 混合，柱、扇区、面积这类大块填充读起来轻。基础色板同一档跨色相同一明度，所以色板必须跨档、跨比例取值，相邻色槽之间才有明度差——色觉障碍读者主要靠明度差分辨颜色。亮暗两套各自校验，承载面取各自的 `--xh-bg-surface`：
 
 | 检查 | 门槛 |
 | --- | --- |
-| 明度带 | OKLCH L：亮色 0.43–0.77，暗色 0.48–0.67 |
-| 彩度下限 | C ≥ 0.10 |
-| 对比度 | 每个色槽对承载面 ≥ 3:1 |
+| 明度带 | OKLCH L：亮色 0.72–0.84，暗色 0.68–0.80 |
+| 彩度带 | 0.07 ≤ C ≤ 0.14：低于下限读成灰，高于上限在亮端发荧光 |
+| 对比度 | 每个色槽对承载面 ≥ 1.6:1。浅色调到不了 3:1，系列身份由图例、色块内文字与数据表补偿 |
 | 相邻色槽 | 正常视觉 ΔE ≥ 15；红色弱、绿色弱模拟下 ΔE ≥ 8 |
 | 前 3 个色槽两两 | 同相邻：散点、气泡这类任意两个标记都可能挨着的形态，只有前 3 个色槽保证两两可分 |
-| 任意两色 | 正常视觉 ΔE ≥ 10：隐藏一个系列后，原本不相邻的两色就挨在了一起 |
+| 任意两色 | 正常视觉 ΔE ≥ 8：隐藏一个系列后，原本不相邻的两色就挨在了一起；浅色调挤在亮端，门槛与莫兰迪柔彩同档 |
 | 色相分散 | 任意 45° 扇区（8 个色槽的平均间隔）里至多 2 个色槽，同一色系不挤在一起 |
 | 离开告警色 | 与 danger 语气每一档的正常视觉 ΔE ≥ 10：图里的红色会被读成告警 |
 | 固定顺序 | 亮暗同一色槽同一色相，色槽 1 是品牌色相 |
 
-满足全部检查的排法里，取相邻色槽在两种色觉障碍模拟下最小 ΔE 最大的一种。red 与发红的 orange 被「离开告警色」挡在外面；yellow 整族不取，同档同明度的色板里，它在对白底 3:1 的明度上只剩橄榄色。颜色按浏览器在 sRGB 显示器上的画法换算：基础色板的中档允许略出 sRGB 色域，出界的通道逐个截断。色觉障碍的模拟用 Machado–Oliveira–Fernandes 2009（严重度 1.0），与 `@xihan-ui/viz` 校验色板的函数同一口径，使用者可以用它复验自己覆盖后的色板。
+满足全部检查的排法里，取相邻色槽在两种色觉障碍模拟下最小 ΔE 最大的一种。red 与发红的 orange 被「离开告警色」挡在外面；yellow 整族不取，浅色调的明度带里它在亮色发土黄、在暗色只剩橄榄色。颜色按浏览器在 sRGB 显示器上的画法换算：基础色板的中档允许略出 sRGB 色域，出界的通道逐个截断。色觉障碍的模拟用 Machado–Oliveira–Fernandes 2009（严重度 1.0），与 `@xihan-ui/viz` 校验色板的函数同一口径，使用者可以用它复验自己覆盖后的色板：浅色调传 `tone: 'light'`，缺省按标准明度带（亮色 0.43–0.77、暗色 0.48–0.67，彩度 ≥ 0.10）判。
+
+### 配色方案
+
+上面的分类色板是缺省的「多彩分类」。另有三套配色方案，四套都是浅色调，在任意祖先上写 `data-xh-chart-palette` 即把分类色槽与色块内文字整套换掉：写在 `<html>` 上全站生效，写在一个容器或一张图上只换这一块。方案落在令牌层，八个图表组件、图例、提示框与画布渲染器都不用改，切换时画布跟着重画。
+
+```html
+<html data-xh-chart-palette="monochrome">
+  …
+  <!-- 这一块改回缺省的多彩分类 -->
+  <section data-xh-chart-palette="categorical">…</section>
+</html>
+```
+
+| 取值 | 方案 | 取色 | 适合 |
+| --- | --- | --- | --- |
+| `categorical`（缺省） | 多彩分类 | 上一节的 8 个色槽 | 系列多、要一眼分清 |
+| `monochrome` | 主题单色 | 品牌色阶由深到浅：亮色从 500 起逐档变浅，末两档再往承载面里混；暗色从 300 起往深走 | 仪表盘与指标卡统一成主题色；随 `data-brand` 换色 |
+| `brand` | 柔和品牌 | 品牌色相两侧的冷色一族加一抹粉，与多彩分类同样往纯白里混出浅色调，同一色相至多取两档 | 品牌感强、又要比单色好分辨 |
+| `muted` | 莫兰迪柔彩 | 基础色往浅灰（中性 300）里在 oklab 里按 35% / 50% / 65% 混合，带灰的浅色，彩度压到 0.035–0.10 | 信息密集或偏克制的页面 |
+
+<XhTokenSwatches prefix="--xh-chart-palette-monochrome-" :steps="['1', '2', '3', '4', '5', '6', '7', '8']" on-prefix="--xh-chart-palette-monochrome-on-" label="主题单色" compact />
+<XhTokenSwatches prefix="--xh-chart-palette-brand-" :steps="['1', '2', '3', '4', '5', '6', '7', '8']" on-prefix="--xh-chart-palette-brand-on-" label="柔和品牌" compact />
+<XhTokenSwatches prefix="--xh-chart-palette-muted-" :steps="['1', '2', '3', '4', '5', '6', '7', '8']" on-prefix="--xh-chart-palette-muted-on-" label="莫兰迪柔彩" compact />
+
+三套方案同样由生成器算出、由门禁从 `tokens.css` 复验，各有自己的规则：
+
+| 方案 | 与多彩分类不同的检查 |
+| --- | --- |
+| 主题单色 | 只靠明度区分：色相随品牌、对承载面的对比度逐档递减、色槽 1 ≥ 1.6:1、前 4 个色槽相邻 ΔE ≥ 5。浅档更弱，由图例、提示框与数据表补偿；系列超过 4 个时换多彩分类 |
+| 柔和品牌 | 明度带、彩度带与对比度同多彩分类；不查色相分散；冷色一族挤在亮端，相邻色槽放宽到正常视觉 ΔE ≥ 12、色觉障碍 ≥ 6；同一色相的两档只差一档明度，任意两色放宽到 ΔE ≥ 7 |
+| 莫兰迪柔彩 | 彩度 0.035–0.10；明度带亮色 0.70–0.82、暗色 0.64–0.76；对比度同多彩分类；相邻正常视觉 ΔE ≥ 12、色觉障碍 ≥ 6；任意两色 ≥ 8；任意 45° 扇区至多 3 个色槽 |
+
+离开告警色与色块内文字 ≥ 4.5:1 三套都照常检查。有序与顺序色阶本来就是品牌色相，`data-brand` 换色时一起换，不随方案切换。
 
 ### 有序、顺序与发散
 
@@ -323,9 +360,9 @@ const surfaces = ["var(--xh-color-orange-500)", "var(--xh-color-teal-300)", "var
 <XhTokenSwatches prefix="--xh-chart-sequential-" :steps="['start', 'mid', 'end']" label="顺序：大小" compact auto-ink />
 <XhTokenSwatches prefix="--xh-chart-diverging-" :steps="['negative', 'center', 'positive']" label="发散：高于 / 低于基线" compact auto-ink />
 
-- 有序：单色相，1 对承载面最强、逐档减弱，最弱一档仍 ≥ 2:1。
-- 顺序：单色相由浅到深，小值贴近承载面，暗色下锚点翻转。标记只带自己在色阶上的位置，皮肤用 `color-mix(in oklch, …)` 在锚点之间插值，切换主题时颜色跟着令牌走，不由脚本算色。
-- 发散：amber 与 blue 两臂同档，同一幅度读起来一样重；中点是贴近承载面的中性色。插值用 `in oklab`：中点没有色相，oklch 插值会绕着色相环走出一段杂色。
+- 有序：浅色调，亮色从品牌 500 起、暗色从 300 起，相邻两档之间补半档（两档在 oklab 里各半混合）；单色相，1 对承载面最强、逐档减弱，最弱一档仍 ≥ 1.5:1。
+- 顺序：浅色调，单色相由浅到深，亮色锚点取品牌 50 / 300 / 500，小值贴近承载面，终点仍 ≥ 3:1；暗色下锚点翻转。压在色块上的文字（层级图按值着色时的名字）按段取 `--xh-chart-on-sequential-low` / `-high`：亮色两段都写正文色，暗色高段贴近亮端、写承载面色。标记只带自己在色阶上的位置，皮肤用 `color-mix(in oklch, …)` 在锚点之间插值，切换主题时颜色跟着令牌走，不由脚本算色。
+- 发散：amber 与 blue 两臂同档（亮色 500、暗色 400），同一幅度读起来一样重；两端仍 ≥ 3:1；中点是贴近承载面的中性色。插值用 `in oklab`：中点没有色相，oklch 插值会绕着色相环走出一段杂色。
 
 ### 涨跌与图表家具
 
@@ -333,8 +370,8 @@ const surfaces = ["var(--xh-color-orange-500)", "var(--xh-color-teal-300)", "var
   kind="color"
   :names="['--xh-chart-rise', '--xh-chart-fall', '--xh-chart-deemphasis', '--xh-chart-surface', '--xh-chart-grid', '--xh-chart-axis', '--xh-chart-label', '--xh-chart-crosshair', '--xh-chart-band-highlight']"
   :notes="{
-    '--xh-chart-rise': '上涨：缺省成功色相',
-    '--xh-chart-fall': '下跌：缺省危险色相，与上涨在色觉障碍模拟下靠明度拉开',
+    '--xh-chart-rise': '上涨：缺省成功色相往纯白里混出的浅色调',
+    '--xh-chart-fall': '下跌：缺省危险色相的浅色调，与上涨在色觉障碍模拟下靠明度拉开',
     '--xh-chart-deemphasis': '强调一个系列时其余系列的颜色，比任何色槽都弱',
     '--xh-chart-surface': '承载面：相邻填充之间的间隙与点外的描边环取它，放进淡底容器时由宿主改写',
     '--xh-chart-grid': '网格线，内部分隔；高对比档升到装饰边',
@@ -345,18 +382,18 @@ const surfaces = ["var(--xh-color-orange-500)", "var(--xh-color-teal-300)", "var
   }"
 />
 
-涨跌缺省绿涨红跌。要换成红涨绿跌，在主题边界上对调两支令牌，档位保持不变，两色的对比度与可分性就仍然成立：
+涨跌缺省绿涨红跌，两色都是往纯白里混出的浅色调，对承载面 ≥ 1.6:1、在色觉障碍模拟下靠明度拉开。要换成红涨绿跌，在主题边界上对调两支令牌，混合比例保持不变，两色的对比度与可分性就仍然成立：
 
 ```css
 :root,
 [data-theme="light"] {
-  --xh-chart-rise: var(--xh-color-danger-700);
-  --xh-chart-fall: var(--xh-color-success-600);
+  --xh-chart-rise: color-mix(in oklab, var(--xh-color-danger-600) 70%, var(--xh-color-neutral-0));
+  --xh-chart-fall: color-mix(in oklab, var(--xh-color-success-600) 50%, var(--xh-color-neutral-0));
 }
 
 [data-theme="dark"] {
-  --xh-chart-rise: var(--xh-color-danger-600);
-  --xh-chart-fall: var(--xh-color-success-500);
+  --xh-chart-rise: color-mix(in oklab, var(--xh-color-danger-600) 80%, var(--xh-color-neutral-0));
+  --xh-chart-fall: color-mix(in oklab, var(--xh-color-success-600) 60%, var(--xh-color-neutral-0));
 }
 ```
 

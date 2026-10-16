@@ -65,6 +65,7 @@ import {
 ```vue
 <script setup lang="ts">
 import {
+  XhButton,
   XhTextFieldControl,
   XhTextFieldInput,
   XhTextFieldLabel,
@@ -82,8 +83,8 @@ const nickname = ref("曦寒");
       <XhTextFieldInput />
     </XhTextFieldControl>
   </XhTextFieldRoot>
-  <span>当前：{{ nickname || "（空）" }}</span>
-  <button type="button" @click="nickname = '曦寒'">重置</button>
+  <XhButton variant="outline" size="sm" @click="nickname = '曦寒'">重置</XhButton>
+  <span data-demo-output>当前：{{ nickname || "（空）" }}</span>
 </template>
 ```
 
@@ -96,8 +97,10 @@ const nickname = ref("曦寒");
     </div>
   </div>
 </xh-text-field>
-<span>当前：<span id="text-field-controlled-value">曦寒</span></span>
-<button type="button" id="text-field-controlled-reset">重置</button>
+<xh-button id="text-field-controlled-reset" variant="outline" size="sm">
+  <button data-xh-part="root">重置</button>
+</xh-button>
+<span data-demo-output>当前：<span id="text-field-controlled-value">曦寒</span></span>
 
 <script type="module">
   // 值由外面这份状态持有，组件报上来才写回去
@@ -124,6 +127,7 @@ Control 把输入框与清空按钮圈进同一个框，clearable 使清空按�
 import {
   XhTextFieldClearTrigger,
   XhTextFieldControl,
+  XhTextFieldCount,
   XhTextFieldInput,
   XhTextFieldLabel,
   XhTextFieldRoot,
@@ -132,29 +136,30 @@ import {
 
 <template>
   <XhTextFieldRoot
-    v-slot="{ value, atLimit }"
     default-value="曦寒"
     placeholder="最多 10 个字符"
     :max-length="10"
     clearable
+    show-count
   >
     <XhTextFieldLabel>昵称</XhTextFieldLabel>
     <XhTextFieldControl>
       <XhTextFieldInput />
       <XhTextFieldClearTrigger />
     </XhTextFieldControl>
-    <span>{{ value.length }} / 10{{ atLimit ? "（已到上限）" : "" }}</span>
+    <!-- 字数按字素计，顶到上限换色 -->
+    <XhTextFieldCount />
   </XhTextFieldRoot>
 </template>
 ```
 
 ```html
 <xh-text-field
-  id="text-field-clearable"
   default-value="曦寒"
   placeholder="最多 10 个字符"
   max-length="10"
   clearable
+  show-count
 >
   <div data-xh-part="root">
     <label data-xh-part="label">昵称</label>
@@ -162,19 +167,10 @@ import {
       <input data-xh-part="input" />
       <button data-xh-part="clear-trigger"></button>
     </div>
-    <span id="text-field-clearable-count">2 / 10</span>
+    <!-- 字数按字素计，由元素填入，顶到上限换色 -->
+    <span data-xh-part="count"></span>
   </div>
 </xh-text-field>
-
-<script type="module">
-  // 字数跟着值走，顶到上限补一句提示
-  const field = document.getElementById("text-field-clearable");
-  const count = document.getElementById("text-field-clearable-count");
-  field.addEventListener("value-change", (event) => {
-    const length = event.detail.value.length;
-    count.textContent = `${length} / 10${length >= 10 ? "（已到上限）" : ""}`;
-  });
-</script>
 ```
 
 ### 禁用与校验态
@@ -479,7 +475,9 @@ setValue 直接写值，只受禁用、只读与字数上限约束；clear 执�
 ```vue
 <script setup lang="ts">
 import {
+  XhButton,
   XhTextFieldControl,
+  XhTextFieldCount,
   XhTextFieldInput,
   XhTextFieldLabel,
   XhTextFieldRoot,
@@ -488,52 +486,57 @@ import {
 
 <template>
   <XhTextFieldRoot
-    v-slot="{ value, empty, canClear, setValue, clear }"
+    v-slot="{ value, canClear, setValue, clear }"
     placeholder="等着被写入"
     :max-length="12"
     clearable
+    show-count
   >
     <XhTextFieldLabel>收货人</XhTextFieldLabel>
     <XhTextFieldControl>
       <XhTextFieldInput />
     </XhTextFieldControl>
+    <XhTextFieldCount />
     <div style="display: flex; gap: 8px">
-      <button type="button" @click="setValue('曦寒')">写入</button>
-      <button type="button" @click="setValue(`${value}·`)">追加一个点</button>
-      <button type="button" :disabled="!canClear" @click="clear()">清空</button>
+      <XhButton variant="outline" size="sm" @click="setValue('曦寒')">写入</XhButton>
+      <XhButton variant="outline" size="sm" @click="setValue(`${value}·`)">追加一个点</XhButton>
+      <XhButton variant="outline" size="sm" :disabled="!canClear" @click="clear()">清空</XhButton>
     </div>
-    <span>{{ empty ? "（空）" : `${value.length} / 12` }}</span>
   </XhTextFieldRoot>
 </template>
 ```
 
 ```html
-<xh-text-field id="text-field-programmatic" placeholder="等着被写入" max-length="12" clearable>
+<xh-text-field id="text-field-programmatic" placeholder="等着被写入" max-length="12" clearable show-count>
   <div data-xh-part="root">
     <label data-xh-part="label">收货人</label>
     <div data-xh-part="control">
       <input data-xh-part="input" />
     </div>
+    <span data-xh-part="count"></span>
   </div>
 </xh-text-field>
 <div style="display: flex; gap: 8px">
-  <button type="button" id="text-field-programmatic-write">写入</button>
-  <button type="button" id="text-field-programmatic-append">追加一个点</button>
-  <button type="button" id="text-field-programmatic-clear">清空</button>
+  <xh-button id="text-field-programmatic-write" variant="outline" size="sm">
+    <button data-xh-part="root">写入</button>
+  </xh-button>
+  <xh-button id="text-field-programmatic-append" variant="outline" size="sm">
+    <button data-xh-part="root">追加一个点</button>
+  </xh-button>
+  <xh-button id="text-field-programmatic-clear" variant="outline" size="sm">
+    <button data-xh-part="root">清空</button>
+  </xh-button>
 </div>
-<span id="text-field-programmatic-readout">（空）</span>
 
 <script type="module">
   const field = document.getElementById("text-field-programmatic");
   const clear = document.getElementById("text-field-programmatic-clear");
-  const readout = document.getElementById("text-field-programmatic-readout");
 
   // 值的真本住在组件里，这里只跟着 value-change 抄一份，用来拼「追加」的下一个值
   let value = "";
 
+  // 清得了清不了由组件说了算，外面这颗钮跟着它禁用
   function sync() {
-    readout.textContent = value === "" ? "（空）" : `${value.length} / 12`;
-    // 清得了清不了由组件说了算，外面这颗钮跟着它禁用
     clear.disabled = !field.canClear;
   }
 
@@ -658,10 +661,7 @@ function onValueChange(details: { value: string }) {
     </XhTextFieldControl>
   </XhTextFieldRoot>
 
-  <ol v-if="log.length" style="margin: 0; padding-inline-start: 20px">
-    <li v-for="(item, i) in log" :key="i">{{ item }}</li>
-  </ol>
-  <span v-else>还没有事件</span>
+  <span data-demo-output>{{ log.join(" · ") || "还没有事件" }}</span>
 </template>
 ```
 
@@ -675,31 +675,22 @@ function onValueChange(details: { value: string }) {
   </div>
 </xh-text-field>
 
-<ol id="text-field-events-log" style="margin: 0; padding-inline-start: 20px"></ol>
-<span id="text-field-events-empty">还没有事件</span>
+<span id="text-field-events-log" data-demo-output>还没有事件</span>
 
 <script type="module">
   const field = document.getElementById("text-field-events");
   const input = field.querySelector('[data-xh-part="input"]');
-  const list = document.getElementById("text-field-events-log");
-  const empty = document.getElementById("text-field-events-empty");
+  const readout = document.getElementById("text-field-events-log");
   let log = [];
 
   // 新的排在最前，只留最近三条
   function push(text) {
     log = [text, ...log].slice(0, 3);
-    list.replaceChildren(
-      ...log.map((item) => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        return li;
-      }),
-    );
-    empty.hidden = true;
+    readout.textContent = log.join(" · ");
   }
 
   field.addEventListener("value-change", (event) => {
-    push("value-change：" + (event.detail.value || "（空）"));
+    push(`value-change：${event.detail.value || "（空）"}`);
   });
   input.addEventListener("focus", () => push("focus"));
   input.addEventListener("blur", () => push("blur"));
@@ -716,20 +707,19 @@ import {
   XhTextFieldControl,
   XhTextFieldInput,
   XhTextFieldLabel,
+  XhTextFieldPrefix,
   XhTextFieldRoot,
+  XhTextFieldSuffix,
 } from "@xihan-ui/vue";
-
-// 不参与分宽，也不吃指针事件：点在前后缀上仍然落到输入框里
-const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
 </script>
 
 <template>
   <XhTextFieldRoot placeholder="0.00">
     <XhTextFieldLabel>金额</XhTextFieldLabel>
     <XhTextFieldControl>
-      <span :style="affix">¥</span>
+      <XhTextFieldPrefix>¥</XhTextFieldPrefix>
       <XhTextFieldInput inputmode="decimal" />
-      <span :style="affix">元</span>
+      <XhTextFieldSuffix>元</XhTextFieldSuffix>
     </XhTextFieldControl>
   </XhTextFieldRoot>
 
@@ -737,7 +727,7 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
     <XhTextFieldLabel>身高</XhTextFieldLabel>
     <XhTextFieldControl>
       <XhTextFieldInput inputmode="numeric" />
-      <span :style="affix">cm</span>
+      <XhTextFieldSuffix>cm</XhTextFieldSuffix>
     </XhTextFieldControl>
   </XhTextFieldRoot>
 </template>
@@ -748,10 +738,9 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
   <div data-xh-part="root">
     <label data-xh-part="label">金额</label>
     <div data-xh-part="control">
-      <!-- 不参与分宽，也不吃指针事件：点在前后缀上仍然落到输入框里 -->
-      <span style="flex: none; color: var(--xh-fg-muted); pointer-events: none">¥</span>
+      <span data-xh-part="prefix">¥</span>
       <input data-xh-part="input" inputmode="decimal" />
-      <span style="flex: none; color: var(--xh-fg-muted); pointer-events: none">元</span>
+      <span data-xh-part="suffix">元</span>
     </div>
   </div>
 </xh-text-field>
@@ -761,7 +750,7 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
     <label data-xh-part="label">身高</label>
     <div data-xh-part="control">
       <input data-xh-part="input" inputmode="numeric" />
-      <span style="flex: none; color: var(--xh-fg-muted); pointer-events: none">cm</span>
+      <span data-xh-part="suffix">cm</span>
     </div>
   </div>
 </xh-text-field>
@@ -774,6 +763,7 @@ const affix = "flex: none; color: var(--xh-fg-muted); pointer-events: none";
 ```vue
 <script setup lang="ts">
 import {
+  XhButton,
   XhTextFieldControl,
   XhTextFieldInput,
   XhTextFieldLabel,
@@ -794,9 +784,9 @@ const visible = ref(false);
           autocomplete="current-password"
         />
       </XhTextFieldControl>
-      <button type="button" :aria-pressed="visible" @click="visible = !visible">
+      <XhButton variant="outline" :aria-pressed="visible" @click="visible = !visible">
         {{ visible ? "隐藏" : "显示" }}
-      </button>
+      </XhButton>
     </div>
   </XhTextFieldRoot>
 </template>
@@ -811,7 +801,9 @@ const visible = ref(false);
       <div data-xh-part="control">
         <input data-xh-part="input" autocomplete="current-password" />
       </div>
-      <button type="button" id="text-field-password-toggle" aria-pressed="false">显示</button>
+      <xh-button variant="outline">
+        <button data-xh-part="root" id="text-field-password-toggle" aria-pressed="false">显示</button>
+      </xh-button>
     </div>
   </div>
 </xh-text-field>
@@ -935,6 +927,7 @@ input 部件就是一个原生 input，取得它的节点即可聚焦、全选�
 ```vue
 <script setup lang="ts">
 import {
+  XhButton,
   XhTextFieldControl,
   XhTextFieldInput,
   XhTextFieldLabel,
@@ -970,10 +963,10 @@ function caretToEnd(): void {
       <XhTextFieldInput :ref="bindInput" />
     </XhTextFieldControl>
     <div style="display: flex; gap: 8px">
-      <button type="button" @click="input?.focus()">聚焦</button>
-      <button type="button" @click="selectAll">全选</button>
-      <button type="button" @click="caretToEnd">光标移到末尾</button>
-      <button type="button" @click="input?.blur()">失焦</button>
+      <XhButton variant="outline" size="sm" @click="input?.focus()">聚焦</XhButton>
+      <XhButton variant="outline" size="sm" @click="selectAll">全选</XhButton>
+      <XhButton variant="outline" size="sm" @click="caretToEnd">光标移到末尾</XhButton>
+      <XhButton variant="outline" size="sm" @click="input?.blur()">失焦</XhButton>
     </div>
   </XhTextFieldRoot>
 </template>
@@ -987,10 +980,18 @@ function caretToEnd(): void {
       <input data-xh-part="input" />
     </div>
     <div style="display: flex; gap: 8px">
-      <button type="button" id="text-field-focus-focus">聚焦</button>
-      <button type="button" id="text-field-focus-select">全选</button>
-      <button type="button" id="text-field-focus-caret">光标移到末尾</button>
-      <button type="button" id="text-field-focus-blur">失焦</button>
+      <xh-button id="text-field-focus-focus" variant="outline" size="sm">
+        <button data-xh-part="root">聚焦</button>
+      </xh-button>
+      <xh-button id="text-field-focus-select" variant="outline" size="sm">
+        <button data-xh-part="root">全选</button>
+      </xh-button>
+      <xh-button id="text-field-focus-caret" variant="outline" size="sm">
+        <button data-xh-part="root">光标移到末尾</button>
+      </xh-button>
+      <xh-button id="text-field-focus-blur" variant="outline" size="sm">
+        <button data-xh-part="root">失焦</button>
+      </xh-button>
     </div>
   </div>
 </xh-text-field>
@@ -1018,121 +1019,71 @@ function caretToEnd(): void {
 
 ### 输入组
 
-圆角槽换为只保留外侧的一组值，中缝用负外边距叠掉一条描边，相邻控件拼为一体
+放进 InputGroup，与按钮或固定前后缀拼为一体：中缝合成一条描边，圆角只留在两端
 
 ```vue
 <script setup lang="ts">
 import {
   XhButton,
+  XhInputGroupItem,
+  XhInputGroupRoot,
   XhTextFieldControl,
   XhTextFieldInput,
-  XhTextFieldLabel,
   XhTextFieldRoot,
 } from "@xihan-ui/vue";
-
-const radius = "var(--xh-shape-control)";
-
-// 控件盒只留左侧圆角，右边一格外扣 1px 与按钮共用一条描边
-const searchControl = `inline-size: 220px; margin-inline-end: -1px; --xh-text-field-control-radius: ${radius} 0 0 ${radius}`;
-const searchButton = `--xh-button-radius: 0 ${radius} ${radius} 0`;
-
-// 前后两块固定文本与控件盒同高同描边，圆角各留一侧
-const addonBase
-  = "display: inline-flex; align-items: center; block-size: var(--xh-control-h-md); padding-inline: 12px; border: 1px solid var(--xh-border-default); background: var(--xh-bg-subtle); color: var(--xh-fg-muted); font-size: var(--xh-text-body-size)";
-const addonStart = `${addonBase}; border-radius: ${radius} 0 0 ${radius}`;
-const addonEnd = `${addonBase}; border-radius: 0 ${radius} ${radius} 0`;
-const middleControl = "inline-size: 160px; margin-inline: -1px; --xh-text-field-control-radius: 0";
 </script>
 
 <template>
-  <XhTextFieldRoot placeholder="搜索文档" clearable>
-    <XhTextFieldLabel>站内搜索</XhTextFieldLabel>
-    <div style="display: flex">
-      <XhTextFieldControl :style="searchControl">
-        <XhTextFieldInput />
+  <XhInputGroupRoot>
+    <XhTextFieldRoot placeholder="搜索文档" clearable>
+      <XhTextFieldControl>
+        <XhTextFieldInput aria-label="站内搜索" />
       </XhTextFieldControl>
-      <XhButton :style="searchButton">搜索</XhButton>
-    </div>
-  </XhTextFieldRoot>
+    </XhTextFieldRoot>
+    <XhButton>搜索</XhButton>
+  </XhInputGroupRoot>
 
-  <XhTextFieldRoot placeholder="xihanfun">
-    <XhTextFieldLabel>域名</XhTextFieldLabel>
-    <div style="display: flex">
-      <span :style="addonStart">https://</span>
-      <XhTextFieldControl :style="middleControl">
-        <XhTextFieldInput />
+  <XhInputGroupRoot>
+    <XhInputGroupItem>https://</XhInputGroupItem>
+    <XhTextFieldRoot placeholder="xihanfun">
+      <XhTextFieldControl>
+        <XhTextFieldInput aria-label="域名" />
       </XhTextFieldControl>
-      <span :style="addonEnd">.com</span>
-    </div>
-  </XhTextFieldRoot>
+    </XhTextFieldRoot>
+    <XhInputGroupItem>.com</XhInputGroupItem>
+  </XhInputGroupRoot>
 </template>
 ```
 
 ```html
-<xh-text-field placeholder="搜索文档" clearable>
+<xh-input-group>
   <div data-xh-part="root">
-    <label data-xh-part="label">站内搜索</label>
-    <div style="display: flex">
-      <!-- 控件盒只留左侧圆角，右边一格外扣 1px 与按钮共用一条描边 -->
-      <div
-        data-xh-part="control"
-        style="
-          inline-size: 220px;
-          margin-inline-end: -1px;
-          --xh-text-field-control-radius: var(--xh-shape-control) 0 0 var(--xh-shape-control);
-        "
-      >
-        <input data-xh-part="input" />
+    <xh-text-field placeholder="搜索文档" clearable>
+      <div data-xh-part="root">
+        <div data-xh-part="control">
+          <input data-xh-part="input" aria-label="站内搜索" />
+        </div>
       </div>
-      <xh-button style="--xh-button-radius: 0 var(--xh-shape-control) var(--xh-shape-control) 0">
-        <button data-xh-part="root">搜索</button>
-      </xh-button>
-    </div>
+    </xh-text-field>
+    <xh-button>
+      <button data-xh-part="root">搜索</button>
+    </xh-button>
   </div>
-</xh-text-field>
+</xh-input-group>
 
-<xh-text-field placeholder="xihanfun">
+<xh-input-group>
   <div data-xh-part="root">
-    <label data-xh-part="label">域名</label>
-    <div style="display: flex">
-      <!-- 前后两块固定文本与控件盒同高同描边，圆角各留一侧 -->
-      <span
-        style="
-          display: inline-flex;
-          align-items: center;
-          block-size: var(--xh-control-h-md);
-          padding-inline: 12px;
-          border: 1px solid var(--xh-border-default);
-          border-radius: var(--xh-shape-control) 0 0 var(--xh-shape-control);
-          background: var(--xh-bg-subtle);
-          color: var(--xh-fg-muted);
-          font-size: var(--xh-text-body-size);
-        "
-        >https://</span
-      >
-      <div
-        data-xh-part="control"
-        style="inline-size: 160px; margin-inline: -1px; --xh-text-field-control-radius: 0"
-      >
-        <input data-xh-part="input" />
+    <span data-xh-part="item">https://</span>
+    <xh-text-field placeholder="xihanfun">
+      <div data-xh-part="root">
+        <div data-xh-part="control">
+          <input data-xh-part="input" aria-label="域名" />
+        </div>
       </div>
-      <span
-        style="
-          display: inline-flex;
-          align-items: center;
-          block-size: var(--xh-control-h-md);
-          padding-inline: 12px;
-          border: 1px solid var(--xh-border-default);
-          border-radius: 0 var(--xh-shape-control) var(--xh-shape-control) 0;
-          background: var(--xh-bg-subtle);
-          color: var(--xh-fg-muted);
-          font-size: var(--xh-text-body-size);
-        "
-        >.com</span
-      >
-    </div>
+    </xh-text-field>
+    <span data-xh-part="item">.com</span>
   </div>
-</xh-text-field>
+</xh-input-group>
 ```
 
 ### 多行与自动增高
@@ -1143,6 +1094,7 @@ input 部件写为 textarea 即多行宿主；autoSize 使高度跟随内容，�
 <script setup lang="ts">
 import {
   XhTextFieldControl,
+  XhTextFieldCount,
   XhTextFieldInput,
   XhTextFieldLabel,
   XhTextFieldRoot,
@@ -1154,17 +1106,15 @@ const note = ref("");
 
 <template>
   <div style="display: grid; gap: 16px; inline-size: 320px">
-    <XhTextFieldRoot v-slot="{ value, atLimit }" v-model:value="note" :auto-size="{ minRows: 2, maxRows: 6 }" :max-length="120" placeholder="说点什么">
+    <XhTextFieldRoot v-model:value="note" :auto-size="{ minRows: 2, maxRows: 6 }" :max-length="120" show-count placeholder="说点什么">
       <XhTextFieldLabel>备注（2-6 行自动长高）</XhTextFieldLabel>
       <XhTextFieldControl>
         <XhTextFieldInput as="textarea" />
       </XhTextFieldControl>
-      <p style="margin: 4px 0 0; font-size: 12px" :style="{ color: atLimit ? 'var(--xh-fg-danger)' : 'var(--xh-fg-subtle)' }">
-        {{ value.length }} / 120
-      </p>
+      <XhTextFieldCount />
     </XhTextFieldRoot>
 
-    <XhTextFieldRoot auto-size placeholder="不设行数界限，完全跟内容走">
+    <XhTextFieldRoot auto-size placeholder="不设行数界限：随内容长高，到上限后框内滚动">
       <XhTextFieldLabel>随写随长</XhTextFieldLabel>
       <XhTextFieldControl>
         <XhTextFieldInput as="textarea" />
@@ -1176,22 +1126,17 @@ const note = ref("");
 
 ```html
 <div style="display: grid; gap: 16px; inline-size: 320px">
-  <xh-text-field id="text-field-multiline" max-length="120" placeholder="说点什么">
+  <xh-text-field id="text-field-multiline" max-length="120" show-count placeholder="说点什么">
     <div data-xh-part="root">
       <label data-xh-part="label">备注（2-6 行自动长高）</label>
       <div data-xh-part="control">
         <textarea data-xh-part="input"></textarea>
       </div>
-      <p
-        id="text-field-multiline-count"
-        style="margin: 4px 0 0; font-size: 12px; color: var(--xh-fg-subtle)"
-      >
-        0 / 120
-      </p>
+      <span data-xh-part="count"></span>
     </div>
   </xh-text-field>
 
-  <xh-text-field auto-size placeholder="不设行数界限，完全跟内容走">
+  <xh-text-field auto-size placeholder="不设行数界限：随内容长高，到上限后框内滚动">
     <div data-xh-part="root">
       <label data-xh-part="label">随写随长</label>
       <div data-xh-part="control">
@@ -1205,14 +1150,6 @@ const note = ref("");
   // 行数上下限是对象，只能经 property 交给元素
   const field = document.getElementById("text-field-multiline");
   field.autoSize = { minRows: 2, maxRows: 6 };
-
-  // 字数跟着值走，顶到上限换成危险色
-  const count = document.getElementById("text-field-multiline-count");
-  field.addEventListener("value-change", (event) => {
-    const length = event.detail.value.length;
-    count.textContent = `${length} / 120`;
-    count.style.color = length >= 120 ? "var(--xh-fg-danger)" : "var(--xh-fg-subtle)";
-  });
 </script>
 ```
 
@@ -1233,7 +1170,8 @@ const note = ref("");
 - `type` 覆盖 `text` / `password` / `email` / `tel` / `url` / `search`。
 - `clearable` 显示清空按钮，`maxLength` 设置字数上限。
 - 输入部件用 `as="textarea"` 切换到多行；`autoSize` 为 `true` 时随内容增高，也可用 `{ minRows, maxRows }` 限定行数。两个边界必须是大于等于 1 的有限整数，且 `minRows` 不得大于 `maxRows`；无效配置会明确失败，不夹取也不沿用旧配置。
-- 自动高度跟随输入、程序化写值与运行期配置变化重新测量。关闭 `autoSize`、换回单行、替换输入节点或卸载组件时，归还启用前的 `block-size` 与 `overflow-y` 内联声明及其 priority；只移除作者原本没有写的声明。
+- 自动高度只有一层滚动：顶到上限后由 textarea 自己滚，控件外壳只包住它，不设上限也不滚。给了 `maxRows` 时上限就是 `maxRows`；没给时上限取 textarea 的 `max-block-size` 计算值，默认皮肤为 `--xh-text-field-input-max-h`（依次退到旧槽 `--xh-text-field-control-max-h`、`--xh-viewport-h-sm`）。两种情况都不低于 `minRows`。没给 `maxRows` 时 `max-block-size` 的计算值只接受 `none` 或 px，百分比等要等布局才知道多高的取值会明确失败。
+- 自动高度跟随输入、程序化写值与运行期配置变化重新测量。量高结果写进 `block-size`，`max-block-size` 由自动高度接管为 `none`，`overflow-y` 按是否顶到上限切换。关闭 `autoSize`、换回单行、替换输入节点或卸载组件时，归还启用前的这三项内联声明及其 priority；只移除作者原本没有写的声明。
 - 自动高度把一个隐藏 textarea 临时挂到输入框所属 Document，以复制后的排版与宽度计算值取得真实内容高度和单行高度，换算 `minRows` / `maxRows`；`line-height: normal` 不按字号推测。`content-box` 与 `border-box` 分别按自己的声明盒计算内距和边框。测量要求 textarea 已连接到带 Window 的 Document，且当前只接受 `writing-mode: horizontal-tb`；其他书写模式会明确失败，不把物理纵向滚动尺寸误当逻辑块尺寸。
 - `prefix` / `suffix` 在框内放置货币符、单位或图标，两段对读屏隐藏。
 - 默认皮肤把控件接入 Field Chrome：Headless 在真实视觉盒、输入、装饰段上分别投影 `data-xh-field-chrome`、`data-xh-field-input`、`data-xh-field-affix`，单行与 textarea 由 `data-xh-field-layout` 区分。旧 `data-multiline` / `data-auto-resize` 视觉钩子已删除，自定义皮肤应读取新的家族角色，不提供双写兼容。
@@ -1287,7 +1225,7 @@ const note = ref("");
 | `maxLength` | `number` |  | 字数上限，按字素计（组合 emoji、国旗、带变音符的字母都算一个），与 count 同一口径。 原生 maxlength 按 UTF-16 码元计，会把一个 emoji 算成两个以上，因此不投影； 超出的部分由连接层从这次新插入的文本里截掉（与原生 maxlength 同样的做法），输入法组合期间不截、落定时再截。 |
 | `clearable` | `boolean` |  | 开启清空能力：有值时显示清空按钮、Escape 接管。关闭时按钮带 hidden 收起。 |
 | `showCount` | `boolean` |  | 显示字数部件：关闭时 count 部件带 hidden 收起。 |
-| `autoSize` | `boolean \| TextFieldAutoSize` |  | 多行宿主的自动高度：按横向书写的真实行盒随内容增高；对象形态固定行数上下限。 |
+| `autoSize` | `boolean \| TextFieldAutoSize` |  | 多行宿主的自动高度：按横向书写的真实行盒随内容增高，顶到上限后在 textarea 内部滚动；对象形态固定行数上下限。 |
 | `variant` | `ControlVariant` |  | 形态：outline / subtle / ghost，决定底色与描边的绘制方式。默认 outline。 |
 | `tone` | `Tone` |  | 语气：brand / neutral / success / warning / danger / info，决定聚焦强调使用哪族颜色。 |
 | `size` | `Size` |  | 尺寸：sm / md / lg，决定输入框与清空按钮的几何档位。 |
@@ -1461,17 +1399,17 @@ const note = ref("");
 | `--xh-text-field-affix-font-size` | `prefix`<br>`suffix` | `font-size` | `xh-field-affix` | `--xh-_text-field-font-size` | text-field 的 prefix、suffix 部件 font-size 覆盖槽。 |
 | `--xh-text-field-control-bg` | `control` | `background-color` | `xh-field-chrome` | `--xh-_field-variant-bg-rest` | text-field 的 control 部件 background-color 覆盖槽。 |
 | `--xh-text-field-control-bg-disabled` | `control` | `background-color` | `disabled`<br>`xh-field-chrome` | `--xh-_field-variant-bg-disabled` | text-field 的 control 部件 background-color 覆盖槽。 |
-| `--xh-text-field-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-hover` | text-field 的 control 部件 background-color 覆盖槽。 |
+| `--xh-text-field-control-bg-hover` | `control` | `background-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not(:focus-within)`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-hover` | text-field 的 control 部件 background-color 覆盖槽。 |
 | `--xh-text-field-control-bg-readonly` | `control` | `background-color` | `readonly`<br>`xh-field-chrome` | `--xh-_field-variant-bg-read-only` | text-field 的 control 部件 background-color 覆盖槽。 |
 | `--xh-text-field-control-border` | `control` | `border` | `xh-field-chrome` | `--xh-_field-variant-border-rest` | text-field 的 control 部件 border 覆盖槽。 |
 | `--xh-text-field-control-border-at-max` | `control` | `border-color` | `at-max`<br>`invalid`<br>`not([data-invalid])` | `--xh-border-at-limit` | text-field 的 control 部件 border-color 覆盖槽。 |
 | `--xh-text-field-control-border-focus` | `control` | `border-color` | `disabled`<br>`focus-within`<br>`not([data-disabled])`<br>`xh-field-chrome` | `--xh-_field-variant-border-focus` | text-field 的 control 部件 border-color 覆盖槽。 |
-| `--xh-text-field-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-border-hover` | text-field 的 control 部件 border-color 覆盖槽。 |
+| `--xh-text-field-control-border-hover` | `control` | `border-color` | `disabled`<br>`hover`<br>`invalid`<br>`loading`<br>`not(:focus-within)`<br>`not([data-disabled])`<br>`not([data-invalid])`<br>`not([data-loading])`<br>`not([data-readonly])`<br>`readonly`<br>`xh-field-chrome` | `--xh-_field-variant-border-hover` | text-field 的 control 部件 border-color 覆盖槽。 |
 | `--xh-text-field-control-border-invalid` | `control` | `border-color` | `invalid`<br>`xh-field-chrome` | `--xh-_field-variant-border-invalid` | text-field 的 control 部件 border-color 覆盖槽。 |
 | `--xh-text-field-control-fg` | `control` | `color` | `xh-field-chrome` | `--xh-fg-default` | text-field 的 control 部件 color 覆盖槽。 |
 | `--xh-text-field-control-gap` | `control` | `gap` | `xh-field-chrome` | `--xh-_text-field-gap` | text-field 的 control 部件 gap 覆盖槽。 |
 | `--xh-text-field-control-h` | `control` | `block-size`<br>`min-block-size` | `has([data-xh-field-input][data-xh-field-layout='multi-tag'])`<br>`has([data-xh-field-input][data-xh-field-layout='single-line'])`<br>`has([data-xh-field-input][data-xh-field-layout='textarea'])`<br>`xh-field-chrome`<br>`xh-field-input`<br>`xh-field-layout=multi-tag`<br>`xh-field-layout=single-line`<br>`xh-field-layout=textarea` | `--xh-_text-field-h` | text-field 的 control 部件 block-size、min-block-size 覆盖槽。 |
-| `--xh-text-field-control-max-h` | `control` | `max-block-size` | `has([data-xh-field-input][data-xh-field-auto-size])`<br>`xh-field-auto-size`<br>`xh-field-input` | `--xh-viewport-h-sm` | text-field 的 control 部件 max-block-size 覆盖槽。 |
+| `--xh-text-field-control-max-h` | `input` | `max-block-size` | `xh-field-auto-size` | `--xh-viewport-h-sm` | text-field 的 input 部件 max-block-size 覆盖槽。 |
 | `--xh-text-field-control-min-w` | `control`<br>`root` | `min-inline-size` | `default`<br>`xh-field-chrome` | `--xh-control-min-w` | text-field 的 control、root 部件 min-inline-size 覆盖槽。 |
 | `--xh-text-field-control-px` | `control` | `padding-inline` | `xh-field-chrome` | `--xh-_text-field-px` | text-field 的 control 部件 padding-inline 覆盖槽。 |
 | `--xh-text-field-control-radius` | `control` | `border-radius` | `xh-field-chrome` | `--xh-shape-control` | text-field 的 control 部件 border-radius 覆盖槽。 |
@@ -1481,18 +1419,20 @@ const note = ref("");
 | `--xh-text-field-count-fg-at-max` | `count` | `color` | `at-max` | `--xh-fg-warning` | text-field 的 count 部件 color 覆盖槽。 |
 | `--xh-text-field-count-fg-disabled` | `count` | `color` | `disabled` | `--xh-fg-disabled` | text-field 的 count 部件 color 覆盖槽。 |
 | `--xh-text-field-count-font-size` | `count` | `font-size` | `default` | `--xh-_text-field-action-font-size` | text-field 的 count 部件 font-size 覆盖槽。 |
-| `--xh-text-field-gap` | `root` | `gap` | `default` | `--xh-space-1` | text-field 的 root 部件 gap 覆盖槽。 |
+| `--xh-text-field-gap` | `label`<br>`root` | `gap`<br>`margin-block-end` | `default` | `--xh-space-1` | text-field 的 label、root 部件 gap、margin-block-end 覆盖槽。 |
 | `--xh-text-field-icon-size` | `control`<br>`root` | `--xh-icon-size` | `default`<br>`size=lg`<br>`size=sm`<br>`xh-field-chrome` | `--xh-_field-size-glyph-size`<br>`--xh-glyph-size-lg`<br>`--xh-glyph-size-md`<br>`--xh-glyph-size-sm` | text-field 的 control、root 部件 --xh-icon-size 覆盖槽。 |
 | `--xh-text-field-input-autofill-bg` | `input` | `box-shadow` | `-webkit-autofill`<br>`autofill`<br>`xh-field-input` | `--xh-bg-canvas` | text-field 的 input 部件 box-shadow 覆盖槽。 |
 | `--xh-text-field-input-autofill-fg` | `input` | `-webkit-text-fill-color` | `-webkit-autofill`<br>`autofill`<br>`xh-field-input` | `--xh-fg-default` | text-field 的 input 部件 -webkit-text-fill-color 覆盖槽。 |
 | `--xh-text-field-input-fg` | `input` | `color` | `xh-field-input` | `--xh-fg-default` | text-field 的 input 部件 color 覆盖槽。 |
 | `--xh-text-field-input-font-size` | `input` | `font-size` | `xh-field-input` | `--xh-_text-field-font-size` | text-field 的 input 部件 font-size 覆盖槽。 |
-| `--xh-text-field-label-fg` | `label` | `color` | `default` | `--xh-fg-default` | text-field 的 label 部件 color 覆盖槽。 |
-| `--xh-text-field-label-fg-disabled` | `label` | `color` | `disabled` | `--xh-fg-subtle` | text-field 的 label 部件 color 覆盖槽。 |
+| `--xh-text-field-input-max-h` | `input` | `max-block-size` | `xh-field-auto-size` | `--xh-text-field-control-max-h` | text-field 的 input 部件 max-block-size 覆盖槽。 |
+| `--xh-text-field-label-fg` | `label` | `color` | `default` | `--xh-fg-muted` | text-field 的 label 部件 color 覆盖槽。 |
+| `--xh-text-field-label-fg-disabled` | `label` | `color` | `disabled` | `--xh-fg-muted` | text-field 的 label 部件 color 覆盖槽。 |
 | `--xh-text-field-label-font-size` | `label` | `font-size` | `default` | `--xh-text-label-size` | text-field 的 label 部件 font-size 覆盖槽。 |
 | `--xh-text-field-label-font-weight` | `label` | `font-weight` | `default` | `--xh-text-label-weight` | text-field 的 label 部件 font-weight 覆盖槽。 |
+| `--xh-text-field-label-gap` | `label` | `margin-block-end` | `default` | `--xh-space-2` | text-field 的 label 部件 margin-block-end 覆盖槽。 |
 | `--xh-text-field-placeholder-fg` | `input` | `color` | `placeholder`<br>`xh-field-input` | `--xh-fg-subtle` | text-field 的 input 部件 color 覆盖槽。 |
-| `--xh-text-field-textarea-py` | `input` | `padding-block` | `xh-field-input`<br>`xh-field-layout=textarea` | `--xh-space-2` | text-field 的 input 部件 padding-block 覆盖槽。 |
+| `--xh-text-field-textarea-py` | `input` | `padding-block` | `xh-field-input`<br>`xh-field-layout=textarea` | `--xh-space-1` | text-field 的 input 部件 padding-block 覆盖槽。 |
 <!-- xh-component-tokens:end -->
 
 ### 动效
