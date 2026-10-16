@@ -215,6 +215,18 @@ XiHan.UI 是 pnpm + Turborepo 管理的多包组件库。组件行为由框架�
 - 不推送、不发布、不创建远程 PR，除非用户明确要求。
 - 提交前检查 `git diff --check`、相关测试、`pnpm gate` 和生产构建。
 
+## 本 fork 的分支与 PR 流程
+
+本节只适用于 fork `TW199501/XiHan.UI`（上游为 `XiHanFun/XiHan.UI`），不提交给上游。与上面「分支与 worktree」「Git 与提交」冲突时，以本节为准。
+
+- 本 fork 属团队分支规范的「第 1 种：贡献型 fork」，动手前先读根目录 `BRANCHING.md`，依 elf-team-rule 规范操作分支。
+- `main` 只镜像 `upstream/main`，绝不在上面提交；`dev` 是团队整合线，也是开分支的起点；`release` 是唯一稳定版，只从测过的 `origin/dev` 快转，不提交、不 force push。
+- 不在 `dev` 上直接提交日常改动。工作分支从 `origin/dev` 开，命名为 `<类型>/e-<Linear编号>-<英文短名>`，类型用 `feat/`、`fix/`、`docs/`、`chore/`、`test/`、`hotfix/`；不用中文，不用个人前缀，也不用 `<worktree 名>` 作后缀。worktree 放在仓库同层 `../XiHan.UI-<短名>`。
+- 进 `dev` 一律经 fork PR：`gh pr create --repo TW199501/XiHan.UI --base dev`，fork CI 通过后以 merge commit 合并。代理不得自行合并或推送 `dev`，例外只有 `main` → `dev` 的无冲突同步。
+- 送上游：从 `main` 开 `pr/<短名>`，立刻执行 `git config branch.pr/<短名>.pushRemote origin`；只 cherry-pick 该主题的提交，一个 PR 只做一件事。不要把整个 `dev` 开 PR 给上游。
+- fork 专属文件：`BRANCHING.md`、`AGENTS.md` 的本节。把上游合进 `dev` 遇到冲突时，`AGENTS.md` 采用上游版本，再把本节原样放回「禁止事项」之前。
+- 本地工具产物（`.ocrca/`、`.codegraph/`、`.turbo/`）放在 `.git/info/exclude`，不要提交。
+
 ## 禁止事项
 
 - 不凭记忆猜组件 API、部件、事件或令牌。
