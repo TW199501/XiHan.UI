@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 1
+          # Keep GITHUB_TOKEN out of .git/config; the review step gets its own.
+          persist-credentials: false
 
       # Draws on the Claude subscription. Swap to `anthropic_api_key` with an
       # ANTHROPIC_API_KEY secret to bill an API account instead — pass exactly
