@@ -18,13 +18,14 @@ function git(...args) {
   }).trim()
 }
 
-/** 本仓 `--local` 配置的 core.hooksPath，未配置时为空串。 */
-function localHooksPath() {
+/** 生效的 core.hooksPath 是否由本仓设定（worktree、local 或命令行作用域）。 */
+function repoScopedHooksPath() {
   try {
-    return git('config', '--local', '--get', 'core.hooksPath')
+    const scope = git('config', '--show-scope', '--get', 'core.hooksPath').split('\t')[0]
+    return scope === 'worktree' || scope === 'local' || scope === 'command'
   }
   catch {
-    return ''
+    return false
   }
 }
 
@@ -59,8 +60,8 @@ let dir
 let workdir
 try {
   // 本仓自己设了 core.hooksPath 时写进它；否则写进 git 公共目录下的 hooks，
-  // 不写进全局 core.hooksPath 指向的、所有仓共用的目录。
-  dir = localHooksPath()
+  // 不写进全局或系统级 core.hooksPath 指向的、多个仓共用的目录。
+  dir = repoScopedHooksPath()
     ? resolve(ROOT, git('rev-parse', '--git-path', 'hooks'))
     : resolve(ROOT, git('rev-parse', '--git-common-dir'), 'hooks')
   workdir = relative(git('rev-parse', '--show-toplevel'), ROOT).replaceAll('\\', '/')
