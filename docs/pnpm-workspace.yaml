@@ -1,5 +1,9 @@
 shellEmulator: true
 
+# 间接依赖的安全修补：只覆盖受影响的版本区间，直接依赖升级后带上修补版即可删掉对应行。
+overrides:
+  brace-expansion@>=4.0.0 <5.0.12: ^5.0.12 # GHSA-q2hr-2g5m-vwhr，经 minimatch（eslint）
+
 allowBuilds:
   esbuild: true
 
