@@ -85,7 +85,7 @@ git push origin release
 git fetch origin
 git switch -c hotfix/e-<編號>-<短名> origin/release
 # 修改、測試、提交後 git push -u origin hotfix/e-<編號>-<短名>
-gh pr create --repo TW199501/XiHan.UI --draft --base release --head hotfix/e-<編號>-<短名> --title "hotfix(E-<編號>): <說明>（僅觸發 CI，不要合併）" --body "E-<編號>"   # ci.yml 目前沒有 hotfix/** 推送觸發，需要這一步
+# ci.yml 在 push hotfix/** 時觸發，不需要另開 draft PR
 git log --oneline origin/release..origin/hotfix/e-<編號>-<短名>   # 先列出會帶進去的提交，給使用者確認
 gh api "repos/TW199501/XiHan.UI/commits/$(git rev-parse origin/hotfix/e-<編號>-<短名>)/check-runs?filter=latest&per_page=100" --jq '.check_runs[]|"\(.status) \(.conclusion) \(.name)"'   # 全部通過才發佈（判斷方式見 elf-team-rule references/04 第 0 節）
 git fetch origin && git switch release && git merge --ff-only origin/release && git merge --ff-only origin/hotfix/e-<編號>-<短名> && git push origin release   # 任何一步失敗 → 停下來回報
