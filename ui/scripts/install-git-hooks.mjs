@@ -18,6 +18,16 @@ function git(...args) {
   }).trim()
 }
 
+/** 本仓 `--local` 配置的 core.hooksPath，未配置时为空串。 */
+function localHooksPath() {
+  try {
+    return git('config', '--local', '--get', 'core.hooksPath')
+  }
+  catch {
+    return ''
+  }
+}
+
 /**
  * 钩子脚本：git 在工作树顶层跑钩子，而依赖装在清单所在目录下，
  * 命令里的 npx 要在那里才找得到。换目录前先把消息文件路径转成绝对的。
@@ -48,7 +58,11 @@ if (names.length === 0) {
 let dir
 let workdir
 try {
-  dir = resolve(ROOT, git('rev-parse', '--git-path', 'hooks'))
+  // 本仓自己设了 core.hooksPath 时写进它；否则写进 git 公共目录下的 hooks，
+  // 不写进全局 core.hooksPath 指向的、所有仓共用的目录。
+  dir = localHooksPath()
+    ? resolve(ROOT, git('rev-parse', '--git-path', 'hooks'))
+    : resolve(ROOT, git('rev-parse', '--git-common-dir'), 'hooks')
   workdir = relative(git('rev-parse', '--show-toplevel'), ROOT).replaceAll('\\', '/')
 }
 catch {
