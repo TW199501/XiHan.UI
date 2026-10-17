@@ -18,6 +18,17 @@ function git(...args) {
   }).trim()
 }
 
+/** 生效的 core.hooksPath 是否由本仓设定（worktree、local 或命令行作用域）。 */
+function repoScopedHooksPath() {
+  try {
+    const scope = git('config', '--show-scope', '--get', 'core.hooksPath').split('\t')[0]
+    return scope === 'worktree' || scope === 'local' || scope === 'command'
+  }
+  catch {
+    return false
+  }
+}
+
 /**
  * 钩子脚本：git 在工作树顶层跑钩子，而依赖装在清单所在目录下，
  * 命令里的 npx 要在那里才找得到。换目录前先把消息文件路径转成绝对的。
@@ -48,7 +59,11 @@ if (names.length === 0) {
 let dir
 let workdir
 try {
-  dir = resolve(ROOT, git('rev-parse', '--git-path', 'hooks'))
+  // 本仓自己设了 core.hooksPath 时写进它；否则写进 git 公共目录下的 hooks，
+  // 不写进全局或系统级 core.hooksPath 指向的、多个仓共用的目录。
+  dir = repoScopedHooksPath()
+    ? resolve(ROOT, git('rev-parse', '--git-path', 'hooks'))
+    : resolve(ROOT, git('rev-parse', '--git-common-dir'), 'hooks')
   workdir = relative(git('rev-parse', '--show-toplevel'), ROOT).replaceAll('\\', '/')
 }
 catch {
