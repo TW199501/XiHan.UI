@@ -1,0 +1,21 @@
+ui/pnpm-lock.yaml
+  s_e16540ab5a5a49::t_77b1c75bf89220 116
+ui/pnpm-workspace.yaml
+  s_e16540ab5a5a49::t_9621d6e4f39218 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c756b09de5c32342848f2357ae6b702459cd2c2c",
+  "prompts": {},
+  "sessions": {
+    "s_e16540ab5a5a49": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ecdca057-e82b-490f-a0de-fe2e4956b78b",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
