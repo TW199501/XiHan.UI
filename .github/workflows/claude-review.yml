@@ -31,6 +31,10 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Use this job's GITHUB_TOKEN so the `permissions` block above bounds
+          # what the review can do; without it the action exchanges OIDC for a
+          # Claude App token whose rights come from the app installation.
+          github_token: ${{ github.token }}
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
