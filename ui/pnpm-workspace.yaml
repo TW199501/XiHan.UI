@@ -10,7 +10,7 @@ packages:
 
 # 间接依赖的安全修补：只覆盖受影响的版本区间，直接依赖升级后带上修补版即可删掉对应行。
 overrides:
-  fast-uri@<3.1.7: ^3.1.7 # GHSA-qw65-cvwx-89v3 等，经 ajv（commitlint、stylelint）
+  fast-uri@<3.1.8: ^3.1.8 # GHSA-hrr3-gc8f-f4qj 等，经 ajv（commitlint、stylelint）
   postcss@<8.5.23: ^8.5.23 # GHSA-fxqj-rqcc-2cmp 等，经 stylelint
   js-yaml@>=4.0.0 <4.3.2: ^4.3.2 # GHSA-2883-xcg3-v3hh 等，经 cosmiconfig
   dot-prop@>=5.0.0 <5.1.1: ^5.1.1 # GHSA-ff7x-qrg7-qggm，经 compare-func（commitlint）
