@@ -1,0 +1,25 @@
+docs/pnpm-lock.yaml
+  s_e16540ab5a5a49::t_65d9fbd782cb33 7-9,477-478,1332,1612
+docs/pnpm-workspace.yaml
+  s_e16540ab5a5a49::t_57f3d4f0e278ec 3-6
+ui/pnpm-lock.yaml
+  s_e16540ab5a5a49::t_706899ea7b605c 115-122,2797-2798,2986-2987,3326-3327,3772-3773,4419,6867,7063,7089,7134,7238,7673,8094,8096,8496,8903,8905,9235,9256,9258
+ui/pnpm-workspace.yaml
+  s_e16540ab5a5a49::t_c2d73611f73f36 11-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "723cd133e8688b77fc2888cc2d8281ce0b62f839",
+  "prompts": {},
+  "sessions": {
+    "s_e16540ab5a5a49": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ecdca057-e82b-490f-a0de-fe2e4956b78b",
+        "model": "unknown"
+      },
+      "human_author": "楊清雲 <41539966+TW199501@users.noreply.github.com>"
+    }
+  }
+}
