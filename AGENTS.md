@@ -224,7 +224,7 @@ XiHan.UI 是 pnpm + Turborepo 管理的多包组件库。组件行为由框架�
 - 不在 `dev` 上直接提交日常改动。常规工作分支从 `origin/dev` 开，hotfix 分支从 `origin/release` 开；命名为 `<类型>/e-<Linear编号>-<英文短名>`，类型用 `feat/`、`fix/`、`docs/`、`chore/`、`test/`、`hotfix/`；不用中文，不用个人前缀，也不用 `<worktree 名>` 作后缀。worktree 放在仓库同层 `../XiHan.UI-<短名>`。
 - 日常改动进 `dev` 一律经 fork PR：`gh pr create --repo TW199501/XiHan.UI --base dev`，fork CI 通过后以 merge commit 合并。代理不得自行合并或推送 `dev`；用户明确授权后，允许 `main` → `dev` 的无冲突同步，以及按 `BRANCHING.md` 执行 hotfix 发布后的 `release` → `dev` 无冲突合回。
 - 送上游：从 `main` 开 `pr/<短名>`，立刻执行 `git config branch.pr/<短名>.pushRemote origin`；只 cherry-pick 该主题的提交，一个 PR 只做一件事。不要把整个 `dev` 开 PR 给上游。
-- fork 专属文件：`BRANCHING.md`、`AGENTS.md` 的本节。把上游合进 `dev` 遇到冲突时，`AGENTS.md` 采用上游版本，再把本节原样放回「禁止事项」之前。
+- fork 专属文件：`BRANCHING.md`、`AGENTS.md` 的本节，以及 `.github/workflows/ci.yml` 的触发条件（push `dev`、`release`、`hotfix/**`，`pull_request` 不筛分支）、`release` 不取消的 concurrency 和汇总 job `ci`。把上游合进 `dev` 遇到冲突时，`AGENTS.md` 采用上游版本，再把本节原样放回「禁止事项」之前；`ci.yml` 采用上游版本，再把上述三处改回 fork 的写法，上游新增 job 时同步加进 `ci` 的 `needs`。
 - 本地工具产物（`.ocrca/`、`.codegraph/`、`.turbo/`）放在 `.git/info/exclude`，不要提交。
 
 ## 禁止事项
