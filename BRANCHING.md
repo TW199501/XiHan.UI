@@ -13,6 +13,7 @@
 | 下游私有 fork               | 無（下游應用以 npm 套件引用）                     |
 | 發佈來源                    | `release`                                         |
 | 上游貢獻規範                | https://github.com/XiHanFun/.github/blob/main/CONTRIBUTING.md |
+| GitHub 預設分支             | `dev`（Claude 自動審查要求 workflow 檔在預設分支上）  |
 
 上游主線：`main`
 
