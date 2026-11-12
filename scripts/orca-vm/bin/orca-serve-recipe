@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Start the headless Orca runtime and print the recipe JSON it emits.
+# stdout carries only that JSON object.
+set -euo pipefail
+
+port="${ORCA_PORT:-6768}"
+project_root="${ORCA_PROJECT_ROOT:?ORCA_PROJECT_ROOT is required}"
+pairing_address="${ORCA_PAIRING_ADDRESS:?ORCA_PAIRING_ADDRESS is required}"
+recipe_file=/tmp/orca-recipe.json
+log_file=/tmp/orca-serve.log
+
+cd "$project_root"
+rm -f "$recipe_file" "$log_file"
+
+# A reused container (retried create, or resume after a stop) may still hold the
+# port with an earlier runtime; the fresh one must own it.
+if pkill -f 'orcad/out/cli/index.js serve' >/dev/null 2>&1; then
+  echo "Stopped a previous orca serve in this container" >&2
+  sleep 1
+fi
+
+nohup orca-ide serve \
+  --port "$port" \
+  --bind 0.0.0.0 \
+  --project-root "$project_root" \
+  --pairing-address "$pairing_address" \
+  --recipe-json \
+  >"$recipe_file" 2>"$log_file" </dev/null &
+serve_pid=$!
+
+for _ in $(seq 1 240); do
+  if node -e 'JSON.parse(require("node:fs").readFileSync("/tmp/orca-recipe.json", "utf8"))' >/dev/null 2>&1; then
+    cat "$recipe_file"
+    exit 0
+  fi
+  if ! kill -0 "$serve_pid" 2>/dev/null; then
+    cat "$log_file" >&2
+    echo "orca serve exited before printing recipe JSON" >&2
+    exit 1
+  fi
+  sleep 0.25
+done
+
+cat "$log_file" >&2
+echo "orca serve did not print recipe JSON within 60s" >&2
+exit 1
