@@ -1,0 +1,28 @@
+# Orca workspace configuration.
+# Docs: https://www.onorca.dev/docs
+
+scripts:
+  # Runs in every new workspace checkout. The shebang makes Orca run it through
+  # bash on Linux and through Git Bash on Windows.
+  setup: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    ./scripts/orca-setup.sh
+
+environmentRecipes:
+  - id: docker-sandbox
+    name: Local Docker Sandbox
+    description: >-
+      Disposable Docker container on this machine, booted from a pre-built image
+      that carries Node 24, pnpm, the signed-in claude and codex CLIs, and a warm
+      checkout. Build it once with scripts/orca-vm/docker-base-image.sh, then
+      scripts/orca-vm/docker-base-auth.sh start/finish.
+    create: .\scripts\orca-vm\docker-create.cmd
+    suspend: .\scripts\orca-vm\docker-suspend.cmd
+    resume: .\scripts\orca-vm\docker-resume.cmd
+    destroy: .\scripts\orca-vm\docker-destroy.cmd
+    timeoutSeconds:
+      create: 1800
+      suspend: 120
+      resume: 600
+      destroy: 120
