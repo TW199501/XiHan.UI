@@ -1,0 +1,3 @@
+# Build artefacts fetched by docker-base-image.sh
+orca-server-*.tar.gz
+orca-server-sha256sums.txt

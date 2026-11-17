@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Bring the baked checkout up to the requested ref and reinstall dependencies
+# only when the commit changed. Progress goes to stderr; stdout stays empty.
+set -euo pipefail
+
+project_root="${ORCA_PROJECT_ROOT:?ORCA_PROJECT_ROOT is required}"
+repo_ref="${ORCA_REPO_REF:?ORCA_REPO_REF is required}"
+marker="${HOME}/.orca-installed"
+
+cd "$project_root"
+git fetch --prune origin "$repo_ref" >&2
+if ! git checkout -B "$repo_ref" FETCH_HEAD >&2; then
+  echo "Could not move the primary checkout to $repo_ref; the fetched commits are still available." >&2
+fi
+
+commit="$(git rev-parse FETCH_HEAD)"
+if [ -f "$marker" ] && [ "$(cat "$marker")" = "$commit" ]; then
+  echo "Dependencies already installed for $commit." >&2
+  exit 0
+fi
+
+(cd ui && pnpm install --frozen-lockfile >&2)
+printf '%s' "$commit" > "$marker"

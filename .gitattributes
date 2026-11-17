@@ -31,3 +31,6 @@
 
 # 锁文件按文本展示依赖差异；生成文件标记只折叠展示，不隐藏 diff。
 pnpm-lock.yaml diff linguist-generated=true
+
+# cmd.exe mis-parses batch files checked out with LF line endings.
+*.cmd text eol=crlf

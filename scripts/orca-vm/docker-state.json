@@ -1,0 +1,10 @@
+{
+  "baseName": "orca-xihan-ui",
+  "snapshotId": "orca-xihan-ui:auth",
+  "authSourceSnapshotId": "orca-xihan-ui:base",
+  "orcaServerVersion": "v1.4.256",
+  "port": 6768,
+  "repoUrl": "https://github.com/TW199501/XiHan.UI.git",
+  "repoRef": "dev",
+  "projectRoot": "/home/orca/XiHan.UI"
+}
